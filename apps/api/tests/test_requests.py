@@ -326,3 +326,43 @@ def test_collection_recording(pilot):
     assert closed.status_code == 200, closed.text
     assert float(closed.json()["points_awarded"]) == 7.875
     assert float(client.get("/api/v1/users/me/points",headers=resident).json()["balance"]) == 32.875
+
+
+def test_learning_progress(pilot):
+    from concurrent.futures import ThreadPoolExecutor
+
+    client, _, password = pilot
+    catalog = "/api/v1/public/education"
+    profile = "/api/v1/users/me/learning-progress"
+    # Separate client IP keeps this scenario independent of earlier login throttle tests.
+    with TestClient(app, client=("education-test", 1234)) as session:
+        owner, other = [
+            {"Authorization": "Bearer " + login(session, i, password).json()["access_token"]}
+            for i in (0, 1)
+        ]
+    empty = {"total": 0, "completed": 0, "percentage": 0, "completions": []}
+    assert client.get(profile, headers=owner).json() == empty
+    with engine().begin() as db:
+        ids = [str(db.scalar(text("""
+            INSERT INTO educational_content(title, body, category, created_by, is_published)
+            SELECT :title, 'Contenido', 'huerta', id, :published FROM users
+            WHERE phone='+100000000' RETURNING id
+        """), {"title": str(i), "published": i < 2})) for i in range(3)]
+    assert {m["id"] for m in client.get(catalog).json()} == set(ids[:2])
+    assert client.get(f"{catalog}/{ids[0]}").json()["body"] == "Contenido"
+    assert client.get(f"{catalog}/{ids[2]}").status_code == 404
+    assert client.put(f"{profile}/{ids[2]}", headers=owner).status_code == 404
+    assert client.get(profile).status_code == 401
+    url = f"{profile}/{ids[0]}"
+    assert client.put(url).status_code == 401
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        replies = list(pool.map(lambda _: client.put(url, headers=owner), range(2)))
+    assert all(r.status_code == 200 for r in replies)
+    assert replies[0].json() == replies[1].json()
+    assert client.get(profile, headers=owner).json() == {
+        "completed": 1, "total": 2, "percentage": 50, "completions": [replies[0].json()]
+    }
+    assert client.get(profile, headers=other).json()["completed"] == 0
+    with engine().begin() as db:
+        db.execute(text("UPDATE educational_content SET is_published=false WHERE id=:id"), {"id": ids[0]})
+    assert client.get(profile, headers=owner).json() == {**empty, "total": 1}

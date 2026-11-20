@@ -1,12 +1,11 @@
 # Noticias de EcoConecta
 
-El coordinador que cubre la zona y el colectivo ya puede cargar los pesos
-verificados y cerrar la recolección. La API acredita al vecino antes de marcarla
-recolectada, en una sola transacción. Los reintentos conservan un solo crédito.
+En `feat/backend-core` ya se puede consultar el catálogo educativo público y
+marcar módulos como completados desde una sesión. El perfil devuelve el avance
+sobre los módulos publicados. Frontend puede conectar el catálogo y el botón
+«Marcar como completado» con los [contratos de la API](docs/API_CONTRACTS.md).
 
-Administración puede publicar tarifas por material reciclable y un factor
-común de huerta de 10 puntos/kg por defecto. La tabla de compra en COP/kg se
-utilizará para los reportes monetarios. [Contrato y uso](apps/api/README.md#verificación-cierre-y-puntos)
-
-La ubicación en tiempo real y la sugerencia de rutas editables por coordinación
-siguen en la última fase. [Backlog](docs/BACKEND_SCREEN_BACKLOG.md)
+La migración 0004 está aplicada en PostgreSQL local. Pasaron las siete pruebas
+del backend, incluidas las de progreso privado y finalizaciones simultáneas.
+Quedan la carga de contenido, las pantallas y la integración con visión cuando
+se publique la API del modelo.
