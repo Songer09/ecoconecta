@@ -10,16 +10,17 @@ import { StatusPill } from './components/StatusPill'
 import { DemoTag } from './components/DemoTag'
 import { EmptyState, InfoSection, OperationPanel } from './components/PanelStates'
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
+import { authApi } from './services/authApi'
 
 type View = 'welcome' | 'login' | 'learning' | 'dashboard'
 type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports'
 
-const roleInfo: Record<Role, { name: string; title: string; description: string; initial: string }> = {
-  neighbor: { name: 'Vecino', title: 'Tu hogar también transforma', description: 'Solicita una recolección, aprende y sigue tus aportes.', initial: 'V' },
-  collector: { name: 'Recolector', title: 'Tu jornada, más clara', description: 'Consulta tus asignaciones y registra cada recolección.', initial: 'R' },
-  vivi: { name: 'Coordinación de reciclaje', title: 'Coordinación de reciclaje', description: 'Organiza solicitudes, personas y materiales reciclables.', initial: 'CR' },
-  kelly: { name: 'Coordinación de huerta', title: 'Coordinación de huerta', description: 'Conecta los aportes orgánicos con las necesidades del huerto.', initial: 'CH' },
-  admin: { name: 'Administrador', title: 'Gestión de EcoConecta', description: 'Administra las herramientas comunitarias del sistema.', initial: 'A' },
+const roleInfo: Record<Role, { name: string; title: string; description: string }> = {
+  neighbor: { name: 'Vecino', title: 'Tu hogar también transforma', description: 'Solicita una recolección, aprende y sigue tus aportes.' },
+  collector: { name: 'Recolector', title: 'Tu jornada, más clara', description: 'Consulta tus asignaciones y registra cada recolección.' },
+  vivi: { name: 'Coordinación de reciclaje', title: 'Coordinación de reciclaje', description: 'Organiza solicitudes, personas y materiales reciclables.' },
+  kelly: { name: 'Coordinación de huerta', title: 'Coordinación de huerta', description: 'Conecta los aportes orgánicos con las necesidades del huerto.' },
+  admin: { name: 'Administrador', title: 'Gestión de EcoConecta', description: 'Administra las herramientas comunitarias del sistema.' },
 }
 
 const navByRole: Record<Role, { id: Section; label: string }[]> = {
@@ -47,11 +48,20 @@ function WhatsAppGlyph() {
   return <svg viewBox="0 0 32 32" aria-hidden="true" className="whatsapp-glyph"><path d="M16 3.5a12.1 12.1 0 0 0-10.4 18.3L4 28l6.4-1.6A12.1 12.1 0 1 0 16 3.5Z"/><path d="M12.4 10.2c-.3-.7-.7-.7-1-.7h-.8c-.3 0-.8.1-1.2.6-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.1 6.2 3.5 1.4 4.2 1.1 5 .9.8-.1 2.5-1 2.8-2 .3-1 .3-1.8.2-2-.1-.2-.4-.3-.9-.6-.5-.2-2.5-1.2-2.9-1.3-.4-.2-.7-.2-1 .2-.3.5-1.1 1.4-1.4 1.7-.2.3-.5.4-.9.1-.5-.2-1.9-.7-3.6-2.2-1.3-1.1-2.2-2.5-2.4-2.9-.3-.5 0-.7.2-.9.2-.2.5-.6.7-.8.2-.3.3-.5.5-.8.1-.3.1-.6 0-.8-.1-.2-.9-2.2-1.2-3Z"/></svg>
 }
 
+function RoleIcon({ role }: { role: Role }) {
+  const paths: Record<Role, string> = {
+    neighbor: 'M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6',
+    collector: 'M12 3v5m0-5 3 3m-3-3-3 3M5.5 10A8 8 0 1 0 19 7M4 6l1.5 4L9 8',
+    vivi: 'M12 3v18m0-18 6 3-6 3m0 2-6 3 6 3m0 2 6 3-6 3',
+    kelly: 'M12 21v-9m0 3c-5 0-7-3-7-7 5 0 7 3 7 7Zm0-3c0-5 3-7 7-7 0 5-2 7-7 7Z',
+    admin: 'M12 3 20 6v5c0 5-3.5 8.5-8 11-4.5-2.5-8-6-8-11V6l8-3Zm-3 9 2 2 4-4',
+  }
+  return <svg className="role-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[role]}/></svg>
+}
+
 function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void; whatsappHref?: string }) {
-  const [whatsappNotice, setWhatsappNotice] = useState(false)
   return <main className="welcome-page">
-    <header className="welcome-header"><Brand/><div className="welcome-header-actions">{whatsappHref ? <a className="whatsapp-cta" href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppGlyph/>Contáctanos por WhatsApp</a> : <button className="whatsapp-cta" onClick={() => setWhatsappNotice(true)}><WhatsAppGlyph/>Contáctanos por WhatsApp</button>}</div></header>
-    {whatsappNotice && <p className="whatsapp-config-note" role="status">Falta configurar el enlace oficial de WhatsApp de EcoConecta.</p>}
+    <header className="welcome-header"><Brand/>{whatsappHref && <div className="welcome-header-actions"><a className="whatsapp-cta" href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppGlyph/>Contáctanos por WhatsApp</a></div>}</header>
     <div className="welcome-grid">
       <section className="welcome-copy">
         <p className="eyebrow">BIENVENIDO</p>
@@ -60,7 +70,7 @@ function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: R
         <section className="role-picker" id="roles">
           <div className="role-picker-heading"><div><p className="eyebrow">ACCESO A ECOCONECTA</p><h2>Elige tu rol</h2></div></div>
           <div className="role-grid">
-            {roleOptions.map((role) => <button key={role} className="role-card" onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}>{roleInfo[role].initial}</span><span className="role-copy"><strong>{roleInfo[role].name}</strong><small>{roleInfo[role].description}</small></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
+            {roleOptions.map((role) => <button key={role} className="role-card" onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}><RoleIcon role={role}/></span><span className="role-copy"><strong>{roleInfo[role].name}</strong><small>{roleInfo[role].description}</small></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
           </div>
           <p className="demo-note">Usa el acceso correspondiente a tu participación en la comunidad.</p>
         </section>
@@ -73,27 +83,43 @@ function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: R
   </main>
 }
 
-function LoginScreen({ role, onBack }: { role: Role; onBack: () => void }) {
+function LoginScreen({ role, onBack, onSuccess }: { role: Role; onBack: () => void; onSuccess: (role: Role) => void }) {
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
   const info = roleInfo[role]
-  function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
-    setMessage('El servicio de autenticación de la API todavía no está disponible. Tus datos no se enviaron y no se inició sesión.')
+    setMessage('')
+    setBusy(true)
+    try {
+      const session = await authApi.login({ phone: phone.trim(), password })
+      if (session.role !== role) {
+        await authApi.logout()
+        throw new Error(`Esta cuenta pertenece al perfil “${roleInfo[session.role].name}”. Elige ese perfil para continuar.`)
+      }
+      onSuccess(session.role)
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
+    } finally {
+      setBusy(false)
+    }
   }
   return <main className="login-page">
     <header className="simple-header"><button className="text-button login-back" onClick={onBack}>← Volver a roles</button><Brand compact/><span className="login-header-spacer"/></header>
     <section className="login-card">
-      <div className={`role-avatar avatar-${role}`}>{info.initial}</div>
+      <div className={`role-avatar avatar-${role}`}><RoleIcon role={role}/></div>
       <p className="eyebrow">INICIO DE SESIÓN</p>
       <h1>{info.name}</h1>
       <p className="login-description">{info.description}</p>
       <form className="login-form" onSubmit={submit}>
-        <label>Correo electrónico<input type="email" name="email" autoComplete="username" placeholder="nombre@correo.com" required/></label>
-        <label>Contraseña<input type="password" name="password" autoComplete="current-password" placeholder="Ingresa tu contraseña" required/></label>
-        <button className="button button-primary" type="submit">Iniciar sesión</button>
+        <label>Teléfono con indicativo internacional<input type="tel" name="phone" autoComplete="username" inputMode="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
+        <label>Contraseña<input type="password" name="password" autoComplete="current-password" placeholder="Ingresa tu contraseña" value={password} onChange={(event) => setPassword(event.target.value)} required/></label>
+        <button className="button button-primary" type="submit" disabled={busy}>{busy ? 'Verificando…' : 'Iniciar sesión'}</button>
       </form>
       {message && <p className="login-api-notice" role="alert">{message}</p>}
-      <p className="login-help">¿Necesitas ayuda? Contacta a la coordinación comunitaria.</p>
+      <p className="login-help">El teléfono debe incluir + y el indicativo del país. Si aún no tienes cuenta, solicita el registro a administración.</p>
     </section>
   </main>
 }
@@ -235,7 +261,7 @@ function Dashboard({ role, initialSection = 'home', onExit, onLearn }: { role: R
 
   return <div className={`app-shell app-shell-${role}`}>
     <header className="app-header"><button className="brand-button" onClick={onExit} aria-label="Volver al selector de roles"><Brand compact/></button><div className="header-tools"><DemoTag/></div></header>
-    <div className="app-body"><aside className="app-sidebar"><div className={`sidebar-profile avatar-${role}`}><span>{info.initial}</span><div><strong>{info.name}</strong><small>{role === 'neighbor' ? 'Comunidad' : role === 'collector' ? 'Equipo recolector' : role === 'vivi' ? 'Equipo de reciclaje' : role === 'kelly' ? 'Equipo de huerta' : 'Administración'}</small></div></div><nav aria-label="Navegación principal">{navByRole[role].map((item) => <button key={item.id} className={`nav-item ${section === item.id ? 'nav-active' : ''}`} onClick={() => { setSection(item.id); setShowForm(false); setShowAllRequests(false) }}><span className="nav-indicator" aria-hidden="true"/>{item.label}</button>)}</nav><div className="sidebar-bottom"><button className="nav-item" onClick={onExit}>← Salir al acceso</button><small>EcoConecta · Demostración</small></div></aside>
+    <div className="app-body"><aside className="app-sidebar"><div className={`sidebar-profile avatar-${role}`}><span><RoleIcon role={role}/></span><div><strong>{info.name}</strong><small>{role === 'neighbor' ? 'Comunidad' : role === 'collector' ? 'Equipo recolector' : role === 'vivi' ? 'Equipo de reciclaje' : role === 'kelly' ? 'Equipo de huerta' : 'Administración'}</small></div></div><nav aria-label="Navegación principal">{navByRole[role].map((item) => <button key={item.id} className={`nav-item ${section === item.id ? 'nav-active' : ''}`} onClick={() => { setSection(item.id); setShowForm(false); setShowAllRequests(false) }}><span className="nav-indicator" aria-hidden="true"/>{item.label}</button>)}</nav><div className="sidebar-bottom"><button className="nav-item" onClick={onExit}>← Cerrar sesión</button><small>EcoConecta · {import.meta.env.VITE_DATA_MODE === 'demo' ? 'Demostración' : 'Piloto'}</small></div></aside>
       <main className="app-main"><div className="mobile-brand"><Brand compact/></div><div className="main-heading"><div><p className="eyebrow">{info.name.toUpperCase()} · ECOCONECTA</p><h1>{heading}</h1>{section === 'home' && <p>{role === 'neighbor' ? 'Esto es lo que pasa con tus aportes al barrio.' : info.description}</p>}</div>{role === 'collector' && <button className={`availability ${available ? 'available' : ''}`} onClick={() => { setAvailable(!available); announce(available ? 'Ahora apareces como no disponible.' : 'Ahora apareces como disponible.') }}><i/> {available ? 'Disponible' : 'No disponible'}</button>}</div>
         {toast && <div className="toast" role="status">{toast}</div>}
         {notification && <div className="notice-banner" role="status">{notification}<button onClick={() => setNotification('')} aria-label="Cerrar aviso">×</button></div>}
@@ -259,7 +285,7 @@ function DashboardSection({ role, section, requests, allRequests, showAllRequest
   if (role === 'neighbor' && section === 'points') return <div className="points-shop"><section className="points-balance"><span className="points-mark">✳</span><p className="eyebrow">TU SALDO</p><h2>Puntos disponibles</h2><strong>—</strong><small>El saldo real requiere consultar la cuenta del vecino en la API.</small></section><section className="points-products"><div><p className="eyebrow">ESPACIO DE CANJE</p><h2>Productos que podrás consultar</h2><p>El catálogo aún no ha sido definido por la Fundación. Aquí aparecerán las opciones disponibles y las que puedes canjear con tu saldo.</p></div><div className="product-pending-grid"><article><span>Catálogo pendiente</span><strong>Productos por definir</strong><small>No se muestran artículos ni equivalencias inventadas.</small></article><article><span>Canjes</span><strong>Disponible más adelante</strong><small>Se habilitará cuando exista catálogo y reglas aprobadas.</small></article></div></section></div>
   if (role === 'neighbor' && section === 'learning') { const topics = service.listEducationTopics(); const completed = service.getCompletedTopics(); const percent = topics.length ? Math.round(completed.length / topics.length * 100) : 0; return <section className="learning-overview"><div className="feature-card"><div><p className="eyebrow">APRENDIZAJE AMBIENTAL</p><h2>Aprende a tu ritmo</h2><p>Consulta los temas y marca tu avance al terminar cada uno.</p><button className="button button-primary" onClick={onLearn}>Abrir aprendizaje</button></div><div className="feature-art feature-art-green"><span>01</span><i/><i/><i/></div></div><div className="learning-progress-card"><div className="learning-progress-copy"><span className="eyebrow">TU AVANCE</span><strong>{percent}%</strong><span>{completed.length} de {topics.length} temas completados</span></div><div className="progress-track" role="progressbar" aria-label="Avance de aprendizaje" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${percent}%` }}/></div><div className="learning-topic-progress">{topics.map((topic, index) => <div key={topic.id} className="learning-topic-row"><span className={completed.includes(topic.id) ? 'topic-check topic-check-done' : 'topic-check'}>{completed.includes(topic.id) ? '✓' : index + 1}</span><div><strong>{topic.title}</strong><div className="topic-progress-track"><span className={completed.includes(topic.id) ? 'topic-progress-done' : ''}/></div></div><small>{completed.includes(topic.id) ? 'Completado' : 'Pendiente'}</small></div>)}</div></div></section> }
   if (role === 'neighbor' && section === 'events') return <InfoSection title="Eventos de la comunidad" description="Aquí se consultarán las actividades próximas cuando la coordinación las publique." badge="Sin eventos publicados" />
-  if (role === 'neighbor' && section === 'profile') return <section className="neighbor-profile"><div className="profile-avatar">V</div><div><p className="eyebrow">PERFIL DE DEMOSTRACIÓN</p><h2>Vecino de Villas de San Pablo</h2><p>Los datos personales se mostrarán cuando exista una sesión autenticada.</p></div><div className="profile-points"><span>Puntos acumulados</span><strong>—</strong><small>Saldo pendiente de conexión con la API.</small></div></section>
+  if (role === 'neighbor' && section === 'profile') return <section className="neighbor-profile"><div className="profile-avatar"><RoleIcon role="neighbor"/></div><div><p className="eyebrow">PERFIL DE DEMOSTRACIÓN</p><h2>Vecino de Villas de San Pablo</h2><p>Los datos personales se mostrarán cuando exista una sesión autenticada.</p></div><div className="profile-points"><span>Puntos acumulados</span><strong>—</strong><small>Saldo pendiente de conexión con la API.</small></div></section>
   if (role === 'collector' && section === 'home') return <>
     <div className="collector-callout"><div><span className="eyebrow">TU JORNADA</span><h2>{requests.filter((item) => item.status === 'ASSIGNED' || item.status === 'SCHEDULED').length} recolecciones asignadas</h2><p>Revisa los detalles y registra el resultado al terminar.</p></div><button className="button button-primary" onClick={() => onSection('routes')}>Ver asignaciones</button></div>
     <div className="section-header"><div><h2>Lo próximo</h2><p>Dirección y materiales de tus recolecciones.</p></div></div>{requests.filter((item) => item.status !== 'COMPLETED').length ? <div className="request-list">{requests.filter((item) => item.status !== 'COMPLETED').map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>)}</div> : <EmptyState title="No tienes asignaciones por ahora" detail="Cuando te asignen una recolección, aparecerá aquí."/>}
@@ -299,11 +325,54 @@ function AdminSection({ section, requests, onNotify }: { section: Section; reque
 }
 
 function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
-  const [users, setUsers] = useState<{ id: number; name: string; role: Role }[]>([])
-  const [name, setName] = useState('')
-  const [role, setRole] = useState<Role>('neighbor')
-  function addUser(event: FormEvent) { event.preventDefault(); if (!name.trim()) return; setUsers((current) => [...current, { id: Date.now(), name: name.trim(), role }]); setName(''); onNotify('Usuario de prueba añadido solo a esta demostración.') }
-  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">ADMINISTRACIÓN · DEMOSTRACIÓN</p><h2>Usuarios y roles</h2><p>Administra registros de prueba en esta vista. La lista real y los cambios de roles requieren la API y permisos de backend.</p></div><form className="admin-inline-form" onSubmit={addUser}><label>Nombre de prueba<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Escribe un nombre" required/></label><label>Rol<select value={role} onChange={(event) => setRole(event.target.value as Role)}>{roleOptions.map((option) => <option key={option} value={option}>{roleInfo[option].name}</option>)}</select></label><button className="button button-primary" type="submit">＋ Añadir registro</button></form>{users.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Usuario</th><th>Rol</th><th>Alcance</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}><td>{user.name}<small>Registro de prueba</small></td><td><select aria-label={`Rol de ${user.name}`} value={user.role} onChange={(event) => { const nextRole = event.target.value as Role; setUsers((current) => current.map((row) => row.id === user.id ? { ...row, role: nextRole } : row)); onNotify('Rol simulado actualizado solo en esta vista.') }}>{roleOptions.map((option) => <option key={option} value={option}>{roleInfo[option].name}</option>)}</select></td><td>Sin permisos reales</td></tr>)}</tbody></table></div> : <div className="admin-empty"><strong>No hay usuarios de prueba agregados</strong><span>Los usuarios registrados se cargarán al conectar la API.</span></div>}</section>
+  const [users, setUsers] = useState<Awaited<ReturnType<typeof authApi.listPilotUsers>>>([])
+  const [zones, setZones] = useState<Awaited<ReturnType<typeof authApi.listZones>>>([])
+  const [accountType, setAccountType] = useState<'resident' | 'staff'>('resident')
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [staffRole, setStaffRole] = useState<'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'>('recolector')
+  const [collectorFlow, setCollectorFlow] = useState<'organico' | 'reciclable'>('reciclable')
+  const [zoneIds, setZoneIds] = useState<string[]>([])
+  const [validFrom, setValidFrom] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()))
+  const [error, setError] = useState('')
+  const [busy, setBusy] = useState(false)
+  async function reload() {
+    const [loadedUsers, loadedZones] = await Promise.all([authApi.listPilotUsers(), authApi.listZones()])
+    setUsers(loadedUsers); setZones(loadedZones)
+  }
+  useEffect(() => { void reload().catch((reason) => setError(reason instanceof Error ? reason.message : 'No se pudieron cargar las cuentas.')) }, [])
+  async function createAccount(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault(); setError(''); setBusy(true)
+    try {
+      if (accountType === 'resident') await authApi.createResident({ full_name: fullName.trim(), phone: phone.trim(), password })
+      else {
+        const flow = staffRole === 'coordinador_huerteros' ? 'organico' : staffRole === 'coordinador_recicladores' ? 'reciclable' : collectorFlow
+        await authApi.createStaff({ full_name: fullName.trim(), phone: phone.trim(), password, role: staffRole, flow, zone_ids: zoneIds, valid_from: validFrom })
+      }
+      setFullName(''); setPhone(''); setPassword(''); setZoneIds([])
+      await reload()
+      onNotify('Cuenta piloto creada. Entrega el teléfono y la contraseña al titular de forma segura.')
+    } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo crear la cuenta.') }
+    finally { setBusy(false) }
+  }
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">CUENTAS PILOTO · ADMINISTRACIÓN</p><h2>Registro de personas</h2><p>El backend solo permite que administración aprovisione usuarios. El acceso se entrega con teléfono internacional y contraseña; los roles no se asignan desde un registro público.</p></div>
+    <div className="admin-account-tabs"><button className={accountType === 'resident' ? 'account-tab active' : 'account-tab'} onClick={() => setAccountType('resident')}>Vecino o unidad productiva</button><button className={accountType === 'staff' ? 'account-tab active' : 'account-tab'} onClick={() => setAccountType('staff')}>Personal operativo</button></div>
+    <form className="admin-account-form" onSubmit={createAccount}>
+      <label>Nombre completo<input value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={1} maxLength={200} required/></label>
+      <label>Teléfono con indicativo<input type="tel" inputMode="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
+      <label>Contraseña inicial<input type="password" minLength={12} maxLength={256} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/><small>Mínimo 12 caracteres. Entrégala al titular de forma segura.</small></label>
+      {accountType === 'staff' && <>
+        <label>Rol operativo<select value={staffRole} onChange={(event) => setStaffRole(event.target.value as typeof staffRole)}><option value="recolector">Recolector</option><option value="coordinador_huerteros">Coordinación de huerta</option><option value="coordinador_recicladores">Coordinación de reciclaje</option></select></label>
+        {staffRole === 'recolector' && <label>Flujo de recolección<select value={collectorFlow} onChange={(event) => setCollectorFlow(event.target.value as typeof collectorFlow)}><option value="reciclable">Reciclable</option><option value="organico">Orgánico</option></select></label>}
+        <label>Vigente desde<input type="date" value={validFrom} onChange={(event) => setValidFrom(event.target.value)} required/></label>
+        <fieldset className="account-zones"><legend>Zonas asignadas</legend>{zones.length ? zones.map((zone) => <label key={zone.id}><input type="checkbox" checked={zoneIds.includes(zone.id)} onChange={() => setZoneIds((current) => current.includes(zone.id) ? current.filter((id) => id !== zone.id) : [...current, zone.id])}/>{zone.name}</label>) : <small>No hay zonas activas disponibles.</small>}</fieldset>
+      </>}
+      {error && <p className="login-api-notice" role="alert">{error}</p>}
+      <button className="button button-primary" type="submit" disabled={busy || (accountType === 'staff' && (zones.length === 0 || zoneIds.length === 0))}>{busy ? 'Creando cuenta…' : 'Crear cuenta piloto'}</button>
+    </form>
+    <div className="admin-account-list"><h3>Cuentas existentes</h3>{users.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Nombre</th><th>Rol</th><th>Estado piloto</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}><td>{user.full_name}</td><td>{user.role}</td><td>{user.is_active && user.is_pilot ? 'Activa' : 'Inactiva'}</td></tr>)}</tbody></table></div> : <p>{error ? 'Inicia sesión como administración y confirma la conexión con el backend.' : 'No hay cuentas registradas.'}</p>}</div>
+  </section>
 }
 
 function AdminEventsDemo({ onNotify }: { onNotify: (message: string) => void }) {
@@ -347,7 +416,7 @@ export default function App() {
   const [dashboardSection, setDashboardSection] = useState<Section>('home')
   const openLearning = () => { setEducationReturnView(view); setView('learning') }
   if (view === 'learning') return <Education onBack={() => setView(educationReturnView)} onNeighbor={() => { setRole('neighbor'); setView('login') }}/>
-  if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')}/>
-  if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { setDashboardSection('home'); setView('welcome') }} onLearn={openLearning}/>
+  if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')} onSuccess={(authenticatedRole) => { setRole(authenticatedRole); setDashboardSection('home'); setView('dashboard') }}/>
+  if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { void authApi.logout(); setDashboardSection('home'); setView('welcome') }} onLearn={openLearning}/>
   return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }} whatsappHref={configuredWhatsAppUrl()}/>
 }

@@ -629,6 +629,40 @@ p { line-height: 1.55; }
   .requests-modal { padding: 16px; }
 }
 
+/* Role symbols, account provisioning, and a legible branded logo plate. */
+.welcome-header .brand img, .simple-header .brand img, .app-header .brand img, .mobile-brand .brand img { width: 188px; height: 58px; padding: 3px 8px; border-radius: 8px; background: var(--eco-white); }
+.role-icon { display: block; width: 22px; height: 22px; }
+.role-avatar { color: var(--eco-orange); background: var(--orange-soft); }
+.avatar-neighbor.role-avatar, .avatar-vivi.role-avatar { color: #9A4A00; background: var(--yellow-soft); }
+.avatar-collector.role-avatar, .avatar-kelly.role-avatar { color: var(--eco-green); background: var(--green-soft); }
+.avatar-admin.role-avatar { color: var(--eco-teal); background: var(--teal-soft); }
+.sidebar-profile > span .role-icon { width: 19px; height: 19px; }
+.sidebar-profile.avatar-neighbor > span, .sidebar-profile.avatar-vivi > span { color: #9A4A00; background: var(--yellow-soft); }
+.sidebar-profile.avatar-collector > span, .sidebar-profile.avatar-kelly > span { color: var(--eco-green); background: var(--green-soft); }
+.sidebar-profile.avatar-admin > span { color: var(--eco-teal); background: var(--teal-soft); }
+.resource-action { background: linear-gradient(0deg, color-mix(in srgb, var(--eco-forest) 80%, var(--eco-orange)), color-mix(in srgb, var(--eco-orange) 4%, transparent)); }
+.admin-account-tabs { display: flex; flex-wrap: wrap; gap: 9px; margin: 18px 0 14px; }
+.account-tab { min-height: 44px; padding: 0 14px; border: 1.5px solid var(--eco-orange); border-radius: 8px; color: var(--eco-forest); background: var(--eco-white); font-weight: 750; cursor: pointer; }
+.account-tab.active { color: var(--eco-forest); border-color: var(--eco-orange); background: var(--yellow-soft); box-shadow: inset 0 -3px 0 var(--eco-orange); }
+.admin-account-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; max-width: 780px; padding: 18px; border: 1px solid var(--border-subtle); border-radius: 12px; background: var(--eco-white); }
+.admin-account-form > label { display: grid; align-content: start; gap: 6px; color: var(--eco-charcoal); font-size: .88rem; font-weight: 700; }
+.admin-account-form > label input, .admin-account-form > label select { min-width: 0; min-height: 46px; padding: 9px 11px; border: 1.5px solid var(--border-subtle); border-radius: 8px; background: var(--eco-white); }
+.admin-account-form > label small { color: var(--text-secondary); font-weight: 450; }
+.admin-account-form > button, .admin-account-form > .login-api-notice, .account-zones { grid-column: 1 / -1; }
+.account-zones { display: flex; flex-wrap: wrap; gap: 12px; margin: 0; padding: 12px; border: 1px solid var(--eco-orange); border-radius: 8px; }
+.account-zones legend { padding: 0 6px; color: var(--eco-forest); font-weight: 750; }
+.account-zones label { display: flex; align-items: center; gap: 7px; font-weight: 600; }
+.account-zones input { accent-color: var(--eco-green); }
+.admin-account-list { margin-top: 22px; }
+.admin-account-list h3 { font-size: 1.15rem; }
+.profile-avatar .role-icon { width: 28px; height: 28px; }
+.profile-avatar { color: #9A4A00; background: var(--yellow-soft); }
+@media (max-width: 760px) {
+  .welcome-header .brand img, .simple-header .brand img, .app-header .brand img, .mobile-brand .brand img { width: 150px; height: 48px; }
+  .admin-account-form { grid-template-columns: 1fr; }
+  .admin-account-form > button, .admin-account-form > .login-api-notice, .account-zones { grid-column: auto; }
+}
+
 /* Welcome actions and community entry points */
 .welcome-header-actions { display: flex; align-items: center; gap: 12px; }
 .whatsapp-cta { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 9px; padding: 0 15px; border: 2px solid var(--eco-white); border-radius: 8px; color: var(--eco-green); background: var(--eco-white); font-size: .9rem; font-weight: 800; text-decoration: none; cursor: pointer; }
