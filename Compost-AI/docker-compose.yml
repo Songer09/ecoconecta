@@ -1,0 +1,11 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      COMPOST_MODEL_DIR: /app/artifacts/model_bdwaste_individual
+      COMPOST_RULES_PATH: /app/config/environmental_rules.yaml
+    volumes:
+      - ./artifacts:/app/artifacts:ro
+      - ./config:/app/config:ro

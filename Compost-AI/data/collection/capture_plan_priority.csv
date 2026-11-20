@@ -1,0 +1,13 @@
+﻿label_material,physical_objects,train_objects,validation_objects,locked_test_objects,photos_per_object,photos_total,photo_views
+banana_peel,25,15,5,5,2,50,top;oblique
+potato_peel,25,15,5,5,2,50,top;oblique
+mango_peel,25,15,5,5,2,50,top;oblique
+sugarcane_husk,25,15,5,5,2,50,top;oblique
+plastic,25,15,5,5,2,50,top;oblique
+glass,25,15,5,5,2,50,top;oblique
+coffee_grounds,25,15,5,5,2,50,top;oblique
+leaves_dry,25,15,5,5,2,50,top;oblique
+leaves_green,25,15,5,5,2,50,top;oblique
+vegetable_scraps,25,15,5,5,2,50,top;oblique
+eggshell,25,15,5,5,2,50,top;oblique
+metal,25,15,5,5,2,50,top;oblique

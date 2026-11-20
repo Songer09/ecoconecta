@@ -1,0 +1,57 @@
+version: 1
+# Defaults are intentionally conservative. Confirm locally with compost operators.
+category_by_class:
+  banana_peel: organic
+  potato_peel: organic
+  mango_peel: organic
+  sugarcane_husk: organic
+  coffee_grounds: organic
+  leaves_dry: organic
+  leaves_green: organic
+  grass_clippings: organic
+  small_branches: organic
+  vegetable_scraps: organic
+  carrot_scraps: organic
+  tomato_scraps: organic
+  lettuce_scraps: organic
+  onion_scraps: organic
+  orange_peel: organic
+  lemon_peel: organic
+  apple_scraps: organic
+  pineapple_scraps: organic
+  eggshell: organic
+  tea_residue: organic
+  bread_scraps: organic
+  cooked_rice: organic
+  meat: organic
+  bones: organic
+  dairy: organic
+  plastic: inorganic
+  glass: inorganic
+  metal: inorganic
+  # Paper and cardboard may contain coatings or composites; keep the broad
+  # organic/inorganic category unknown until a more specific model/rule exists.
+  paper: null
+  cardboard: null
+profiles:
+  household:
+    organic:
+      decision: REQUIRES_REVIEW
+      note: Organic labels not explicitly allowed below require manual review.
+    accepted_classes: [banana_peel, potato_peel, mango_peel, sugarcane_husk, coffee_grounds, leaves_dry, leaves_green, grass_clippings, small_branches, vegetable_scraps, carrot_scraps, tomato_scraps, lettuce_scraps, onion_scraps, orange_peel, lemon_peel, apple_scraps, pineapple_scraps, eggshell, tea_residue, bread_scraps, cooked_rice]
+    excluded_classes: [plastic, glass, metal]
+    unclassified_material_note: No explicit facility rule for this material; manual review is required.
+  community:
+    organic:
+      decision: REQUIRES_REVIEW
+      note: Confirm accepted feedstocks with the community facility.
+    accepted_classes: []
+    excluded_classes: [plastic, glass, metal]
+    unclassified_material_note: No explicit facility rule for this material; manual review is required.
+  industrial:
+    organic:
+      decision: REQUIRES_REVIEW
+      note: Confirm process capability and certification with the facility.
+    accepted_classes: []
+    excluded_classes: [plastic, glass, metal]
+    unclassified_material_note: No explicit facility rule for this material; manual review is required.
