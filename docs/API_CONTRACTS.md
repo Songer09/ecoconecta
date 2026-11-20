@@ -126,13 +126,13 @@ El piloto técnico de posición se activa con `LIVE_TRACKING_ENABLED=1`. La web 
 
 ### Imagen y frontend
 
-`POST /users/me/photo-preview` acepta el archivo como cuerpo binario autenticado JPEG o PNG (hasta 5 MiB y 12 megapíxeles). Devuelve JPEG normalizado, con dimensión máxima de 1600 píxeles, sin conservar el original. La respuesta permite previsualizar el material antes de la integración con visión. Si frontend y backend tienen orígenes diferentes, definir `FRONTEND_ORIGINS` como una lista de orígenes concretos separados por comas.
+`POST /users/me/photo-preview` acepta el archivo como cuerpo binario autenticado JPEG o PNG (hasta 5 MiB y 24 megapíxeles). Devuelve JPEG normalizado, con dimensión máxima de 1600 píxeles, sin conservar el original. La respuesta permite previsualizar el material antes de la integración con visión. Si frontend y backend tienen orígenes diferentes, definir `FRONTEND_ORIGINS` como una lista de orígenes concretos separados por comas.
 
 ### Reconocimiento asistido
 
 Configurar `COMPOST_AI_BASE_URL` con el origen interno del servicio. El vecino
 envía JPEG o PNG en el cuerpo de `POST /api/v1/users/me/photo-recognition`.
-El backend normaliza la foto y la envía en multipart a `/api/v1/recognize` con
+El backend acepta hasta 5 MiB y 24 megapíxeles. Normaliza la foto y la envía en multipart a `/api/v1/recognize` con
 el perfil doméstico. Devuelve la sugerencia, confianza, versión y necesidad de
 revisión. Ante 503, la web conserva la selección manual. El usuario confirma el
 flujo y material. El modelo requiere los artefactos indicados en su README.

@@ -11,6 +11,6 @@ El contrato de FastAPI está en [OpenAPI](../apps/api/openapi.json). El equipo d
 | Huerta y canjes | Inventario de faltantes por zona y catálogo con precio y existencias. Los canjes registran el débito y reducen stock en una transacción. | Cargar insumos y premios reales. |
 | Reportes | Conteos por flujo y estado, pesos confirmados por material, recolector y zona, valor de compra estimado por colectivo. | La organización receptora proporciona sus tarifas COP/kg. El reparto de ingresos personales requiere reglas. |
 | Rutas | Consulta por día y zona, sugerencia por distancia, orden editable, disponibilidad operativa y posición reciente opcional. | Conectar el mapa y validar consentimiento, precisión y retención antes del uso con personas reales. |
-| Fotos | Recepción privada, validación y normalización temporal de JPEG/PNG. Selección manual de flujo disponible. | Integrar y probar el contrato real del modelo. |
+| Fotos | Recepción privada, validación y normalización temporal de JPEG/PNG. Selección manual de flujo disponible. | Conectar el formulario web y configurar el servicio y los pesos en el entorno del piloto. El equipo de visión completó una prueba local del modelo real por HTTP. |
 | Portal comunitario | Educación, progreso, fichas institucionales, eventos y horarios vigentes. | Conectar pantallas y publicar contenidos aprobados. |
 | WhatsApp | Los datos de recepción, asignación y programación existen en el backend. | Conectar y validar el servicio de mensajería, sus permisos, consentimiento y reintentos. |
