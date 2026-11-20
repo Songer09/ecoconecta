@@ -641,6 +641,36 @@ def test_recognition_adapter(pilot, monkeypatch):
         monkeypatch.setenv("COMPOST_AI_BASE_URL", "http://vision.test")
         monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real_client(transport=httpx.MockTransport(service), **kw))
         assert client.post(path, headers=auth, content=payload).json() == reply
+
+        large_photo = BytesIO()
+        image = Image.new("RGB", (3120, 4160))
+        exif = image.getexif()
+        exif[274] = 6  # Rotate the camera capture 90 degrees.
+        image.save(large_photo, format="JPEG", exif=exif)
+        def validate_camera_photo(request):
+            from email import policy
+            from email.parser import BytesParser
+
+            envelope = f"Content-Type: {request.headers['content-type']}\r\n\r\n".encode()
+            message = BytesParser(policy=policy.default).parsebytes(envelope + request.content)
+            forwarded = next(p for p in message.iter_parts() if p.get_filename())
+            with Image.open(BytesIO(forwarded.get_payload(decode=True))) as normalized:
+                assert normalized.size == (1600, 1200)
+                assert not normalized.getexif()
+            return service(request)
+
+        monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real_client(
+            transport=httpx.MockTransport(validate_camera_photo), **kw
+        ))
+        jpeg_auth = {**auth, "Content-Type": "image/jpeg"}
+        assert client.post(path, headers=jpeg_auth, content=large_photo.getvalue()).json() == reply
+
+        too_large = BytesIO()
+        Image.new("L", (5000, 5000)).save(too_large, format="JPEG")
+        assert client.post(path, headers=jpeg_auth, content=too_large.getvalue()).status_code == 422
+        monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real_client(
+            transport=httpx.MockTransport(service), **kw
+        ))
         reply.update(status="review_required", manual_review_required=True)
         assert client.post(path, headers=auth, content=payload).json()["material"] is None
         reply.clear()

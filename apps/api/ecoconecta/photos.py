@@ -14,6 +14,8 @@ from .operations import resident
 
 router = APIRouter(tags=["Fotos"])
 MAX_BYTES = 5 * 1024 * 1024
+MAX_PIXELS = 24_000_000
+OUTPUT_SIZE = (1600, 1600)
 
 
 def normalize(data, content_type):
@@ -21,11 +23,14 @@ def normalize(data, content_type):
         with Image.open(BytesIO(data), formats=["JPEG", "PNG"]) as img:
             if Image.MIME[img.format] != content_type:
                 raise HTTPException(422, "invalid_image_type")
-            if img.width * img.height > 12000000 or getattr(img, "is_animated", False):
+            if img.width * img.height > MAX_PIXELS or getattr(img, "is_animated", False):
                 raise HTTPException(422, "invalid_image")
+            if img.format == "JPEG":
+                # Decode a smaller JPEG before applying EXIF orientation.
+                img.draft("RGB", OUTPUT_SIZE)
             img.load()
             rgb = ImageOps.exif_transpose(img).convert("RGB")
-            rgb.thumbnail((1600, 1600))
+            rgb.thumbnail(OUTPUT_SIZE)
             output = BytesIO()
             rgb.info.clear()
             rgb.save(output, format="JPEG", quality=85, exif=b"")
