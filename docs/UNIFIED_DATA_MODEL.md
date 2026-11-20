@@ -110,3 +110,10 @@ El siguiente es un modelo lógico inicial, no un mandato para crear todas las ta
 - Política de recolecciones parciales/rechazadas.
 - Retención de solicitudes, teléfonos, ubicaciones e imágenes.
 - Si se requiere historial de saldo/puntos visible a usuarios.
+
+## Agenda comunitaria
+
+La migración `0005_events` añade `community_events` a la base PostgreSQL compartida.
+Cada evento guarda su organizador, lugar, intervalo con zona horaria, creador,
+publicación y versión de edición. Los cambios administrativos se registran en
+`audit_log` dentro de la misma transacción.

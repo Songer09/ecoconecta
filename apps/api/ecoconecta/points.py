@@ -2,24 +2,15 @@ from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, HTTPException
 from pydantic import AwareDatetime, BaseModel, ConfigDict, Field
 from sqlalchemy import text
 
-from .auth import Actor, Identity
+from .auth import Actor, Admin
 from .db import engine
 
 router = APIRouter(tags=["Puntos"])
 Rate = Annotated[Decimal, Field(gt=0, max_digits=12, decimal_places=6)]
-
-
-def require_admin(actor: Actor):
-    if actor.role != "administrador":
-        raise HTTPException(403, "forbidden")
-    return actor
-
-
-Admin = Annotated[Identity, Depends(require_admin)]
 
 
 class RuleInput(BaseModel):

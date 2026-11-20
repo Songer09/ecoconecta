@@ -1,11 +1,9 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core` ya se puede consultar el catálogo educativo público y
-marcar módulos como completados desde una sesión. El perfil devuelve el avance
-sobre los módulos publicados. Frontend puede conectar el catálogo y el botón
-«Marcar como completado» con los [contratos de la API](docs/API_CONTRACTS.md).
+En `feat/backend-core` ya se puede consultar la agenda comunitaria sin iniciar
+sesión. Administración puede preparar, publicar, reprogramar y retirar eventos.
+Frontend tiene los [contratos para la agenda y el editor](docs/API_CONTRACTS.md#agenda-comunitaria).
 
-La migración 0004 está aplicada en PostgreSQL local. Pasaron las siete pruebas
-del backend, incluidas las de progreso privado y finalizaciones simultáneas.
-Quedan la carga de contenido, las pantallas y la integración con visión cuando
-se publique la API del modelo.
+La migración 0005 está aplicada en PostgreSQL local. Pasaron las nueve pruebas
+del backend. Queda conectar las pantallas y cargar eventos confirmados. Los
+avisos por WhatsApp requieren coordinación con el compañero de mensajería.
