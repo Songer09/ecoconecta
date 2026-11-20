@@ -177,6 +177,8 @@ def missed(request_id: UUID, body: Reason, actor: Actor):
             raise HTTPException(409,"collection_already_started")
         db.execute(text("UPDATE request_schedules SET is_current=false WHERE request_id=:id AND is_current"),
                    {"id":request_id})
+        db.execute(text("""DELETE FROM live_positions l USING request_assignments a
+            WHERE l.assignment_id=a.id AND a.request_id=:id"""), {"id": request_id})
         return transition(db,row,actor,"asignada",body.reason)
 
 

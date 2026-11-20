@@ -6226,6 +6226,119 @@
         ]
       }
     },
+    "/api/v1/users/me/photo-recognition": {
+      "post": {
+        "tags": [
+          "Fotos"
+        ],
+        "summary": "Recognize",
+        "operationId": "recognize_api_v1_users_me_photo_recognition_post",
+        "requestBody": {
+          "content": {
+            "image/jpeg": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            },
+            "image/png": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Suggestion"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Entity",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too Many Requests",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "Service Unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "HTTPBearer": []
+          }
+        ]
+      }
+    },
     "/api/v1/users/me/profile": {
       "get": {
         "tags": [
@@ -11626,6 +11739,82 @@
           "collector_id"
         ],
         "title": "Stop"
+      },
+      "Suggestion": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "recognized",
+              "review_required",
+              "unknown"
+            ],
+            "title": "Status"
+          },
+          "material": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material"
+          },
+          "waste_category": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "organic",
+                  "inorganic"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Waste Category"
+          },
+          "confidence": {
+            "anyOf": [
+              {
+                "type": "number",
+                "maximum": 1.0,
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Confidence"
+          },
+          "confidence_calibrated": {
+            "type": "boolean",
+            "title": "Confidence Calibrated"
+          },
+          "manual_review_required": {
+            "type": "boolean",
+            "title": "Manual Review Required"
+          },
+          "model_version": {
+            "type": "string",
+            "minLength": 1,
+            "title": "Model Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "status",
+          "material",
+          "waste_category",
+          "confidence",
+          "confidence_calibrated",
+          "manual_review_required",
+          "model_version"
+        ],
+        "title": "Suggestion"
       },
       "Summary": {
         "properties": {

@@ -234,11 +234,6 @@ def test_missed_stop_has_single_transition_and_no_credit(route_case):
         )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    raises=AssertionError,
-    reason="QA-01: reaparece una posición de la cita anterior",
-)
 def test_position_not_reused_after_rescheduling(route_case):
     client, auth, rid, _ = route_case
     payload = {

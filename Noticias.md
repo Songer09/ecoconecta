@@ -1,5 +1,5 @@
 # Noticias de EcoConecta
 
-En `test/qa` se probaron los permisos de ubicación, el borrado al detener o vencer una lectura y la reprogramación concurrente. Pasaron 15 pruebas. Una prueba reproduce un defecto de backend y quedó marcada como fallo conocido.
+En `feat/backend-core` quedó corregido QA-01. Registrar una parada fallida elimina su posición reciente antes de reprogramarla. Pasaron las 17 pruebas en PostgreSQL, incluida la regresión de QA.
 
-Una lectura antigua puede volver a aparecer después de reprogramar la misma asignación. Los pasos de reproducción y los casos pendientes de WhatsApp y visión están en la [estrategia de QA](docs/QA_STRATEGY.md#seguimiento-y-reprogramación).
+El backend puede consultar Compost-AI mediante `COMPOST_AI_BASE_URL`. Se verificó el contrato HTTP con un servicio simulado. Visión debe proporcionar los artefactos entrenados o una instancia accesible para verificar la inferencia real. [Revisión de visión](https://github.com/Songer09/ecoconecta/pull/10)
