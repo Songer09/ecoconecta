@@ -34,6 +34,7 @@ La documentación también incorpora el reto oficial transcrito por el equipo y 
 | OpenCode 1 — Frontend | Interfaz React; luego integración contra API real | `apps/web/**` |
 | OpenCode 2 — QA | Pruebas unitarias, integración, E2E, regresión y hallazgos | `tests/**`, `apps/**/tests/**`, `apps/web/e2e/**` |
 | Codex 2 — Visión/IA | Auditar, documentar, probar y encapsular el modelo de reconocimiento existente | `services/vision/**` o módulo acordado; artefactos/modelos bajo control |
+| Compañero — WhatsApp/ChatBot | Twilio y bot mediante contratos coordinados por Backend/Integración | `integrations/whatsapp/**`; rama `feat/whatsapp-chatbot` |
 
 La asignación de carpetas es una propuesta de coordinación. Si el repositorio ya tiene una estructura distinta, los agentes deben inspeccionarla y proponer un ajuste antes de mover o renombrar código.
 
@@ -55,5 +56,9 @@ La versión 2 contenía restricciones conservadoras basadas en la transcripción
 No interpretar “libertad para usar IA” como permiso para enviar datos personales sin minimización, consentimiento/base legal, controles de seguridad o evaluación de impacto.
 
 ## Arranque
+
+Revisión del SQL inicial y pendientes de integración: [`db/README.md`](db/README.md).
+Configuración y alcance del compañero de Twilio/WhatsApp:
+[`integrations/whatsapp/README.md`](integrations/whatsapp/README.md).
 
 Abrir el repositorio desde su raíz. Confirmar estructura y estado Git. Leer las instrucciones. No crear código antes de revisar los archivos existentes y asignar claramente las tareas. Consultar `docs/INTEGRATION_PLAN.md` para la secuencia de trabajo.

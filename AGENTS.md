@@ -28,6 +28,10 @@ Si hay contradicción, no resolverla silenciosamente: documentar el conflicto y 
 ## 3. Reglas de trabajo multiagente
 
 - Cuatro agentes: Codex Backend/Integración, Codex Visión/IA, OpenCode Frontend y OpenCode QA.
+- Se incorpora un compañero de WhatsApp/ChatBot en `feat/whatsapp-chatbot`, con ámbito
+  `integrations/whatsapp/**` y `docs/agents/WHATSAPP_CHATBOT.md`. Backend/Integración
+  es el agente principal y coordina decisiones técnicas e interfaces compartidas.
+  Las decisiones de negocio, privacidad y aprobación de producción siguen siendo humanas.
 - Cada agente debe trabajar en su ámbito y rama; coordinar cambios compartidos antes de tocar archivos ajenos.
 - No editar simultáneamente el mismo archivo sin acuerdo explícito.
 - No crear tablas, endpoints o tipos duplicados. Consultar el modelo unificado y contratos antes de implementar.

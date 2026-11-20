@@ -2,6 +2,12 @@
 
 ## 1. Roles
 
+Actualización de coordinación: Backend/Integración es el agente principal. Se añade
+un responsable de WhatsApp/ChatBot en `feat/whatsapp-chatbot`, bajo su coordinación
+técnica; ver `docs/agents/WHATSAPP_CHATBOT.md`. El desarrollo del backend continúa
+solo tras la confirmación solicitada por el usuario; esta entrega prepara SQL,
+PostgreSQL local y ramas para revisión.
+
 ### Codex 1 — Backend, base unificada e integración
 Responsable de:
 - FastAPI y casos de uso.
@@ -94,6 +100,7 @@ Responsable de:
 - `feat/backend-core`
 - `feat/frontend`
 - `feat/vision`
+- `feat/whatsapp-chatbot`
 - `test/qa`
 - ramas cortas por tarea si es necesario.
 
