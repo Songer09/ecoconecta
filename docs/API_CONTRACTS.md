@@ -2,6 +2,11 @@
 
 FastAPI debe generar OpenAPI. Los paths son propuestas de diseño y deben revisarse antes de congelarlos.
 
+El contrato implementado de acceso, zonas y recepción de solicitudes está en
+[`apps/api/openapi.json`](../apps/api/openapi.json). Consultar también la
+[guía del backend](../apps/api/README.md) para permisos y ejemplos de uso.
+Estos endpoints usan los valores de estado y flujo en español del esquema PostgreSQL.
+
 ## Convenciones
 - Prefijo `/api/v1`.
 - JSON UTF-8.

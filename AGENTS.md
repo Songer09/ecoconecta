@@ -56,4 +56,10 @@ Si hay contradicción, no resolverla silenciosamente: documentar el conflicto y 
 
 ## 5. Honestidad de entrega
 
+Leer `Noticias.md` al empezar cada entrega y entender qué cambió y a quién afecta.
+Al publicar, releer la última versión compartida y reemplazar el contenido por una
+nota breve de lo recién entregado: rama, cambios utilizables, pruebas y pendientes.
+El historial de notas se consulta en Git. Si otro agente publicó mientras tanto,
+leer su actualización antes de resolver el cambio compartido.
+
 Al cerrar una tarea indicar: archivos cambiados, decisiones, pruebas ejecutadas y resultados reales, riesgos, pendientes y cómo reproducir. Diferenciar claramente implementado, simulado, probado, no probado y bloqueado. Nunca afirmar que un test o integración funciona si no se ejecutó.

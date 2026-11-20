@@ -8,43 +8,64 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ecoconecta_api_test
+          POSTGRES_PASSWORD: ci_ephemeral
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:ci_ephemeral@localhost:5432/ecoconecta_api_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
       - name: Install backend
         working-directory: apps/api
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f pyproject.toml ]; then pip install -e ".[dev]"; fi
+        run: uv sync --locked --extra dev
       - name: Run backend tests
         working-directory: apps/api
-        run: pytest
-        continue-on-error: true
+        run: uv run --no-sync pytest
 
   frontend:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Detect frontend workspace
+        id: web
+        run: |
+          if [ -d apps/web ]; then
+            echo "present=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "apps/web is not present in this revision." >> "$GITHUB_STEP_SUMMARY"
+          fi
       - uses: actions/setup-node@v4
+        if: steps.web.outputs.present == 'true'
         with:
           node-version: "22"
           cache: npm
           cache-dependency-path: apps/web/package-lock.json
       - name: Install frontend
+        if: steps.web.outputs.present == 'true'
         working-directory: apps/web
         run: npm ci
       - name: Typecheck
+        if: steps.web.outputs.present == 'true'
         working-directory: apps/web
         run: npm run typecheck --if-present
       - name: Lint
+        if: steps.web.outputs.present == 'true'
         working-directory: apps/web
         run: npm run lint --if-present
       - name: Test
+        if: steps.web.outputs.present == 'true'
         working-directory: apps/web
         run: npm test -- --run --if-present
       - name: Build
+        if: steps.web.outputs.present == 'true'
         working-directory: apps/web
         run: npm run build
