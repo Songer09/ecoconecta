@@ -33,11 +33,13 @@ No hay adaptador API activo: `docs/API_CONTRACTS.md` sigue siendo borrador. Cuan
 
 ## Mapa
 
-El mapa de acceso es un esquema original de sectores para orientar la navegación, no un mapa geográfico, no está a escala y no identifica calles, conjuntos ni puntos reales. Su botón abre el aprendizaje ambiental sin seleccionar un rol. No usa teselas de OpenStreetMap.
+Las vistas de coordinación y de rutas muestran cartografía de OpenStreetMap centrada de forma aproximada en Villas de San Pablo (10.95885, -74.8631), Barranquilla. La atribución de OpenStreetMap se mantiene visible en el mapa. La capa se puede cambiar con `VITE_OSM_TILE_URL`.
+
+Los registros de demostración no contienen coordenadas de solicitudes ni de recolectores, así que no se dibujan pines o recorridos ficticios. Se podrán mostrar cuando Backend publique coordenadas validadas en el contrato de solicitudes. El uso de `tile.openstreetmap.org` debe respetar la política de uso de teselas: carga interactiva bajo demanda, caché del navegador y sin precarga masiva.
 
 ## Límites de demostración
 
 - Los nombres de recolectores son ficticios y solo ilustran la asignación local.
 - El módulo no configura precios, puntos, materiales oficiales, cobertura ni disponibilidad real.
 - El cierre muestra el momento en que correspondería aplicar una regla aprobada; no inventa ni acredita cantidades de puntos.
-- El selector de rol de demostración no autentica usuarios ni sustituye autorización en backend.
+- El selector abre formularios de acceso por rol. El contrato API propone `POST /auth/login`, pero Backend aún no publica esquema ni servicio; por ahora el formulario informa que no se enviaron las credenciales y no concede una sesión.

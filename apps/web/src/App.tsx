@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent } from 'react'
+import { useRef } from 'react'
+import * as L from 'leaflet'
+import 'leaflet/dist/leaflet.css'
 import type { CollectionRequest, EducationTopic, MaterialPointsRuleDraft, NewRequest, PointsRuleDraft, Role } from './domain/types'
 import { service } from './services/service'
 import { Brand } from './components/Brand'
@@ -8,7 +11,7 @@ import { DemoTag } from './components/DemoTag'
 import { EmptyState, InfoSection, OperationPanel } from './components/PanelStates'
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
 
-type View = 'welcome' | 'learning' | 'dashboard'
+type View = 'welcome' | 'login' | 'learning' | 'dashboard'
 type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports'
 
 const roleInfo: Record<Role, { name: string; title: string; description: string; initial: string }> = {
@@ -47,19 +50,19 @@ function WhatsAppGlyph() {
 function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void; whatsappHref?: string }) {
   const [whatsappNotice, setWhatsappNotice] = useState(false)
   return <main className="welcome-page">
-    <header className="welcome-header"><Brand/><div className="welcome-header-actions">{whatsappHref ? <a className="whatsapp-cta" href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppGlyph/>Contáctanos por WhatsApp</a> : <button className="whatsapp-cta" onClick={() => setWhatsappNotice(true)}><WhatsAppGlyph/>Contáctanos por WhatsApp</button>}<a className="welcome-access-link" href="#roles">Entrar</a></div></header>
+    <header className="welcome-header"><Brand/><div className="welcome-header-actions">{whatsappHref ? <a className="whatsapp-cta" href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppGlyph/>Contáctanos por WhatsApp</a> : <button className="whatsapp-cta" onClick={() => setWhatsappNotice(true)}><WhatsAppGlyph/>Contáctanos por WhatsApp</button>}</div></header>
     {whatsappNotice && <p className="whatsapp-config-note" role="status">Falta configurar el enlace oficial de WhatsApp de EcoConecta.</p>}
     <div className="welcome-grid">
       <section className="welcome-copy">
         <p className="eyebrow">BIENVENIDO</p>
         <h1>Bienvenido a EcoConecta</h1>
-        <p className="welcome-lede">Elige tu perfil para continuar.</p>
+        <p className="welcome-lede">Selecciona tu perfil para iniciar sesión.</p>
         <section className="role-picker" id="roles">
-          <div className="role-picker-heading"><div><p className="eyebrow">ACCESO DE DEMOSTRACIÓN</p><h2>¿Cómo quieres entrar?</h2></div><span className="role-count">5 experiencias</span></div>
+          <div className="role-picker-heading"><div><p className="eyebrow">ACCESO A ECOCONECTA</p><h2>Elige tu rol</h2></div></div>
           <div className="role-grid">
             {roleOptions.map((role) => <button key={role} className="role-card" onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}>{roleInfo[role].initial}</span><span className="role-copy"><strong>{roleInfo[role].name}</strong><small>{roleInfo[role].description}</small></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
           </div>
-          <p className="demo-note">En esta demostración puedes entrar sin credenciales. Los cambios son datos de prueba en este navegador.</p>
+          <p className="demo-note">Usa el acceso correspondiente a tu participación en la comunidad.</p>
         </section>
       </section>
       <aside className="welcome-aside" aria-label="Accesos directos">
@@ -68,6 +71,46 @@ function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: R
       </aside>
     </div>
   </main>
+}
+
+function LoginScreen({ role, onBack }: { role: Role; onBack: () => void }) {
+  const [message, setMessage] = useState('')
+  const info = roleInfo[role]
+  function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMessage('El servicio de autenticación de la API todavía no está disponible. Tus datos no se enviaron y no se inició sesión.')
+  }
+  return <main className="login-page">
+    <header className="simple-header"><button className="text-button login-back" onClick={onBack}>← Volver a roles</button><Brand compact/><span className="login-header-spacer"/></header>
+    <section className="login-card">
+      <div className={`role-avatar avatar-${role}`}>{info.initial}</div>
+      <p className="eyebrow">INICIO DE SESIÓN</p>
+      <h1>{info.name}</h1>
+      <p className="login-description">{info.description}</p>
+      <form className="login-form" onSubmit={submit}>
+        <label>Correo electrónico<input type="email" name="email" autoComplete="username" placeholder="nombre@correo.com" required/></label>
+        <label>Contraseña<input type="password" name="password" autoComplete="current-password" placeholder="Ingresa tu contraseña" required/></label>
+        <button className="button button-primary" type="submit">Iniciar sesión</button>
+      </form>
+      {message && <p className="login-api-notice" role="alert">{message}</p>}
+      <p className="login-help">¿Necesitas ayuda? Contacta a la coordinación comunitaria.</p>
+    </section>
+  </main>
+}
+
+function RealCommunityMap() {
+  const element = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!element.current) return
+    const center: L.LatLngExpression = [10.95885, -74.8631]
+    const map = L.map(element.current, { scrollWheelZoom: false }).setView(center, 15)
+    const tileUrl = import.meta.env.VITE_OSM_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
+    L.tileLayer(tileUrl, { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors' }).addTo(map)
+    L.circleMarker(center, { radius: 9, color: '#FFFFFF', weight: 3, fillColor: '#168A2E', fillOpacity: 1 }).addTo(map).bindPopup('Centro aproximado de Villas de San Pablo')
+    const resize = window.setTimeout(() => map.invalidateSize(), 0)
+    return () => { window.clearTimeout(resize); map.remove() }
+  }, [])
+  return <div ref={element} className="real-community-map" role="application" aria-label="Mapa de OpenStreetMap centrado en Villas de San Pablo"/>
 }
 
 function Education({ onBack, onNeighbor }: { onBack: () => void; onNeighbor: () => void }) {
@@ -154,8 +197,8 @@ function RequestCard({ item, role, onAssign, onCollect, onVerify }: { item: Coll
   return <article className="request-card"><div className="request-top"><div><span className={`flow-label ${item.flow === 'ORGANIC' ? 'flow-label-green' : ''}`}>{flowName}</span><h3>{item.id}</h3></div><StatusPill status={item.status}/></div><div className="request-detail"><strong>{item.materials.join(' · ')}</strong><span>{address}</span><span>Disponible: {item.availability}</span>{item.note && <p>“{item.note}”</p>}{item.assignedTo && <span>Recolector: {item.assignedTo}{item.scheduledAt ? ` · ${new Date(item.scheduledAt).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' })}` : ''}</span>}{attachment && <div className="request-attachment"><img src={attachment.url} alt={`Imagen de residuos para ${item.id}`}/><span>Imagen adjunta · {attachment.name}</span></div>}</div>{assigning && <div className="assignment-editor"><label>Día<input type="date" value={scheduleDate} onChange={(event) => setScheduleDate(event.target.value)}/></label><label>Hora<input type="time" value={scheduleTime} onChange={(event) => setScheduleTime(event.target.value)}/></label><button className="button button-small button-primary" disabled={!scheduleDate || !scheduleTime} onClick={() => { onAssign(`${scheduleDate}T${scheduleTime}`); setAssigning(false) }}>Confirmar asignación</button></div>}<div className="request-bottom"><small>{item.createdAt}</small><div className="request-actions">{(role === 'vivi' || role === 'kelly') && item.status === 'RECEIVED' && !assigning && <button className="button button-small button-primary" onClick={() => setAssigning(true)}>Revisar y programar</button>}{role === 'collector' && (item.status === 'ASSIGNED' || item.status === 'SCHEDULED') && <button className="button button-small button-primary" onClick={onCollect}>Registrar recolección</button>}{(role === 'vivi' || role === 'kelly') && item.status === 'COLLECTED' && <button className="button button-small button-green" onClick={onVerify}>Verificar y cerrar</button>}{item.status === 'COMPLETED' && <span className="points-notice">✓ Cierre verificado · puntos según regla configurada</span>}</div></div></article>
 }
 
-function RouteMap({ items, heading = 'Mapa esquemático de recolección', showStops = true }: { items: CollectionRequest[]; heading?: string; showStops?: boolean }) {
-  return <section className="route-map-card"><div className="section-header"><div><p className="eyebrow">VILLAS DE SAN PABLO</p><h2>{heading}</h2><p>Esquema ilustrativo. Las ubicaciones reales requieren coordenadas validadas.</p></div><span className="route-count">{items.length} {items.length === 1 ? 'parada' : 'paradas'}</span></div><div className="route-map" role="img" aria-label="Mapa esquemático con vía, recorrido y paradas de demostración"><svg viewBox="0 0 760 300" aria-hidden="true"><path className="route-road" d="M-20 87 C90 112 119 36 250 63 S402 132 512 83 S660 33 790 78 M-20 225 C111 194 167 272 290 219 S470 164 586 217 S711 256 790 206 M156 -20 C189 79 144 143 188 320 M390 -20 C358 71 424 152 380 320 M624 -20 C596 81 650 158 616 320"/><path className="route-track" d="M120 82 C215 125 254 73 350 108 S506 165 584 106"/><path className="route-green" d="M316 184 C333 164 366 165 379 190 C391 215 370 232 347 228 C323 225 303 205 316 184Z"/><g className="route-blocks"><rect x="35" y="23" width="72" height="34" rx="7"/><rect x="259" y="19" width="73" height="32" rx="7"/><rect x="453" y="25" width="74" height="31" rx="7"/><rect x="665" y="107" width="67" height="35" rx="7"/><rect x="63" y="151" width="77" height="33" rx="7"/><rect x="455" y="251" width="83" height="29" rx="7"/></g>{items.slice(0, 4).map((item, index) => <g key={item.id} className="route-stop"><circle cx={[120, 350, 584, 480][index]} cy={[82, 108, 106, 205][index]} r="16"/><text x={[120, 350, 584, 480][index]} y={[87, 113, 111, 210][index]} textAnchor="middle">{index + 1}</text></g>)}</svg><span className="route-garden-label">Huerta comunitaria · referencia ilustrativa</span><span className="route-map-legend"><i/> Recorrido de demostración</span></div>{showStops && <div className="route-stop-list">{items.length ? items.slice(0, 4).map((item, index) => <div key={item.id}><b>{index + 1}</b><span><strong>{item.id} · {item.materials.join(', ')}</strong><small>{item.stage} · {item.neighborhood} · {item.status === 'COMPLETED' ? 'Recolección finalizada' : item.availability}</small></span></div>) : <p>No hay paradas asignadas por ahora.</p>}</div>}</section>
+function RouteMap({ items, heading = 'Mapa de recolección', showStops = true }: { items: CollectionRequest[]; heading?: string; showStops?: boolean }) {
+  return <section className="route-map-card"><div className="section-header"><div><p className="eyebrow">VILLAS DE SAN PABLO · BARRANQUILLA</p><h2>{heading}</h2><p>Vista geográfica del sector. Faltan coordenadas confirmadas para ubicar cada solicitud.</p></div><span className="route-count">{items.length} {items.length === 1 ? 'solicitud' : 'solicitudes'}</span></div><RealCommunityMap/>{showStops && <p className="map-coordinate-note">Las solicitudes se mostrarán como puntos en el mapa cuando la API incluya sus coordenadas verificadas.</p>}</section>
 }
 
 function CoordinatorMapLayout({ requests, role, onAction }: { requests: CollectionRequest[]; role: 'kelly' | 'vivi'; onAction: (item: CollectionRequest) => { onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void } }) {
@@ -163,7 +206,7 @@ function CoordinatorMapLayout({ requests, role, onAction }: { requests: Collecti
   return <div className="coordinator-map-layout"><RouteMap items={pendingRequests} heading="Solicitudes" showStops={false}/><aside className="coordinator-request-panel"><div className="coordinator-request-heading"><div><h2>Solicitudes pendientes</h2><span>{pendingRequests.length} por revisar</span></div><span className="route-count">{pendingRequests.length}</span></div><div className="coordinator-request-list">{pendingRequests.length ? pendingRequests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>) : <EmptyState title="No hay solicitudes pendientes" detail="Las nuevas solicitudes aparecerán en este panel."/>}</div><div className="coordinator-assignment-note"><p className="eyebrow">ASIGNACIÓN</p><strong>Coordina la ruta con el equipo disponible</strong><small>Las paradas y la cobertura real requieren datos confirmados.</small></div></aside></div>
 }
 
-function Dashboard({ role, initialSection = 'home', onExit, onRole, onLearn }: { role: Role; initialSection?: Section; onExit: () => void; onRole: (role: Role) => void; onLearn: () => void }) {
+function Dashboard({ role, initialSection = 'home', onExit, onLearn }: { role: Role; initialSection?: Section; onExit: () => void; onLearn: () => void }) {
   const info = roleInfo[role]
   const [section, setSection] = useState<Section>(initialSection)
   const [showAllRequests, setShowAllRequests] = useState(false)
@@ -191,7 +234,7 @@ function Dashboard({ role, initialSection = 'home', onExit, onRole, onLearn }: {
   const heading = section === 'home' && (role === 'vivi' || role === 'kelly') ? 'Solicitudes' : section === 'home' ? hello : title
 
   return <div className={`app-shell app-shell-${role}`}>
-    <header className="app-header"><button className="brand-button" onClick={onExit} aria-label="Volver al selector de roles"><Brand compact/></button><div className="header-tools"><DemoTag/><label className="role-switch">Cambiar rol<select value={role} onChange={(event) => { setSection('home'); setShowForm(false); onRole(event.target.value as Role) }}>{roleOptions.map((item) => <option key={item} value={item}>{roleInfo[item].name}</option>)}</select></label></div></header>
+    <header className="app-header"><button className="brand-button" onClick={onExit} aria-label="Volver al selector de roles"><Brand compact/></button><div className="header-tools"><DemoTag/></div></header>
     <div className="app-body"><aside className="app-sidebar"><div className={`sidebar-profile avatar-${role}`}><span>{info.initial}</span><div><strong>{info.name}</strong><small>{role === 'neighbor' ? 'Comunidad' : role === 'collector' ? 'Equipo recolector' : role === 'vivi' ? 'Equipo de reciclaje' : role === 'kelly' ? 'Equipo de huerta' : 'Administración'}</small></div></div><nav aria-label="Navegación principal">{navByRole[role].map((item) => <button key={item.id} className={`nav-item ${section === item.id ? 'nav-active' : ''}`} onClick={() => { setSection(item.id); setShowForm(false); setShowAllRequests(false) }}><span className="nav-indicator" aria-hidden="true"/>{item.label}</button>)}</nav><div className="sidebar-bottom"><button className="nav-item" onClick={onExit}>← Salir al acceso</button><small>EcoConecta · Demostración</small></div></aside>
       <main className="app-main"><div className="mobile-brand"><Brand compact/></div><div className="main-heading"><div><p className="eyebrow">{info.name.toUpperCase()} · ECOCONECTA</p><h1>{heading}</h1>{section === 'home' && <p>{role === 'neighbor' ? 'Esto es lo que pasa con tus aportes al barrio.' : info.description}</p>}</div>{role === 'collector' && <button className={`availability ${available ? 'available' : ''}`} onClick={() => { setAvailable(!available); announce(available ? 'Ahora apareces como no disponible.' : 'Ahora apareces como disponible.') }}><i/> {available ? 'Disponible' : 'No disponible'}</button>}</div>
         {toast && <div className="toast" role="status">{toast}</div>}
@@ -214,7 +257,7 @@ function DashboardSection({ role, section, requests, allRequests, showAllRequest
     {showAllRequests && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCloseAll() }}><section className="requests-modal" role="dialog" aria-modal="true" aria-labelledby="requests-modal-title"><div className="section-header"><div><p className="eyebrow">VECINO · DEMOSTRACIÓN</p><h2 id="requests-modal-title">Todas mis solicitudes</h2></div><button className="icon-button" onClick={onCloseAll} aria-label="Cerrar">×</button></div><div className="request-list">{requests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>)}</div></section></div>}
   </>
   if (role === 'neighbor' && section === 'points') return <div className="points-shop"><section className="points-balance"><span className="points-mark">✳</span><p className="eyebrow">TU SALDO</p><h2>Puntos disponibles</h2><strong>—</strong><small>El saldo real requiere consultar la cuenta del vecino en la API.</small></section><section className="points-products"><div><p className="eyebrow">ESPACIO DE CANJE</p><h2>Productos que podrás consultar</h2><p>El catálogo aún no ha sido definido por la Fundación. Aquí aparecerán las opciones disponibles y las que puedes canjear con tu saldo.</p></div><div className="product-pending-grid"><article><span>Catálogo pendiente</span><strong>Productos por definir</strong><small>No se muestran artículos ni equivalencias inventadas.</small></article><article><span>Canjes</span><strong>Disponible más adelante</strong><small>Se habilitará cuando exista catálogo y reglas aprobadas.</small></article></div></section></div>
-  if (role === 'neighbor' && section === 'learning') return <div className="feature-card"><div><p className="eyebrow">APRENDIZAJE AMBIENTAL</p><h2>Aprende a tu ritmo</h2><p>Consulta los temas y marca tu avance al terminar cada uno.</p><button className="button button-primary" onClick={onLearn}>Abrir aprendizaje</button></div><div className="feature-art feature-art-green"><span>01</span><i/><i/><i/></div></div>
+  if (role === 'neighbor' && section === 'learning') { const topics = service.listEducationTopics(); const completed = service.getCompletedTopics(); const percent = topics.length ? Math.round(completed.length / topics.length * 100) : 0; return <section className="learning-overview"><div className="feature-card"><div><p className="eyebrow">APRENDIZAJE AMBIENTAL</p><h2>Aprende a tu ritmo</h2><p>Consulta los temas y marca tu avance al terminar cada uno.</p><button className="button button-primary" onClick={onLearn}>Abrir aprendizaje</button></div><div className="feature-art feature-art-green"><span>01</span><i/><i/><i/></div></div><div className="learning-progress-card"><div className="learning-progress-copy"><span className="eyebrow">TU AVANCE</span><strong>{percent}%</strong><span>{completed.length} de {topics.length} temas completados</span></div><div className="progress-track" role="progressbar" aria-label="Avance de aprendizaje" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${percent}%` }}/></div><div className="learning-topic-progress">{topics.map((topic, index) => <div key={topic.id} className="learning-topic-row"><span className={completed.includes(topic.id) ? 'topic-check topic-check-done' : 'topic-check'}>{completed.includes(topic.id) ? '✓' : index + 1}</span><div><strong>{topic.title}</strong><div className="topic-progress-track"><span className={completed.includes(topic.id) ? 'topic-progress-done' : ''}/></div></div><small>{completed.includes(topic.id) ? 'Completado' : 'Pendiente'}</small></div>)}</div></div></section> }
   if (role === 'neighbor' && section === 'events') return <InfoSection title="Eventos de la comunidad" description="Aquí se consultarán las actividades próximas cuando la coordinación las publique." badge="Sin eventos publicados" />
   if (role === 'neighbor' && section === 'profile') return <section className="neighbor-profile"><div className="profile-avatar">V</div><div><p className="eyebrow">PERFIL DE DEMOSTRACIÓN</p><h2>Vecino de Villas de San Pablo</h2><p>Los datos personales se mostrarán cuando exista una sesión autenticada.</p></div><div className="profile-points"><span>Puntos acumulados</span><strong>—</strong><small>Saldo pendiente de conexión con la API.</small></div></section>
   if (role === 'collector' && section === 'home') return <>
@@ -303,7 +346,8 @@ export default function App() {
   const [role, setRole] = useState<Role>('neighbor')
   const [dashboardSection, setDashboardSection] = useState<Section>('home')
   const openLearning = () => { setEducationReturnView(view); setView('learning') }
-  if (view === 'learning') return <Education onBack={() => setView(educationReturnView)} onNeighbor={() => { setRole('neighbor'); setView('dashboard') }}/>
-  if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { setDashboardSection('home'); setView('welcome') }} onRole={(selected) => { setRole(selected); setDashboardSection('home') }} onLearn={openLearning}/>
-  return <Welcome onRole={(selected) => { setRole(selected); setDashboardSection('home'); setView('dashboard') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }} whatsappHref={configuredWhatsAppUrl()}/>
+  if (view === 'learning') return <Education onBack={() => setView(educationReturnView)} onNeighbor={() => { setRole('neighbor'); setView('login') }}/>
+  if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')}/>
+  if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { setDashboardSection('home'); setView('welcome') }} onLearn={openLearning}/>
+  return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }} whatsappHref={configuredWhatsAppUrl()}/>
 }
