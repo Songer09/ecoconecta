@@ -1,5 +1,9 @@
 # Plan de integración end-to-end
 
+Ver el [backlog del backend por pantallas](BACKEND_SCREEN_BACKLOG.md) para los
+acuerdos sobre cierre, reglas administrativas de puntos y las tareas agregadas.
+La ubicación de recolectores queda programada para después del flujo principal.
+
 ## Prioridad 0 — inspección y acuerdos
 - Confirmar repositorio, ramas y código existente.
 - Confirmar que los cuatro agentes tienen acceso a la misma carpeta/repositorio, pero no comparten credenciales personales.
