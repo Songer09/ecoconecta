@@ -1,7 +1,5 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core` ya se pueden configurar personal y cobertura, consultar perfiles e historiales, canjear puntos, gestionar faltantes del huerto y generar reportes por ámbito. Coordinación puede sugerir y ordenar paradas. La posición en vivo está desactivada por defecto.
+En `test/qa` se probaron los permisos de ubicación, el borrado al detener o vencer una lectura y la reprogramación concurrente. Pasaron 15 pruebas. Una prueba reproduce un defecto de backend y quedó marcada como fallo conocido.
 
-La API prepara fotos en memoria. Quedan integrar WhatsApp y la API real de visión, conectar las pantallas y validar los datos y permisos del piloto. Los agentes pueden consultar los [contratos](docs/API_CONTRACTS.md#operación-del-piloto) y el [estado por pantalla](docs/BACKEND_SCREEN_BACKLOG.md).
-
-Pasaron doce pruebas del backend en PostgreSQL. La base local está en la migración 0008.
+Una lectura antigua puede volver a aparecer después de reprogramar la misma asignación. Los pasos de reproducción y los casos pendientes de WhatsApp y visión están en la [estrategia de QA](docs/QA_STRATEGY.md#seguimiento-y-reprogramación).

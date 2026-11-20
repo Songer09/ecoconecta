@@ -32,3 +32,41 @@ Supertest se diseñó para Node/Express y no es la herramienta adecuada para Fas
 
 > **ACTUALIZACIÓN v3:** Este documento proviene de la versión 2. Si contradice `AGENTS.md`, `docs/DECISION_LOG.md`, `docs/FOUNDATION_BRIEF.md` o `docs/DESIGN_GUIDE.md`, prevalece v3. En particular, Twilio está permitido para prototipo, la IA tiene libertad de elección bajo controles de privacidad/seguridad y la aplicación usa una única PostgreSQL compartida.
 
+
+
+## Seguimiento y reprogramación
+
+Los casos nuevos viven en `apps/api/tests/test_route_qa.py`. Usan datos sintéticos
+y un esquema desechable por módulo. Desde `apps/api`, configurar
+`TEST_DATABASE_URL` para una base PostgreSQL terminada en `_test` y ejecutar
+`uv run --no-sync pytest -q`. Para reproducir el fallo conocido como fallo normal,
+ejecutar `uv run --no-sync pytest tests/test_route_qa.py -k reused --runxfail`.
+
+| Caso | Resultado esperado |
+| --- | --- |
+| Dos lecturas para el mismo recolector | Solo queda la más reciente. |
+| Consulta de ubicación | Coordinación del colectivo y zona asignados puede consultar. Coordinación de otro ámbito recibe lista vacía y otros perfiles no tienen acceso. |
+| Detener el envío | DELETE es repetible, solo borra la posición propia y la fila desaparece de PostgreSQL. |
+| Cinco minutos sin lectura | La posición deja de estar disponible para verificación y el proceso de limpieza la elimina. |
+| Parada fallida | Solo coordinación del ámbito registra un motivo válido. Dos intentos simultáneos producen una transición, desactivan la cita y conservan la asignación, sin recolección ni crédito. |
+| Reprogramar una parada con posición reciente | La cita nueva requiere una lectura nueva. Caso con fallo conocido QA-01. |
+
+### QA-01 · La posición reaparece después de reprogramar
+
+Severidad alta para el piloto con seguimiento. Enviar una posición durante una
+cita de hoy. Registrar la parada como fallida y, antes de cinco minutos,
+programar otra fecha para la misma asignación. Consultar la ubicación desde
+coordinación. El mapa vuelve a devolver las coordenadas antiguas. La posición
+debería permanecer ausente hasta que el recolector vuelva a compartir en la
+nueva cita. La prueba usa `xfail(strict=True)` para señalar la regresión en CI.
+Retirar la marca cuando backend la corrija.
+
+## Pruebas de integración pendientes
+
+- WhatsApp: firma válida e inválida, eventos repetidos, callbacks fuera de
+  orden, número sin consentimiento y fallo temporal con reintento. Verificar
+  que un mensaje no cambie asignaciones, estados ni puntos sin acción autorizada.
+- Visión: respuesta válida, clase no reconocida, baja confianza, tiempo de
+  espera agotado y respuesta malformada. La selección manual debe seguir
+  disponible. Verificar que la sugerencia por sí sola no altera solicitudes
+  ni puntos. Ejecutar con el contrato y artefactos que publique el equipo de visión.
