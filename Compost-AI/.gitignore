@@ -1,0 +1,21 @@
+# Local runtime and secrets
+.venv/
+.env
+.env.*
+!.env.example
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.cache/
+.runtime/
+
+# Datasets, captured images, generated manifests/features, and model artifacts stay out of Git
+data/raw/**
+data/processed/**
+data/collection/images/**
+artifacts/**
+*.safetensors
+*.pt
+*.pth
+*.joblib
+*.egg-info/

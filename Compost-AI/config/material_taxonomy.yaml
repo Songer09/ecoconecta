@@ -1,0 +1,32 @@
+version: 1
+model_status: taxonomy target; only entries marked supported_in_model=true are currently predicted
+classes:
+  banana_peel: {name_es: Cáscara de banano, family: fruit_and_peels, supported_in_model: true, stage: baseline}
+  mango_peel: {name_es: Cáscara de mango, family: fruit_and_peels, supported_in_model: true, stage: baseline}
+  orange_peel: {name_es: Cáscara de naranja, family: fruit_and_peels, supported_in_model: false, stage: expansion_2}
+  lemon_peel: {name_es: Cáscara de limón, family: fruit_and_peels, supported_in_model: false, stage: expansion_2}
+  apple_scraps: {name_es: Restos de manzana, family: fruit_and_peels, supported_in_model: false, stage: expansion_2}
+  pineapple_scraps: {name_es: Restos de piña, family: fruit_and_peels, supported_in_model: false, stage: expansion_2}
+  potato_peel: {name_es: Cáscara de papa, family: vegetables_and_scraps, supported_in_model: true, stage: baseline}
+  carrot_scraps: {name_es: Restos de zanahoria, family: vegetables_and_scraps, supported_in_model: false, stage: expansion_2}
+  tomato_scraps: {name_es: Restos de tomate, family: vegetables_and_scraps, supported_in_model: false, stage: expansion_2}
+  lettuce_scraps: {name_es: Restos de lechuga, family: vegetables_and_scraps, supported_in_model: false, stage: expansion_2}
+  onion_scraps: {name_es: Restos de cebolla, family: vegetables_and_scraps, supported_in_model: false, stage: expansion_2}
+  vegetable_scraps: {name_es: Restos vegetales mixtos, family: vegetables_and_scraps, supported_in_model: false, stage: expansion_1, subtypes: [carrot, tomato, lettuce, onion, other]}
+  leaves_dry: {name_es: Hojas secas, family: plant_waste, supported_in_model: false, stage: expansion_1}
+  leaves_green: {name_es: Hojas verdes, family: plant_waste, supported_in_model: false, stage: expansion_1}
+  grass_clippings: {name_es: Césped, family: plant_waste, supported_in_model: false, stage: expansion_2}
+  small_branches: {name_es: Ramas pequeñas, family: plant_waste, supported_in_model: false, stage: expansion_2}
+  coffee_grounds: {name_es: Posos de café, family: other_organics, supported_in_model: false, stage: expansion_1}
+  eggshell: {name_es: Cáscara de huevo, family: other_organics, supported_in_model: false, stage: expansion_1}
+  tea_residue: {name_es: Restos de té, family: other_organics, supported_in_model: false, stage: expansion_2}
+  sugarcane_husk: {name_es: Bagazo/cáscara de caña, family: other_organics, supported_in_model: true, stage: baseline}
+  bread_scraps: {name_es: Restos de pan, family: other_organics, supported_in_model: false, stage: expansion_2}
+  cooked_rice: {name_es: Arroz cocido, family: other_organics, supported_in_model: false, stage: expansion_2}
+  meat: {name_es: Carne, family: special_organics, supported_in_model: false, stage: expansion_2, compost_policy: REQUIRES_REVIEW}
+  bones: {name_es: Huesos, family: special_organics, supported_in_model: false, stage: expansion_2, compost_policy: REQUIRES_REVIEW}
+  dairy: {name_es: Lácteos, family: special_organics, supported_in_model: false, stage: expansion_2, compost_policy: REQUIRES_REVIEW}
+  plastic: {name_es: Plástico convencional, family: non_compostable, supported_in_model: true, stage: baseline, compost_policy: NO_COMPOSTABLE}
+  glass: {name_es: Vidrio, family: non_compostable, supported_in_model: true, stage: baseline, compost_policy: NO_COMPOSTABLE}
+  metal: {name_es: Metal, family: non_compostable, supported_in_model: false, stage: expansion_1, compost_policy: NO_COMPOSTABLE}
+  unknown_or_ambiguous: {name_es: Desconocido o ambiguo, family: rejection, supported_in_model: false, stage: rejection_eval, train_as_class: false}

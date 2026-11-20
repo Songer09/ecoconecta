@@ -1,0 +1,10 @@
+backbone: facebook/dinov2-base
+image_size: 224
+max_image_bytes: 10485760
+allowed_formats: [JPEG, PNG, WEBP]
+minimum_confidence: 0.55
+minimum_margin: 0.10
+ood_percentile: 0.99
+random_seed: 42
+test_fraction: 0.15
+validation_fraction: 0.15
