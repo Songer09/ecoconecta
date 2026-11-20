@@ -30,6 +30,16 @@ export interface NewRequest {
   availability: string
 }
 
+// Administrative draft only; it is not sent until the backend contract is resolved.
+export interface PointsRuleDraft {
+  pointsPerKg: string
+}
+
+export interface MaterialPointsRuleDraft extends PointsRuleDraft {
+  id: number
+  materialName: string
+}
+
 export interface EducationTopic {
   id: string
   title: string
