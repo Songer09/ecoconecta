@@ -14,8 +14,8 @@ type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 
 const roleInfo: Record<Role, { name: string; title: string; description: string; initial: string }> = {
   neighbor: { name: 'Vecino', title: 'Tu hogar también transforma', description: 'Solicita una recolección, aprende y sigue tus aportes.', initial: 'V' },
   collector: { name: 'Recolector', title: 'Tu jornada, más clara', description: 'Consulta tus asignaciones y registra cada recolección.', initial: 'R' },
-  vivi: { name: 'Vivi', title: 'Coordinación de reciclaje', description: 'Organiza solicitudes, personas y materiales reciclables.', initial: 'V' },
-  kelly: { name: 'Kelly', title: 'Coordinación de huerta', description: 'Conecta los aportes orgánicos con las necesidades del huerto.', initial: 'K' },
+  vivi: { name: 'Coordinación de reciclaje', title: 'Coordinación de reciclaje', description: 'Organiza solicitudes, personas y materiales reciclables.', initial: 'CR' },
+  kelly: { name: 'Coordinación de huerta', title: 'Coordinación de huerta', description: 'Conecta los aportes orgánicos con las necesidades del huerto.', initial: 'CH' },
   admin: { name: 'Administrador', title: 'Gestión de EcoConecta', description: 'Administra las herramientas comunitarias del sistema.', initial: 'A' },
 }
 
@@ -182,11 +182,11 @@ function Dashboard({ role, initialSection = 'home', onExit, onRole, onLearn }: {
     if (role === 'kelly') return requests.filter((item) => item.flow === 'ORGANIC')
     return requests
   }, [requests, role])
-  async function assign(item: CollectionRequest, scheduledAt: string) { const who = item.flow === 'ORGANIC' ? 'María T. · Huertera (dato ficticio)' : 'Andrés R. · Reciclador (dato ficticio)'; await service.assignRequest(item.id, who, scheduledAt); await refresh('Solicitud programada y asignada. La persona responsable ya puede verla en su jornada.') }
+  async function assign(item: CollectionRequest, scheduledAt: string) { const who = item.flow === 'ORGANIC' ? 'Huertero asignado (dato ficticio)' : 'Reciclador asignado (dato ficticio)'; await service.assignRequest(item.id, who, scheduledAt); await refresh('Solicitud programada y asignada. La persona responsable ya puede verla en su jornada.') }
   async function collect(item: CollectionRequest) { await service.registerCollection(item.id); await refresh('Recolección registrada. La coordinadora puede verificar el cierre.') }
   async function verify(item: CollectionRequest) { await service.verifyAndClose(item.id); await refresh('Recolección verificada y cerrada. El sistema de puntos podrá aplicar la regla configurada.') }
   const requestActions = (item: CollectionRequest) => ({ onAssign: (scheduledAt: string) => void assign(item, scheduledAt), onCollect: () => void collect(item), onVerify: () => void verify(item) })
-  const hello = role === 'neighbor' ? 'Hola, vecina' : role === 'collector' ? 'Hola, Andrés' : `Hola, ${info.name}`
+  const hello = role === 'neighbor' ? 'Hola, vecina' : role === 'collector' ? 'Hola, recolector' : `Hola, ${info.name}`
   const title = section === 'requests' ? role === 'kelly' ? 'Solicitudes orgánicas' : role === 'vivi' ? 'Historial de recolecciones' : role === 'neighbor' ? 'Mis solicitudes' : 'Historial' : section === 'routes' ? role === 'collector' ? 'Mi ruta' : 'Rutas y equipo' : navByRole[role].find((item) => item.id === section)?.label ?? info.title
   const heading = section === 'home' && (role === 'vivi' || role === 'kelly') ? 'Solicitudes' : section === 'home' ? hello : title
 
