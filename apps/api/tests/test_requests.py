@@ -366,3 +366,61 @@ def test_learning_progress(pilot):
     with engine().begin() as db:
         db.execute(text("UPDATE educational_content SET is_published=false WHERE id=:id"), {"id": ids[0]})
     assert client.get(profile, headers=owner).json() == {**empty, "total": 1}
+
+
+def test_education_editorial_lifecycle(pilot):
+    from concurrent.futures import ThreadPoolExecutor
+
+    _, _, password = pilot
+    with engine().begin() as db:
+        db.execute(text("""
+            INSERT INTO users(full_name, phone, role, password_hash, is_pilot)
+            VALUES ('Editor de prueba', '+1000000014', 'administrador', :hash, true)
+        """), {"hash": hasher.hash(password)})
+    with TestClient(app, client=("editorial-test", 1234)) as client:
+        admin, reader = [
+            {"Authorization": "Bearer " + login(client, i, password).json()["access_token"]}
+            for i in (14, 1)
+        ]
+        catalog = "/api/v1/admin/education"
+        draft = {"title": " Guía ", "category": "huerta", "body": "Texto sintético", "flow": "organico"}
+        assert client.post(catalog, json=draft).status_code == 401
+        assert client.post(catalog, json=draft, headers=reader).status_code == 403
+        for invalid in ({"title": " "}, {"body": "a\x00b"}, {"flow": "otro"}, {"is_published": True}):
+            assert client.post(catalog, json={**draft, **invalid}, headers=admin).status_code == 422
+        result = client.post(catalog, json=draft, headers=admin)
+        assert result.status_code == 201, result.text
+        module = result.json()
+        assert module["title"] == "Guía" and module["is_published"] is False
+        mid = module["id"]
+        edit = f"{catalog}/{mid}"
+        public = f"/api/v1/public/education/{mid}"
+        assert client.get(public).status_code == 404
+        assert client.get(edit, headers=reader).status_code == 403
+        assert client.get(catalog, headers=reader).status_code == 403
+        assert mid in [m["id"] for m in client.get(catalog, headers=admin).json()]
+        assert client.get(edit, headers=admin).json() == module
+        change = {**draft, "is_published": True, "expected_updated_at": module["updated_at"]}
+        assert client.put(edit, json=change, headers=reader).status_code == 403
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            writes = list(pool.map(lambda _: client.put(edit, json=change, headers=admin), range(2)))
+        assert sorted(r.status_code for r in writes) == [200, 409]
+        assert client.get(public).json()["title"] == "Guía"
+        version = next(r.json()["updated_at"] for r in writes if r.status_code == 200)
+        progress = f"/api/v1/users/me/learning-progress/{mid}"
+        completion = client.put(progress, headers=reader).json()
+        assert completion["module_id"] == mid
+        for publish in (False, True):
+            change.update(is_published=publish, expected_updated_at=version, body="Contenido corregido")
+            response = client.put(edit, json=change, headers=admin)
+            assert response.status_code == 200, response.text
+            version = response.json()["updated_at"]
+            assert client.get(public).status_code == (200 if publish else 404)
+        assert client.get(public).json()["body"] == "Contenido corregido"
+        assert client.put(progress, headers=reader).json() == completion
+        with engine().connect() as db:
+            actions = db.scalars(text("""
+                SELECT action FROM audit_log WHERE entity='educational_content' AND entity_id=:id
+            """), {"id": mid}).all()
+        assert sorted(actions) == sorted(["education.created", "education.published",
+                                          "education.withdrawn", "education.published"])

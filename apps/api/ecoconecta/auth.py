@@ -63,6 +63,15 @@ def current_user(key: SessionKey) -> Identity:
 Actor = Annotated[Identity, Depends(current_user)]
 
 
+def require_admin(actor: Actor):
+    if actor.role != "administrador":
+        raise HTTPException(403, "forbidden")
+    return actor
+
+
+Admin = Annotated[Identity, Depends(require_admin)]
+
+
 @router.post("/login", response_model=Token)
 def login(body: Login, request: Request):
     # Count before password verification, including failed logins. One atomic window per peer.

@@ -1,11 +1,10 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core` ya se puede consultar el catálogo educativo público y
-marcar módulos como completados desde una sesión. El perfil devuelve el avance
-sobre los módulos publicados. Frontend puede conectar el catálogo y el botón
-«Marcar como completado» con los [contratos de la API](docs/API_CONTRACTS.md).
+En `feat/backend-core`, administración ya puede crear borradores educativos,
+corregirlos, publicarlos y retirarlos. Cada cambio deja auditoría. Si dos
+editores guardan la misma versión, el segundo recibe un conflicto y puede
+revisar la edición antes de reintentar.
 
-La migración 0004 está aplicada en PostgreSQL local. Pasaron las siete pruebas
-del backend, incluidas las de progreso privado y finalizaciones simultáneas.
-Quedan la carga de contenido, las pantallas y la integración con visión cuando
-se publique la API del modelo.
+Frontend puede conectar el editor con los [contratos](docs/API_CONTRACTS.md).
+Pasaron las ocho pruebas del backend en PostgreSQL. Queda cargar el contenido
+aprobado. La integración de visión sigue pendiente de la API del compañero.
