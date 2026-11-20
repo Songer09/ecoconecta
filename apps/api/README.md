@@ -28,4 +28,23 @@ Swagger UI está en `/docs` y el contrato generado por FastAPI en `/openapi.json
 
 Para usar el flujo con el piloto, el responsable debe configurar usuarios habilitados, zonas y colectivos. Para probarlo inmediatamente con datos sintéticos, configurar `TEST_DATABASE_URL` con la URL de propietario de una base PostgreSQL de pruebas cuyo nombre termine en `_test`, y ejecutar `uv run pytest -q` desde esta carpeta. Cada ejecución crea y retira su propio esquema aislado.
 
-La sesión, los filtros de acceso y la recepción están implementados. La asignación, programación, cierre y cálculo de puntos corresponden a incrementos posteriores. Antes del cierre se debe acordar quién lo confirma y qué sucede cuando falta una regla de puntos aprobada.
+## Revisión, asignación y programación
+
+Con el token del coordinador, ejecutar las operaciones bajo `/api/v1` en este orden.
+
+1. `POST /requests/{id}/review` inicia la revisión de una solicitud recibida.
+2. `GET /collectors/availability?request_id={id}` devuelve las franjas configuradas
+   de los recolectores activos del colectivo que cubren la zona. Una persona puede
+   aparecer en varias franjas. El día ISO va de 1 (lunes) a 7 (domingo). Las horas
+   corresponden a la zona horaria de la franja y las fechas de vigencia son inclusivas.
+3. `POST /requests/{id}/assignments` con `{"collector_id":"<uuid>"}` pasa la solicitud
+   en revisión a asignada. El ID corresponde al usuario recolector.
+4. `POST /requests/{id}/schedule` recibe `scheduled_start` y `scheduled_end` en ISO 8601
+   con offset. La ventana debe ser futura, caber en una misma franja y estar libre.
+   La lista de disponibilidad describe el horario habitual. La reserva comprueba
+   ocupación en ese momento. Ante `409 schedule_overlap`, permitir elegir otra hora.
+5. `GET /requests/{id}` incluye responsable, inicio, fin e historial. Los cuatro
+   comandos de consulta y escritura respetan los permisos del colectivo y de la zona.
+
+El cierre y los puntos quedan para la siguiente etapa. Falta acordar quién confirma
+la recolección y qué ocurre si no hay una regla de puntos aprobada.

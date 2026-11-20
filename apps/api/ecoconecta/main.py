@@ -7,7 +7,7 @@ from starlette.exceptions import HTTPException
 from sqlalchemy.exc import OperationalError
 from pydantic import BaseModel
 
-from . import auth, requests
+from . import auth, requests, scheduling
 
 class ApiError(BaseModel):
     code: str
@@ -36,7 +36,7 @@ def error(request, status, code, message, headers=None):
 @app.exception_handler(HTTPException)
 async def http_error(request, exc):
     messages = {401: "Se requiere autenticación válida.", 403: "Acceso denegado.",
-                404: "Recurso no encontrado.", 409: "El colectivo aún no está configurado.",
+                404: "Recurso no encontrado.", 409: "La operación entra en conflicto con el estado o la disponibilidad actual.",
                 422: "Verifica los datos de la solicitud.", 429: "Intenta de nuevo más tarde."}
     return error(request, exc.status_code, exc.detail, messages.get(exc.status_code, "Solicitud inválida."), exc.headers)
 
@@ -53,3 +53,4 @@ async def unavailable(request, exc):
 
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(requests.router, prefix="/api/v1")
+app.include_router(scheduling.router, prefix="/api/v1")

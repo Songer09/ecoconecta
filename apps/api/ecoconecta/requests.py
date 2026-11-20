@@ -41,6 +41,10 @@ class History(BaseModel):
 
 
 class Detail(Summary):
+    collector_id: UUID | None
+    collector_name: str | None
+    scheduled_start: datetime | None
+    scheduled_end: datetime | None
     generator: str
     observations: str | None
     preferred_time: str | None
@@ -129,7 +133,12 @@ def detail(request_id: UUID, actor: Actor):
     with engine().connect() as conn:
         row = conn.execute(text(f"""
             SELECT {FIELDS}, r.generator,r.contact_phone,r.address,r.preferred_time,r.observations
-            FROM pickup_requests r WHERE r.id=:id AND ({scopes[actor.role]})
+                 ,a.collector_id,u.full_name AS collector_name,s.scheduled_start,s.scheduled_end
+            FROM pickup_requests r
+            LEFT JOIN request_assignments a ON a.request_id=r.id AND a.is_current
+            LEFT JOIN users u ON u.id=a.collector_id
+            LEFT JOIN request_schedules s ON s.assignment_id=a.id AND s.is_current
+            WHERE r.id=:id AND ({scopes[actor.role]})
         """), params).mappings().first()
         if row is None:
             raise HTTPException(404, "request_not_found")

@@ -110,3 +110,79 @@ def test_login_throttle(pilot):
     response = login(client, 0, "invalid")
     assert response.status_code == 429
     assert response.json()["correlation_id"] == response.headers["X-Correlation-ID"]
+
+
+def test_scheduling(pilot):
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import UTC, datetime, timedelta
+
+    client, zone, password = pilot
+    # This module shares the pilot fixture. Reset the synthetic peer after the throttle test.
+    with engine().begin() as db:
+        db.execute(text("DELETE FROM login_windows"))
+    requester, coordinator, outsider = [
+        {"Authorization": "Bearer " + login(client, index, password).json()["access_token"]}
+        for index in (0, 2, 3)
+    ]
+    start = (datetime.now(UTC) + timedelta(days=8)).replace(hour=15, minute=0, second=0, microsecond=0)
+    with engine().begin() as db:
+        collector = str(db.scalar(text("""
+            INSERT INTO users(full_name,phone,role,is_pilot)
+            VALUES ('Recolector de prueba','+100000006','recolector',true) RETURNING id
+        """)))
+        member = db.scalar(text("""
+            INSERT INTO collective_members(user_id,collective_id,member_role)
+            SELECT :user,id,'recolector' FROM collectives WHERE flow='organico' RETURNING id
+        """), {"user": collector})
+        coverage = db.scalar(text("""
+            INSERT INTO collector_zone_coverage(member_id,zone_id,valid_from)
+            VALUES (:member,:zone,current_date) RETURNING id
+        """), {"member": member, "zone": zone})
+        db.execute(text("""
+            INSERT INTO availability_slots(coverage_id,weekday,starts_at,ends_at,valid_from)
+            VALUES (:coverage,:day,'09:00','12:00',current_date)
+        """), {"coverage": coverage, "day": start.isoweekday()})
+
+    urls = []
+    for _ in range(2):
+        new = client.post("/api/v1/requests", headers=requester, json={
+            "generator":"hogar", "flow":"organico", "zone_id":zone, "address":"Prueba",
+            "contact_phone":"+100000000", "preferred_time":"mañana",
+        })
+        rid = new.json()["id"]
+        url = "/api/v1/requests/" + rid
+        urls.append(url)
+        candidates = "/api/v1/collectors/availability"
+        assert client.get(candidates, params={"request_id":rid}, headers=outsider).status_code == 404
+        assert client.get(candidates, params={"request_id":rid}, headers=coordinator).json()[0]["collector_id"] == collector
+        assert client.post(url+"/review", headers=requester).status_code == 403
+        assert client.post(url+"/review", headers=outsider).status_code == 404
+        assign = url + "/assignments"
+        assert client.post(assign, headers=coordinator, json={"collector_id":collector}).status_code == 409
+        assert client.post(url+"/review", headers=coordinator).json()["status"] == "en_revision"
+        assert client.post(assign, headers=coordinator, json={"collector_id":str(uuid4())}).status_code == 409
+        assert client.post(assign, headers=coordinator, json={"collector_id":collector}).json()["status"] == "asignada"
+
+    def window(begin, end):
+        return {"scheduled_start":begin.isoformat(), "scheduled_end":end.isoformat()}
+
+    end = start + timedelta(hours=1)
+    def book(url, payload):
+        return client.post(url+"/schedule", headers=coordinator, json=payload)
+
+    assert book(urls[0], window(end,start)).status_code == 422
+    assert book(urls[0], window(start.replace(tzinfo=None),end)).status_code == 422
+    assert book(urls[0], window(start, end+timedelta(hours=3))).json()["code"] == "outside_availability"
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        responses = list(pool.map(lambda url: book(url, window(start,end)), urls))
+    assert sorted(resp.status_code for resp in responses) == [201,409], [r.text for r in responses]
+    loser = next(i for i,r in enumerate(responses) if r.status_code == 409)
+    assert responses[loser].json()["code"] == "schedule_overlap"
+    assert book(urls[loser], window(end,end+timedelta(hours=1))).status_code == 201
+    for url in urls:
+        detail = client.get(url, headers=requester).json()
+        assert detail["collector_id"] == collector and detail["scheduled_start"] and detail["scheduled_end"]
+        assert [h["to_status"] for h in detail["history"]] == ["recibida","en_revision","asignada","programada"]
+        with engine().connect() as db:
+            assert db.scalar(text("SELECT count(*) FROM audit_log WHERE entity_id=:id"),
+                             {"id":detail["id"]}) == 3
