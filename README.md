@@ -57,3 +57,15 @@ No interpretar “libertad para usar IA” como permiso para enviar datos person
 ## Arranque
 
 Abrir el repositorio desde su raíz. Confirmar estructura y estado Git. Leer las instrucciones. No crear código antes de revisar los archivos existentes y asignar claramente las tareas. Consultar `docs/INTEGRATION_PLAN.md` para la secuencia de trabajo.
+
+### Ejecutar el frontend de demostración
+
+```powershell
+cd apps/web
+npm install
+npm run dev
+```
+
+El frontend funciona en modo local de demostración. Sus límites y el estado de la integración están documentados en [`apps/web/README.md`](apps/web/README.md).
+
+Abre la app desde la dirección HTTP que Vite muestra o inicia la tarea **EcoConecta: iniciar frontend** en VS Code. No abras `apps/web/index.html` con doble clic: una página `file:///` no puede cargar los módulos TypeScript de Vite.
