@@ -23,7 +23,16 @@ Estos endpoints usan los valores de estado y flujo en español del esquema Postg
 - GET `/auth/me`
 
 ### Catálogo y educación
-- GET `/public/education`
+El catálogo público y el progreso del perfil están implementados. Cada contenido
+publicado cuenta como un módulo. La finalización la declara el usuario al pulsar
+«Marcar como completado». No otorga puntos de recolección.
+
+- GET `/public/education` lista módulos publicados. GET `/public/education/{module_id}` devuelve el contenido.
+- PUT `/users/me/learning-progress/{module_id}` requiere sesión y conserva la fecha de la primera finalización.
+- GET `/users/me/learning-progress` devuelve `completed`, `total`, `percentage` y `completions` con identificadores y fechas. El porcentaje se redondea al entero más cercano y vale cero con un catálogo vacío.
+- Catálogo e historial admiten `limit` (1–100, por defecto 50) y `offset` (por defecto 0). Los totales abarcan todo el catálogo publicado. Retirar un módulo lo excluye del cálculo y republicarlo recupera la marca anterior.
+
+Otros endpoints propuestos del catálogo:
 - GET `/public/materials`
 - GET `/public/collection-info`
 
@@ -70,4 +79,3 @@ RECEIVED, UNDER_REVIEW, ASSIGNED, SCHEDULED, COLLECTED, CANCELLED.
 Documentar transiciones permitidas y actor autorizado. No permitir saltos arbitrarios.
 
 > **ACTUALIZACIÓN v3:** Este documento proviene de la versión 2. Si contradice `AGENTS.md`, `docs/DECISION_LOG.md`, `docs/FOUNDATION_BRIEF.md` o `docs/DESIGN_GUIDE.md`, prevalece v3. En particular, Twilio está permitido para prototipo, la IA tiene libertad de elección bajo controles de privacidad/seguridad y la aplicación usa una única PostgreSQL compartida.
-
