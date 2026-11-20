@@ -64,5 +64,22 @@ operaciones de campo requieren la sesión del recolector con asignación vigente
 5. `GET /requests/{id}/collection` recupera el registro y sus materiales al regresar
    a la pantalla. Un 404 para el recolector asignado puede indicar que aún no abrió el registro.
 
-La solicitud sigue programada hasta confirmar el cierre. Falta acordar quién lo
-confirma y cómo proceder si no hay una regla de puntos aprobada.
+## Verificación, cierre y puntos
+
+- El coordinador autorizado consulta `GET /coordinator/requests/{id}/collection`
+  y envía los kilos verificados en `POST /collections/{id}/confirm`. El cuerpo
+  es `{"items":[{"waste_type_id":"<uuid>","quantity":"2.5"}]}`. Puede corregir
+  cantidades e incluir materiales nuevos. Debe incluir los ya registrados.
+- La API acredita los puntos al solicitante y cambia el estado a `recolectada`
+  en una sola transacción. Reenviar los mismos pesos devuelve el cierre existente.
+- Administración consulta `GET /points/rules`. Para reciclaje, publica con
+  `POST /admin/points/rules/{material_id}` indicando `points_per_kg`. Para huerta,
+  `POST /admin/points/rules/organic` con `{}` publica 10 puntos/kg para los materiales
+  orgánicos activos en kg. Puede editar el factor al publicar otra versión. Si se
+  agregan materiales orgánicos, volver a publicar para incluirlos.
+- Por defecto las reglas rigen desde la publicación. Para recuperar un registro
+  previo sin tarifa, definir `valid_from` con la vigencia autorizada antes de
+  reintentar tras un `409 points_rule_missing`. Se usa la regla vigente al abrir
+  el registro. Ante igual inicio, se aplica la versión mayor. Los créditos
+  existentes conservan su versión y se redondean por material a seis decimales.
+- `GET /users/me/points` devuelve el saldo derivado del libro de movimientos.

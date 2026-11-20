@@ -258,3 +258,71 @@ def test_collection_recording(pilot):
     assert saved["confirmed_at"] is None
     assert saved["items"] == [saves[0].json()]
     assert saved["items"][0]["unit"] == "test-unit"
+
+    with engine().begin() as db:
+        db.execute(text("UPDATE waste_types SET unit='kg' WHERE id=:id"), {"id":materials["A"]})
+        db.execute(text("UPDATE collection_items SET unit='kg' WHERE collection_id=:id"),
+                   {"id":saved["id"]})
+        db.execute(text("""
+            INSERT INTO users(full_name, phone, role, password_hash, is_pilot)
+            VALUES ('Test admin','+100000009','administrador',:hash,true)
+        """), {"hash":hasher.hash(password)})
+    admin, coordinator, outsider = [
+        {"Authorization":"Bearer "+login(client,index,password).json()["access_token"]}
+        for index in (9,2,3)
+    ]
+    review = f"/api/v1/coordinator/requests/{rid}/collection"
+    assert client.get(review,headers=coordinator).json()["id"] == saved["id"]
+    assert client.get(review,headers=outsider).status_code == 404
+    confirm = f"/api/v1/collections/{saved['id']}/confirm"
+    weights = {"items":[{"waste_type_id":materials["A"],"quantity":"2.5"}]}
+    assert client.post(confirm,headers=owner,json=weights).status_code == 403
+    assert client.post(confirm,headers=outsider,json=weights).status_code == 404
+    assert client.post(confirm,headers=coordinator,json=weights).json()["code"] == "points_rule_missing"
+    assert client.get(url,headers=owner).json()["items"][0]["quantity"] == saved["items"][0]["quantity"]
+    rates = "/api/v1/admin/points/rules/organic"
+    payload = {"valid_from":"2000-01-01T00:00:00Z"}
+    assert client.post(rates,headers=coordinator,json=payload).status_code == 403
+    published = client.post(rates,headers=admin,json=payload)
+    assert published.status_code == 201, published.text
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        closures = list(pool.map(lambda _: client.post(confirm,headers=coordinator,json=weights), range(2)))
+    assert all(response.status_code == 200 for response in closures), [r.text for r in closures]
+    assert closures[0].json() == closures[1].json()
+    assert float(closures[0].json()["points_awarded"]) == 25
+    assert client.get(f"/api/v1/requests/{rid}",headers=resident).json()["status"] == "recolectada"
+    assert float(client.get("/api/v1/users/me/points",headers=resident).json()["balance"]) == 25
+    assert record(quantity="3").status_code == 409
+    weights["items"][0]["quantity"] = "3"
+    assert client.post(confirm,headers=coordinator,json=weights).status_code == 409
+
+    # Separate recycling pickup. The coordinator may enter weights even if the field draft is empty.
+    with engine().begin() as db:
+        db.execute(text("UPDATE waste_types SET unit='kg' WHERE id=:id"), {"id":materials["B"]})
+        group = db.scalar(text("SELECT id FROM collectives WHERE flow='reciclable'"))
+        coord = db.scalar(text("SELECT id FROM users WHERE phone='+100000003'"))
+        db.execute(text("INSERT INTO collective_members(collective_id,user_id,member_role) VALUES (:g,:u,'recolector')"),
+                   {"g":group,"u":ids[7]})
+        rid = db.scalar(text("""
+            INSERT INTO pickup_requests(code,requester_id,collective_id,flow,zone_id,generator,contact_phone,address,source_channel,status)
+            VALUES ('TEST-RECYCLING',:u,:g,'reciclable',:z,'hogar','test','test','web','programada') RETURNING id
+        """), {"u":requester,"g":group,"z":zone})
+        assignment = db.scalar(text("""
+            INSERT INTO request_assignments(request_id,coordinator_id,collector_id)
+            VALUES (:r,:coord,:u) RETURNING id
+        """), {"r":rid,"coord":coord,"u":ids[7]})
+        db.execute(text("""
+            INSERT INTO request_schedules(request_id,assignment_id,scheduled_start,created_by,confirmed_by)
+            VALUES (:r,:a,now(),:coord,:coord)
+        """), {"r":rid,"a":assignment,"coord":coord})
+    draft = client.post(f"/api/v1/requests/{rid}/collection",headers=owner).json()
+    assert draft["items"] == []
+    recycling_rate = f"/api/v1/admin/points/rules/{materials['B']}"
+    for value in ("2","3.5"):
+        published = client.post(recycling_rate,headers=admin,json={**payload,"points_per_kg":value})
+        assert published.status_code == 201, published.text
+    verified = {"items":[{"waste_type_id":materials["B"],"quantity":"2.25"}]}
+    closed = client.post(f"/api/v1/collections/{draft['id']}/confirm",headers=outsider,json=verified)
+    assert closed.status_code == 200, closed.text
+    assert float(closed.json()["points_awarded"]) == 7.875
+    assert float(client.get("/api/v1/users/me/points",headers=resident).json()["balance"]) == 32.875
