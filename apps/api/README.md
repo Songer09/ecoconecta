@@ -46,5 +46,23 @@ Con el token del coordinador, ejecutar las operaciones bajo `/api/v1` en este or
 5. `GET /requests/{id}` incluye responsable, inicio, fin e historial. Los cuatro
    comandos de consulta y escritura respetan los permisos del colectivo y de la zona.
 
-El cierre y los puntos quedan para la siguiente etapa. Falta acordar quién confirma
-la recolección y qué ocurre si no hay una regla de puntos aprobada.
+## Registro de materiales por el recolector
+
+Las siguientes rutas se encuentran bajo `/api/v1`. El catálogo es público y las
+operaciones de campo requieren la sesión del recolector con asignación vigente.
+
+1. `GET /collector/requests` lista las solicitudes asignadas al usuario y admite
+   `limit` y `offset`. En una solicitud programada, abrir el detalle habitual.
+2. `GET /public/materials?flow=organico` (o `reciclable`) devuelve materiales
+   activos con su unidad oficial. Una lista vacía significa que falta configurar el catálogo.
+3. `POST /requests/{id}/collection` abre el registro de la recolección. Devuelve el
+   mismo ID al reintentar. La hora de recolección corresponde a la apertura del registro.
+4. `POST /collections/{id}/items` recibe `waste_type_id` y `quantity` decimal
+   positiva, con hasta cuatro decimales. Mostrar la unidad devuelta por el catálogo.
+   Una repetición idéntica devuelve 200 y el registro original. Si ya se guardó el
+   mismo material con otra cantidad, se devuelve `409 material_already_recorded`.
+5. `GET /requests/{id}/collection` recupera el registro y sus materiales al regresar
+   a la pantalla. Un 404 para el recolector asignado puede indicar que aún no abrió el registro.
+
+La solicitud sigue programada hasta confirmar el cierre. Falta acordar quién lo
+confirma y cómo proceder si no hay una regla de puntos aprobada.

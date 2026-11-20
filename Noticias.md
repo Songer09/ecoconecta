@@ -1,19 +1,19 @@
 # Noticias de EcoConecta
 
-**20 de noviembre de 2026 · Backend · `feat/backend-core`**
+**Backend · Registro de materiales · Rama `feat/backend-core` · [Pull request #3](https://github.com/Songer09/ecoconecta/pull/3)**
 
-El coordinador ya puede llevar una solicitud desde **recibida → en revisión → asignada → programada**.
-El solicitante puede volver al detalle para ver el nombre del recolector y la hora acordada.
+El recolector asignado ya puede abrir una recolección programada, registrar cantidades
+por material y volver a consultar lo guardado. Si el envío se repite, se conserva un
+solo registro. La solicitud continúa programada hasta la confirmación del cierre.
 
-**Para frontend.** En la bandeja del coordinador, abrir la revisión, mostrar las franjas
-por recolector y enviar la asignación y la cita. La cita necesita inicio y fin con zona
-horaria. Si dos personas reservan al mismo recolector para horas que se cruzan, la API
-devuelve `409 schedule_overlap` a la segunda. Mantener el formulario abierto para elegir
-otro horario. [Secuencia de llamadas](apps/api/README.md#revisión-asignación-y-programación) · [Contrato OpenAPI](apps/api/openapi.json)
+**Frontend.** Mostrar las asignaciones con `GET /api/v1/collector/requests` y tomar
+las unidades del catálogo filtrado por flujo. Al reabrir la pantalla, recuperar la
+recolección por ID de solicitud. La PR incluye también la bandeja del coordinador,
+asignación y agenda. [Guía de llamadas](apps/api/README.md#registro-de-materiales-por-el-recolector) · [Contrato OpenAPI](apps/api/openapi.json)
 
-**Verificado.** Pasaron cinco pruebas de integración en PostgreSQL, incluida una reserva
-simultánea y otra contigua. La entrega usa las tablas existentes.
+**QA.** Pasaron seis pruebas de integración locales en PostgreSQL, incluidas la
+apertura simultánea de un registro, la repetición del mismo material, el control de
+acceso por asignación y el rechazo de materiales inactivos o de otro flujo.
 
-**Pendiente.** Registrar los materiales recolectados y cerrar la recolección. Para
-acreditar puntos hace falta acordar quién confirma el cierre y qué hacer cuando
-todavía no hay una regla aprobada.
+**Siguiente decisión.** Para cerrar y acreditar puntos, el equipo debe definir
+quién verifica las cantidades y qué ocurre si un material carece de regla aprobada.

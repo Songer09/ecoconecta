@@ -7,7 +7,7 @@ from starlette.exceptions import HTTPException
 from sqlalchemy.exc import OperationalError
 from pydantic import BaseModel
 
-from . import auth, requests, scheduling
+from . import auth, collections, requests, scheduling
 
 class ApiError(BaseModel):
     code: str
@@ -54,3 +54,4 @@ async def unavailable(request, exc):
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(requests.router, prefix="/api/v1")
 app.include_router(scheduling.router, prefix="/api/v1")
+app.include_router(collections.router, prefix="/api/v1")
