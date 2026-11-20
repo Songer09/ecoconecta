@@ -77,6 +77,7 @@ def set_access(user_id: UUID, body: AccessInput, actor: Admin):
             UPDATE users SET is_pilot=:enabled, updated_at=now() WHERE id=:id RETURNING {FIELDS}
         """), {"id": user_id, "enabled": body.is_pilot}).mappings().one()
         if not body.is_pilot:
+            db.execute(text("DELETE FROM live_positions WHERE collector_id=:id"), {"id": user_id})
             db.execute(text("UPDATE api_sessions SET revoked=true WHERE user_id=:id AND NOT revoked"),
                        {"id": user_id})
         audit(db, actor, user_id, "pilot.enabled" if body.is_pilot else "pilot.disabled")

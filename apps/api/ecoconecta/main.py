@@ -1,13 +1,15 @@
+import os
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException
 from sqlalchemy.exc import OperationalError
 from pydantic import BaseModel
 
-from . import auth, collections, community, education, events, pilot_users, points, requests, scheduling
+from . import catalog_admin, reports, tracking, photos, garden, operations, rewards, routes, auth, collections, community, education, events, pilot_users, points, requests, scheduling
 
 class ApiError(BaseModel):
     code: str
@@ -15,8 +17,14 @@ class ApiError(BaseModel):
     correlation_id: str
 
 
-app = FastAPI(title="EcoConecta", version="0.1.0",
+app = FastAPI(lifespan=tracking.lifespan, title="EcoConecta", version="0.1.0",
               responses={s: {"model": ApiError} for s in (401, 403, 404, 409, 422, 429, 503)})
+
+
+origins = [origin.strip() for origin in os.getenv("FRONTEND_ORIGINS", "").split(",") if origin.strip()]
+if origins:
+    app.add_middleware(CORSMiddleware, allow_origins=origins, allow_methods=["GET", "PUT", "POST", "DELETE"],
+                       allow_headers=["Authorization", "Content-Type"], expose_headers=["X-Correlation-ID"])
 
 
 @app.middleware("http")
@@ -60,3 +68,5 @@ app.include_router(education.router, prefix="/api/v1")
 app.include_router(events.router, prefix="/api/v1")
 app.include_router(community.router, prefix="/api/v1")
 app.include_router(pilot_users.router, prefix="/api/v1")
+for router in (catalog_admin.router, reports.router, tracking.router, photos.router, operations.router, rewards.router, garden.router, routes.router):
+    app.include_router(router, prefix='/api/v1')

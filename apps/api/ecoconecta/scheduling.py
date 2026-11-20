@@ -2,7 +2,7 @@ from datetime import date, time
 from uuid import UUID
 
 from fastapi import APIRouter, HTTPException
-from pydantic import AwareDatetime, BaseModel, ConfigDict, model_validator
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import text
 
 from .auth import Actor
@@ -57,11 +57,11 @@ def require_status(row, expected):
         raise HTTPException(409, "invalid_transition")
 
 
-def transition(conn, row, actor, state):
-    params = {"id": row["id"], "previous": row["status"], "state": state, "actor": actor.id}
+def transition(conn, row, actor, state, reason=None):
+    params = {"id": row["id"], "reason": reason, "previous": row["status"], "state": state, "actor": actor.id}
     conn.execute(text("""
-        INSERT INTO request_status_history(request_id,from_status,to_status,changed_by)
-        VALUES (:id,:previous,:state,:actor)
+        INSERT INTO request_status_history(request_id,from_status,to_status,changed_by,reason)
+        VALUES (:id,:previous,:state,:actor,:reason)
     """), params)
     conn.execute(text("""
         INSERT INTO audit_log(actor_id,action,entity,entity_id)
@@ -161,3 +161,35 @@ def schedule(request_id: UUID, body: ScheduleInput, actor: Actor):
             VALUES (:id,:assignment_id,:scheduled_start,:scheduled_end,:actor,:actor,:timezone)
         """), {**params, "timezone": slot})
         return transition(conn, row, actor, "programada")
+
+
+class Reason(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+    reason: str = Field(min_length=1,max_length=250,pattern=r"^[^\x00]+$")
+
+
+@router.post("/requests/{request_id}/missed", response_model=Summary)
+def missed(request_id: UUID, body: Reason, actor: Actor):
+    with engine().begin() as db:
+        row = scoped_request(db,request_id,actor,lock=True)
+        require_status(row,"programada")
+        if db.scalar(text("SELECT id FROM collections WHERE request_id=:id"), {"id":request_id}):
+            raise HTTPException(409,"collection_already_started")
+        db.execute(text("UPDATE request_schedules SET is_current=false WHERE request_id=:id AND is_current"),
+                   {"id":request_id})
+        return transition(db,row,actor,"asignada",body.reason)
+
+
+@router.post("/requests/{request_id}/cancel", response_model=Summary)
+def cancel(request_id: UUID, body: Reason, actor: Actor):
+    with engine().begin() as db:
+        if actor.role == "solicitante":
+            row = db.execute(text(f"SELECT {FIELDS} FROM pickup_requests r WHERE r.id=:id AND requester_id=:actor FOR UPDATE"),
+                             {"id":request_id,"actor":actor.id}).mappings().first()
+            if row is None:
+                raise HTTPException(404,"request_not_found")
+        else:
+            row = scoped_request(db,request_id,actor,lock=True)
+        if row["status"] not in ("recibida","en_revision"):
+            raise HTTPException(409,"invalid_transition")
+        return transition(db,row,actor,"cancelada",body.reason)

@@ -117,3 +117,11 @@ La migración `0005_events` añade `community_events` a la base PostgreSQL compa
 Cada evento guarda su organizador, lugar, intervalo con zona horaria, creador,
 publicación y versión de edición. Los cambios administrativos se registran en
 `audit_log` dentro de la misma transacción.
+
+
+## Operación, ubicación y valorización
+
+Las revisiones 0006 a 0008 incorporan premios, canjes enlazados al libro de puntos,
+faltantes del huerto por zona, orden de paradas en la cita, última posición
+por recolector y tarifas de compra por material y fecha. Todo persiste en
+PostgreSQL. La preparación de imágenes utiliza memoria durante la solicitud.
