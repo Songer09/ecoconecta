@@ -586,6 +586,7 @@ p { line-height: 1.55; }
   .review-request > p { font-size: .67rem; }
   .form-actions .button { flex: 1; min-height: 46px; padding-inline: 9px; font-size: .77rem; }
 }
+
 @media (max-width: 390px) {
   .welcome-page { padding-inline: 14px; }
   .role-picker-heading { align-items: start; }
@@ -663,13 +664,7 @@ p { line-height: 1.55; }
   .admin-account-form > button, .admin-account-form > .login-api-notice, .account-zones { grid-column: auto; }
 }
 
-/* Welcome actions and community entry points */
-.welcome-header-actions { display: flex; align-items: center; gap: 12px; }
-.whatsapp-cta { display: inline-flex; min-height: 46px; align-items: center; justify-content: center; gap: 9px; padding: 0 15px; border: 2px solid var(--eco-white); border-radius: 8px; color: var(--eco-green); background: var(--eco-white); font-size: .9rem; font-weight: 800; text-decoration: none; cursor: pointer; }
-.whatsapp-cta:hover { color: var(--eco-white); border-color: var(--eco-forest); background: var(--eco-forest); }
-.whatsapp-glyph { width: 19px; height: 19px; fill: currentColor; }
-.whatsapp-glyph path + path { fill: none; stroke: var(--eco-green); stroke-width: .8; }
-.whatsapp-config-note { position: absolute; z-index: 2; top: 82px; right: 5.4vw; max-width: 340px; margin: 0; padding: 10px 13px; border: 1px solid var(--eco-yellow); border-radius: 8px; color: var(--eco-charcoal); background: var(--yellow-soft); font-size: .8rem; }
+/* Welcome and community entry points */
 .welcome-grid { grid-template-columns: minmax(0, 1fr) minmax(290px, .72fr); gap: clamp(24px, 4vw, 58px); }
 .welcome-copy > .eyebrow { color: var(--eco-green); }
 .welcome-copy > h1 { font-size: clamp(2.1rem, 3.5vw, 3.5rem); }
@@ -725,9 +720,6 @@ p { line-height: 1.55; }
   .welcome-page { padding-inline: 17px; }
   .welcome-header { min-height: 72px; gap: 10px; padding-inline: 14px; margin-inline: -17px; }
   .welcome-header .brand img { width: 140px; height: 42px; }
-  .welcome-header-actions { gap: 8px; }
-  .whatsapp-cta { min-height: 40px; gap: 5px; padding-inline: 9px; font-size: .67rem; }
-  .whatsapp-glyph { width: 16px; height: 16px; }
   .welcome-access-link { font-size: .7rem; }
   .welcome-grid { grid-template-columns: 1fr; gap: 22px; padding-block: 28px; }
   .welcome-copy > h1 { font-size: 2.05rem; }
@@ -744,8 +736,6 @@ p { line-height: 1.55; }
 }
 @media (max-width: 390px) {
   .welcome-header .brand img { width: 112px; height: 37px; }
-  .whatsapp-cta { font-size: 0; }
-  .whatsapp-cta .whatsapp-glyph { width: 19px; height: 19px; }
   .welcome-aside { grid-template-columns: 1fr; }
 }
 
@@ -813,7 +803,6 @@ h1, h2, h3 { color: var(--eco-green); }
   body { font-size: 16px; }
   .welcome-header .brand img, .simple-header .brand img, .app-header .brand img, .mobile-brand .brand img { width: 138px; height: 43px; }
   .welcome-header { min-height: 72px; }
-  .whatsapp-cta { min-height: 42px; padding-inline: 10px; font-size: .76rem; }
   .coordinator-map-layout .real-community-map { height: 270px; }
   .login-page .simple-header { margin-inline: -5.55vw; }
   .login-header-spacer { width: 0; }
@@ -821,4 +810,68 @@ h1, h2, h3 { color: var(--eco-green); }
   .learning-progress-copy { grid-template-columns: auto 1fr; }
   .learning-progress-copy .eyebrow { grid-column: 1 / -1; }
   .learning-progress-copy > span:last-child { grid-column: 1 / -1; }
+}
+
+/* Final identity pass: solar header, clear logo plate, forest text and warm accents. */
+:root {
+  --eco-background: #F2F5F2;
+  --orange-soft: color-mix(in srgb, var(--eco-orange) 18%, var(--eco-white));
+  --yellow-soft: color-mix(in srgb, var(--eco-yellow) 32%, var(--eco-white));
+  --green-soft: color-mix(in srgb, var(--eco-leaf) 13%, var(--eco-white));
+}
+body, .welcome-page, .login-page, .education-page { background: var(--eco-white); }
+.welcome-header, .simple-header, .app-header { background: var(--eco-yellow); }
+.app-header { color: var(--eco-forest); border-bottom: 1px solid color-mix(in srgb, var(--eco-orange) 35%, var(--eco-yellow)); }
+.welcome-header .brand img, .simple-header .brand img, .app-header .brand img, .mobile-brand .brand img {
+  width: 220px; height: 68px; padding: 4px 9px; border: 0; border-radius: 8px; background: var(--eco-white);
+}
+.brand-compact img { width: 210px; height: 64px; }
+.app-header .demo-tag { border-color: var(--eco-orange); color: var(--eco-forest); background: var(--eco-white); }
+.welcome-copy > .eyebrow, .login-card .eyebrow, .education-intro .eyebrow { display: inline-block; padding: 5px 9px; border-radius: 5px; color: var(--eco-forest); background: var(--yellow-soft); }
+.welcome-copy > h1, .main-heading h1, .education-intro h1, .login-card h1 { color: var(--eco-forest); }
+.welcome-copy > h1 em { color: var(--eco-forest); font-style: normal; text-decoration: underline; text-decoration-color: var(--eco-orange); text-decoration-thickness: 4px; text-underline-offset: 5px; }
+h1, h2, h3 { color: var(--eco-forest); }
+.role-card { border-color: color-mix(in srgb, var(--eco-orange) 24%, var(--border-subtle)); }
+.role-card:hover, .role-card:focus-visible { border-color: var(--eco-orange); box-shadow: 0 6px 20px color-mix(in srgb, var(--eco-orange) 20%, transparent); }
+.role-avatar { border-radius: 12px; }
+.avatar-neighbor.role-avatar, .sidebar-profile.avatar-neighbor > span { color: var(--eco-forest); background: var(--yellow-soft); }
+.avatar-collector.role-avatar, .sidebar-profile.avatar-collector > span { color: var(--eco-forest); background: var(--green-soft); }
+.avatar-vivi.role-avatar, .sidebar-profile.avatar-vivi > span { color: var(--eco-forest); background: var(--orange-soft); }
+.avatar-kelly.role-avatar, .sidebar-profile.avatar-kelly > span { color: var(--eco-forest); background: var(--teal-soft); }
+.avatar-admin.role-avatar, .sidebar-profile.avatar-admin > span { color: var(--eco-forest); background: var(--yellow-soft); }
+.role-arrow, .text-button, .map-link { color: var(--eco-green); }
+.nav-item.nav-active, .app-shell-kelly .nav-item.nav-active { color: var(--eco-forest); background: var(--yellow-soft); }
+.nav-active .nav-indicator, .app-shell-kelly .nav-active .nav-indicator { border-color: var(--eco-orange); background: var(--eco-orange); }
+.neighbor-welcome-banner { border-color: var(--eco-orange); background: linear-gradient(110deg, var(--yellow-soft), var(--eco-white) 76%); }
+.summary-orange, .metric-accent-vivi { border-color: var(--eco-orange); background: var(--yellow-soft); }
+.new-request-cta { color: var(--eco-forest); border: 2px solid var(--eco-orange); background: var(--eco-yellow); }
+.new-request-cta > span { border-color: var(--eco-orange); color: var(--eco-forest); }
+.new-request-cta small { color: var(--eco-forest); }
+.learning-callout-icon, .points-mark { color: var(--eco-forest); background: var(--eco-yellow); }
+.progress-track { background: color-mix(in srgb, var(--eco-orange) 18%, var(--eco-white)); }
+.progress-track > span { background: var(--eco-green); }
+.feature-art-green { background: var(--eco-yellow); }
+.feature-art-green > span { color: var(--eco-forest); }
+.topic-row:hover, .topic-row-active { border-color: var(--eco-orange); background: var(--yellow-soft); }
+.topic-number, .topic-number-done { color: var(--eco-forest); background: var(--yellow-soft); }
+.topic-number-done { border: 1px solid var(--eco-orange); }
+.flow-label { color: var(--eco-forest); background: var(--yellow-soft); }
+.flow-label-green { color: var(--eco-forest); background: var(--green-soft); }
+.status-received, .status-under_review { border-color: var(--eco-yellow); color: var(--eco-forest); background: var(--yellow-soft); }
+.status-assigned, .status-scheduled, .status-completed { border-color: var(--eco-green); color: var(--eco-forest); background: var(--green-soft); }
+.status-cancelled { color: var(--eco-forest); background: var(--orange-soft); }
+.button-secondary { color: var(--eco-forest); border-color: var(--eco-orange); background: var(--eco-white); }
+.button-secondary:hover { background: var(--yellow-soft); border-color: var(--eco-orange); }
+.account-tab { border-color: var(--eco-orange); }
+.account-tab.active { color: var(--eco-forest); border-color: var(--eco-orange); background: var(--eco-yellow); }
+.admin-account-form { border-top: 3px solid var(--eco-orange); }
+.login-card { border-top: 4px solid var(--eco-orange); }
+.login-back { color: var(--eco-forest); }
+.welcome-resource-card { border-bottom: 3px solid var(--eco-orange); }
+.resource-action { background: linear-gradient(0deg, color-mix(in srgb, var(--eco-forest) 82%, var(--eco-orange)), color-mix(in srgb, var(--eco-orange) 2%, transparent)); }
+.event-date { color: var(--eco-forest); border: 1px solid var(--eco-orange); background: var(--eco-yellow); }
+@media (max-width: 760px) {
+  .welcome-header .brand img, .simple-header .brand img, .app-header .brand img, .mobile-brand .brand img { width: 170px; height: 55px; }
+  .brand-compact img { width: 160px; height: 52px; }
+  .app-header { color: var(--eco-forest); }
 }

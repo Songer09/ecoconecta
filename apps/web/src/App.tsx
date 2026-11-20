@@ -33,21 +33,6 @@ const navByRole: Record<Role, { id: Section; label: string }[]> = {
 
 const roleOptions: Role[] = ['neighbor', 'collector', 'vivi', 'kelly', 'admin']
 
-function configuredWhatsAppUrl() {
-  const configuredUrl = import.meta.env.VITE_ECOCONECTA_WHATSAPP_URL?.trim()
-  if (!configuredUrl) return undefined
-  try {
-    const url = new URL(configuredUrl)
-    return url.protocol === 'https:' && ['wa.me', 'api.whatsapp.com'].includes(url.hostname) ? url.href : undefined
-  } catch {
-    return undefined
-  }
-}
-
-function WhatsAppGlyph() {
-  return <svg viewBox="0 0 32 32" aria-hidden="true" className="whatsapp-glyph"><path d="M16 3.5a12.1 12.1 0 0 0-10.4 18.3L4 28l6.4-1.6A12.1 12.1 0 1 0 16 3.5Z"/><path d="M12.4 10.2c-.3-.7-.7-.7-1-.7h-.8c-.3 0-.8.1-1.2.6-.4.4-1.5 1.5-1.5 3.6s1.5 4.2 1.7 4.5c.2.3 2.9 4.6 7.1 6.2 3.5 1.4 4.2 1.1 5 .9.8-.1 2.5-1 2.8-2 .3-1 .3-1.8.2-2-.1-.2-.4-.3-.9-.6-.5-.2-2.5-1.2-2.9-1.3-.4-.2-.7-.2-1 .2-.3.5-1.1 1.4-1.4 1.7-.2.3-.5.4-.9.1-.5-.2-1.9-.7-3.6-2.2-1.3-1.1-2.2-2.5-2.4-2.9-.3-.5 0-.7.2-.9.2-.2.5-.6.7-.8.2-.3.3-.5.5-.8.1-.3.1-.6 0-.8-.1-.2-.9-2.2-1.2-3Z"/></svg>
-}
-
 function RoleIcon({ role }: { role: Role }) {
   const paths: Record<Role, string> = {
     neighbor: 'M3 11.5 12 4l9 7.5M5.5 10v10h13V10M9 20v-6h6v6',
@@ -59,13 +44,13 @@ function RoleIcon({ role }: { role: Role }) {
   return <svg className="role-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[role]}/></svg>
 }
 
-function Welcome({ onRole, onLearn, onEvents, whatsappHref }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void; whatsappHref?: string }) {
+function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void }) {
   return <main className="welcome-page">
-    <header className="welcome-header"><Brand/>{whatsappHref && <div className="welcome-header-actions"><a className="whatsapp-cta" href={whatsappHref} target="_blank" rel="noopener noreferrer"><WhatsAppGlyph/>Contáctanos por WhatsApp</a></div>}</header>
+    <header className="welcome-header"><Brand/></header>
     <div className="welcome-grid">
       <section className="welcome-copy">
         <p className="eyebrow">BIENVENIDO</p>
-        <h1>Bienvenido a EcoConecta</h1>
+        <h1>Bienvenido a <em>EcoConecta</em></h1>
         <p className="welcome-lede">Selecciona tu perfil para iniciar sesión.</p>
         <section className="role-picker" id="roles">
           <div className="role-picker-heading"><div><p className="eyebrow">ACCESO A ECOCONECTA</p><h2>Elige tu rol</h2></div></div>
@@ -418,5 +403,5 @@ export default function App() {
   if (view === 'learning') return <Education onBack={() => setView(educationReturnView)} onNeighbor={() => { setRole('neighbor'); setView('login') }}/>
   if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')} onSuccess={(authenticatedRole) => { setRole(authenticatedRole); setDashboardSection('home'); setView('dashboard') }}/>
   if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { void authApi.logout(); setDashboardSection('home'); setView('welcome') }} onLearn={openLearning}/>
-  return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }} whatsappHref={configuredWhatsAppUrl()}/>
+  return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }}/>
 }
