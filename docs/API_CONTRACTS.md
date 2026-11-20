@@ -99,3 +99,10 @@ Todos los paths usan el prefijo `/api/v1`.
 - `POST /admin/events` crea un borrador con `title`, `description`, `organizer`, `location`, `starts_at` y `ends_at`. Los textos se presentan como texto plano. Ambas fechas llevan zona horaria y el fin debe ser posterior al inicio. Frontend presenta las horas en `America/Bogota`.
 - `GET /admin/events` y `GET /admin/events/{id}` permiten al administrador consultar publicaciones y borradores, incluida la versión `updated_at`.
 - `PUT /admin/events/{id}` recibe todos los campos de contenido, `is_published` y `expected_updated_at`. Este último debe conservar exactamente la versión recibida. Un 409 requiere recargar el evento y revisar los cambios antes de guardar.
+
+## Comunidad y acceso al piloto
+
+- `GET /public/community` entrega dos fichas públicas con nombre, descripción y enlace oficial. El contenido se versiona con la API.
+- `GET /admin/users` lista identificador, nombre, rol y estado de cuenta y de piloto. Acepta `limit` (1–100) y `offset`.
+- `POST /admin/users` registra un solicitante habilitado con `full_name`, teléfono E.164 en `phone` y `password` de 12 a 256 caracteres. Un teléfono duplicado devuelve 409.
+- `PUT /admin/users/{user_id}/pilot-access` recibe `is_pilot` booleano. Retirar acceso revoca las sesiones. Reactivarlo requiere iniciar sesión de nuevo. Solo administración puede gestionar usuarios y las cuentas administrativas están protegidas.

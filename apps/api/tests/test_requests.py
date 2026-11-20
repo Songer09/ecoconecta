@@ -490,3 +490,32 @@ def test_public_event_agenda(pilot):
                 SELECT action FROM audit_log WHERE entity='community_events' AND entity_id=:id
             """), {"id": event["id"]}).all()
         assert sorted(actions) == sorted(["event.created", "event.published", "event.edited", "event.withdrawn"])
+
+
+def test_community_and_pilot_management(pilot):
+    _, _, password = pilot
+    with engine().begin() as db:
+        db.execute(text("""
+            INSERT INTO users(full_name, phone, role, password_hash, is_pilot)
+            VALUES ('Piloto', '+1000000016', 'administrador', :hash, true)
+        """), {"hash": hasher.hash(password)})
+    with TestClient(app, client=("pilot-management-test", 1234)) as client:
+        info = client.get("/api/v1/public/community")
+        assert info.status_code == 200
+        assert [item["name"] for item in info.json()] == ["Villas de San Pablo", "Fundación Santo Domingo"]
+        admin = {"Authorization": "Bearer " + login(client, 16, password).json()["access_token"]}
+        url = "/api/v1/admin/users"
+        data = {"full_name": "Residente", "phone": "+1000000017", "password": password}
+        assert client.get(url).status_code == 401
+        assert client.post(url, headers=admin, json={**data, "role": "administrador"}).status_code == 422
+        created = client.post(url, headers=admin, json=data)
+        assert created.status_code == 201, created.text
+        assert created.json() in client.get(url, headers=admin).json()
+        assert client.post(url, headers=admin, json=data).status_code == 409
+        reader = {"Authorization": "Bearer " + login(client, 17, password).json()["access_token"]}
+        access = f"{url}/{created.json()['id']}/pilot-access"
+        assert client.put(access, headers=reader, json={"is_pilot": False}).status_code == 403
+        for enabled in (False, False, True):
+            assert client.put(access, headers=admin, json={"is_pilot": enabled}).json()["is_pilot"] == enabled
+            assert client.get("/api/v1/auth/me", headers=reader).status_code == 401
+            assert login(client, 17, password).status_code == (200 if enabled else 401)
