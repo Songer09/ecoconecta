@@ -49,7 +49,7 @@ lo que falta y distingue los acuerdos actuales de las referencias de diseño.
 | Foto | Carga validada, acceso restringido e integración con visión como sugerencia de clasificación. Mantener selección manual. | Alta |
 | Educación | Conectar catálogo, perfil y editor administrativo en frontend. El equipo de contenidos puede cargar los módulos iniciales como borradores. | Baja–media |
 | Información comunitaria | Preparar y publicar información de Villas de San Pablo y de la Fundación Santo Domingo. | Baja–media |
-| Eventos y administración | Crear, publicar y listar eventos. Los avisos por WhatsApp usan consentimiento y un trabajo coordinado con mensajería. | Media–alta |
+| Eventos y administración | Conectar las pantallas a la agenda pública y al editor administrativo. Cargar eventos confirmados. Coordinar los avisos por WhatsApp y su consentimiento con mensajería. | Media–alta |
 | Canjes | Catálogo y stock, transacción para descontar puntos y existencias, historial y control de duplicados. Los valores de las imágenes son referencias de pantalla. | Alta |
 | Inventario faltante del huerto | Gestionar insumos, cantidades y estado del faltante. Confirmar si se conecta al catálogo de canje. | Media |
 | Ganancias y reportes | Agregados por período y ámbito. Las ganancias en COP requieren precios oficiales, beneficiarios y una definición de qué cuenta como ganado. | Media–alta |
