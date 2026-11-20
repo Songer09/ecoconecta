@@ -3,7 +3,7 @@ from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
 from fastapi import APIRouter, HTTPException, Query
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import AwareDatetime, BaseModel, ConfigDict, Field, model_validator
 from sqlalchemy import text
 
 from .auth import Actor
@@ -24,6 +24,14 @@ class CreateRequest(BaseModel):
     address: str = Field(min_length=1, max_length=250)
     preferred_time: str = Field(min_length=1, max_length=150)
     observations: str | None = Field(default=None, max_length=1000)
+    latitude: float | None = Field(default=None, ge=-90, le=90)
+    longitude: float | None = Field(default=None, ge=-180, le=180)
+
+    @model_validator(mode="after")
+    def coordinate_pair(self):
+        if (self.latitude is None) != (self.longitude is None):
+            raise ValueError("Se requieren ambas coordenadas.")
+        return self
 
 
 class Summary(BaseModel):
@@ -37,6 +45,7 @@ class Summary(BaseModel):
 
 class History(BaseModel):
     to_status: Status
+    reason: str | None = None
     changed_at: datetime
 
 
@@ -88,9 +97,9 @@ def create_request(body: CreateRequest, actor: Actor):
         row = conn.execute(text("""
             INSERT INTO pickup_requests AS r
                 (code,requester_id,collective_id,flow,zone_id,generator,contact_phone,address,
-                 preferred_time,observations,source_channel)
+                 preferred_time,observations,latitude,longitude,source_channel)
             VALUES (:code,:actor,:collective,:flow,:zone_id,:generator,:contact_phone,:address,
-                    :preferred_time,:observations,'web')
+                    :preferred_time,:observations,:latitude,:longitude,'web')
             RETURNING """ + FIELDS), {
             **body.model_dump(), "actor": actor.id, "collective": collective,
             "code": "SR-" + uuid4().hex,
@@ -104,12 +113,21 @@ def create_request(body: CreateRequest, actor: Actor):
 
 @router.get("/coordinator/requests", response_model=list[Summary])
 def inbox(actor: Actor, flow: Flow | None = None, status: Status | None = None,
-          zone_id: UUID | None = None, limit: Annotated[int, Query(ge=1, le=100)] = 30,
+          zone_id: UUID | None = None, start: AwareDatetime | None = None, end: AwareDatetime | None = None,
+          limit: Annotated[int, Query(ge=1, le=100)] = 30,
           offset: Annotated[int, Query(ge=0)] = 0):
     if actor.role not in COORDINATORS:
         raise HTTPException(403, "forbidden")
     clauses = [COORD_SCOPE]
     params = {"coord_flow": COORDINATORS[actor.role], "actor": actor.id, "limit": limit, "offset": offset}
+    if start and end and start >= end:
+        raise HTTPException(422,"invalid_period")
+    if start:
+        clauses.append("r.created_at>=:start")
+        params["start"] = start
+    if end:
+        clauses.append("r.created_at<:end")
+        params["end"] = end
     for column, value in (("flow", flow), ("status", status), ("zone_id", zone_id)):
         if value is not None:
             clauses.append(f"r.{column}=:{column}")
@@ -143,7 +161,7 @@ def detail(request_id: UUID, actor: Actor):
         if row is None:
             raise HTTPException(404, "request_not_found")
         history = conn.execute(text("""
-            SELECT to_status,changed_at FROM request_status_history
+            SELECT to_status,changed_at,reason FROM request_status_history
             WHERE request_id=:id ORDER BY changed_at,id
         """), {"id": request_id}).mappings().all()
         return {**row, "history": history}

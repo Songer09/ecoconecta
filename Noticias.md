@@ -1,5 +1,7 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core` la API pública ofrece fichas de Villas de San Pablo y la Fundación Santo Domingo con enlaces oficiales. Administración puede listar usuarios, dar de alta vecinos y gestionar el acceso al piloto. Retirar el acceso revoca las sesiones.
+En `feat/backend-core` ya se pueden configurar personal y cobertura, consultar perfiles e historiales, canjear puntos, gestionar faltantes del huerto y generar reportes por ámbito. Coordinación puede sugerir y ordenar paradas. La posición en vivo está desactivada por defecto.
 
-Los [contratos](docs/API_CONTRACTS.md) están disponibles para frontend. Pasaron las diez pruebas del backend con PostgreSQL. La gestión de roles y zonas queda pendiente.
+La API prepara fotos en memoria. Quedan integrar WhatsApp y la API real de visión, conectar las pantallas y validar los datos y permisos del piloto. Los agentes pueden consultar los [contratos](docs/API_CONTRACTS.md#operación-del-piloto) y el [estado por pantalla](docs/BACKEND_SCREEN_BACKLOG.md).
+
+Pasaron doce pruebas del backend en PostgreSQL. La base local está en la migración 0008.

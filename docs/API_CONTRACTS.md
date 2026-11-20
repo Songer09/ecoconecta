@@ -106,3 +106,24 @@ Todos los paths usan el prefijo `/api/v1`.
 - `GET /admin/users` lista identificador, nombre, rol y estado de cuenta y de piloto. Acepta `limit` (1–100) y `offset`.
 - `POST /admin/users` registra un solicitante habilitado con `full_name`, teléfono E.164 en `phone` y `password` de 12 a 256 caracteres. Un teléfono duplicado devuelve 409.
 - `PUT /admin/users/{user_id}/pilot-access` recibe `is_pilot` booleano. Retirar acceso revoca las sesiones. Reactivarlo requiere iniciar sesión de nuevo. Solo administración puede gestionar usuarios y las cuentas administrativas están protegidas.
+
+
+## Operación del piloto
+
+Los paths siguientes llevan el prefijo `/api/v1`. El [OpenAPI](../apps/api/openapi.json) contiene los esquemas y métodos.
+
+- Administración configura colectivos, zonas, materiales y horarios públicos. Al crear personal asigna el colectivo, el rol y las zonas. Para recolectores configura vigencia de cobertura y franjas con horas locales de Bogotá. Una cuenta puede pertenecer a más de un colectivo. La disponibilidad se cambia por colectivo.
+- El vecino puede actualizar su nombre y perfil de generación, ver sus solicitudes, consultar movimientos y canjear premios. En cada intento de canje, el frontend genera un UUID en `idempotency_key` y conserva ese UUID al reintentar la misma operación. Administración ajusta existencias enviando el stock esperado.
+- El coordinador consulta solicitudes por ámbito, estado, zona y período. Los períodos de los reportes incluyen el inicio y excluyen el fin. Los pesos se agrupan por unidad. El valor de compra en COP usa las cantidades verificadas y la última tarifa oficial efectiva al recoger. Si falta un precio, el subtotal queda en `null` y se informa el número de partidas pendientes.
+- Un solicitante propietario o un coordinador de su ámbito puede cancelar una solicitud recibida o en revisión con motivo. Si una parada programada falla antes de abrir el registro de campo, coordinación usa `POST /requests/{id}/missed` con motivo. La cita anterior queda en el historial y la solicitud vuelve a asignada. Programar una cita nueva vuelve a verificar cobertura y solapamientos.
+- Huerta registra el faltante por zona, nombre y unidad. Una cantidad cero indica que quedó cubierto.
+
+### Ruta y ubicación
+
+La fecha de la ruta es local de Bogotá. `GET /coordinator/routes/{collector_id}` recibe `day` y `zone_id`. Al solicitar `suggest=true`, la primera parada con coordenadas es la cita más temprana. Con hasta ocho paradas geolocalizadas se minimiza la suma de distancias en línea recta desde esa primera parada. Para más paradas se elige sucesivamente la más cercana. Las paradas sin coordenadas quedan al final. La sugerencia desconoce vías, tráfico y tiempo de viaje. Coordinación revisa las horas de las citas y envía el orden completo de esa zona mediante PUT. El recolector consulta `GET /collector/route?day=…`, agrupado por zona.
+
+El piloto técnico de posición se activa con `LIVE_TRACKING_ENABLED=1`. La web debe explicar el uso y solicitar permiso al recolector antes de enviar lecturas. Cada PUT en `/collector/location` reemplaza la última posición durante una parada programada para hoy. El frontend consulta `/coordinator/locations` periódicamente y presenta hora y precisión. Una comprobación visual se registra mediante `POST /coordinator/requests/{id}/verify-location`. El cierre mantiene su verificación de pesos independiente. Al dejar de compartir, la web debe enviar DELETE a `/collector/location`. La lectura caduca a los cinco minutos y un proceso de la API elimina lecturas caducadas cada quince segundos mientras el servicio está disponible. Validar el tratamiento con la Fundación antes de activar en el piloto real.
+
+### Imagen y frontend
+
+`POST /users/me/photo-preview` acepta el archivo como cuerpo binario autenticado JPEG o PNG (hasta 5 MiB y 12 megapíxeles). Devuelve JPEG normalizado, con dimensión máxima de 1600 píxeles, sin conservar el original. La respuesta permite previsualizar el material antes de la integración con visión. Si frontend y backend tienen orígenes diferentes, definir `FRONTEND_ORIGINS` como una lista de orígenes concretos separados por comas.

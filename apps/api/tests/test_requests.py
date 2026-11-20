@@ -326,6 +326,15 @@ def test_collection_recording(pilot):
     assert closed.status_code == 200, closed.text
     assert float(closed.json()["points_awarded"]) == 7.875
     assert float(client.get("/api/v1/users/me/points",headers=resident).json()["balance"]) == 32.875
+    period = {"start":"2000-01-01T00:00:00Z","end":"2099-01-01T00:00:00Z"}
+    report = "/api/v1/coordinator/reports/purchase-value"
+    missing = client.get(report,headers=outsider,params=period).json()
+    assert missing[0]["estimated_cop"] is None and missing[0]["missing_prices"] == 1
+    price = client.post("/api/v1/admin/purchase-rates/"+materials["B"],headers=admin,
+                        json={"source":"Prueba","valid_from":period["start"],"cop_per_kg":"1000"})
+    assert price.status_code == 201, price.text
+    assert float(client.get(report,headers=outsider,params=period).json()[0]["estimated_cop"]) == 2250
+    assert client.get(report,headers=coordinator,params=period).json() == []
 
 
 def test_learning_progress(pilot):
@@ -519,3 +528,133 @@ def test_community_and_pilot_management(pilot):
             assert client.put(access, headers=admin, json={"is_pilot": enabled}).json()["is_pilot"] == enabled
             assert client.get("/api/v1/auth/me", headers=reader).status_code == 401
             assert login(client, 17, password).status_code == (200 if enabled else 401)
+
+
+def test_pilot_operations(pilot, monkeypatch):
+    from concurrent.futures import ThreadPoolExecutor
+    from datetime import datetime, timedelta, timezone
+
+    _, zone, password = pilot
+    with engine().begin() as db:
+        db.execute(text("""INSERT INTO users(full_name,phone,role,password_hash,is_pilot)
+            VALUES ('Prueba','+1000000020','administrador',:hash,true)"""),{"hash":hasher.hash(password)})
+    with TestClient(app, client=("ops-test", 1234)) as client:
+        def headers(index):
+            return {"Authorization": "Bearer " + login(client,index,password).json()["access_token"]}
+        admin, owner, coordinator, other = [headers(i) for i in (20,0,2,1)]
+        api = "/api/v1"
+        staff = {"full_name":"Operador","phone":"+1000000021","password":password,"role":"recolector",
+                 "flow":"organico","zone_ids":[zone],"valid_from":"2020-01-01"}
+        created = client.post(api+"/admin/staff",headers=admin,json=staff)
+        assert created.status_code == 201, created.text
+        collector = headers(21)
+        uid = created.json()["user_id"]
+        coverage = client.get(api+f"/admin/staff/{uid}/coverage",headers=admin).json()[0]["id"]
+        now = datetime.now(timezone.utc) + timedelta(days=5)
+        start = now.replace(hour=16,minute=0,second=0,microsecond=0)
+        slot = {"weekday":start.isoweekday(),"starts_at":"08:00","ends_at":"18:00","valid_from":"2020-01-01"}
+        assert client.post(api+f"/admin/coverage/{coverage}/slots",headers=admin,json=slot).status_code == 201
+        group = client.get(api+"/collector/availability",headers=collector).json()[0]["collective_id"]
+        assert client.put(api+f"/collector/availability/{group}",headers=collector,json={"is_available":True}).status_code == 200
+        req = {"generator":"hogar","flow":"organico","contact_phone":"+100000000","address":"Sintética",
+               "preferred_time":"Mañana","zone_id":zone,"latitude":10.99,"longitude":-74.81}
+        rid = client.post(api+"/requests",headers=owner,json=req).json()["id"]
+        url = api+"/requests/"+rid
+        assert client.post(url+"/review",headers=coordinator).status_code == 200
+        assert client.post(url+"/assignments",headers=coordinator,json={"collector_id":uid}).status_code == 201
+        assert client.post(url+"/schedule",headers=coordinator,json={"scheduled_start":start.isoformat(),
+                    "scheduled_end":(start+timedelta(hours=1)).isoformat()}).status_code == 201
+        route = api+f"/coordinator/routes/{uid}"
+        params = {"day":str(start.date()),"zone_id":zone}
+        assert client.get(route,headers=coordinator,params={**params,"suggest":True}).json()[0]["id"] == rid
+        assert client.put(route,headers=coordinator,params=params,json={"stops":[rid]}).status_code == 200
+        assert client.get(api+"/collector/route",headers=collector,params={"day":params["day"]}).json()[0]["stop_order"] == 1
+        assert client.get(route,headers=owner,params=params).status_code == 403
+        assert rid in [r["id"] for r in client.get(api+"/users/me/requests",headers=owner).json()]
+        assert rid not in [r["id"] for r in client.get(api+"/users/me/requests",headers=other).json()]
+        profile = {"full_name":"Prueba","address":"Sintética","generator_type":"hogar"}
+        assert client.put(api+"/users/me/profile",headers=owner,json=profile).status_code == 200
+        assert client.get(api+"/users/me/profile",headers=owner).json()["address"] == "Sintética"
+        need = {"zone_id":zone,"name":"Compost","unit":"kg","quantity":"5"}
+        assert client.put(api+"/garden/needs",headers=coordinator,json=need).status_code == 200
+        assert client.put(api+"/garden/needs",headers=coordinator,json={**need,"zone_id":str(uuid4())}).status_code == 404
+        report = client.get(api+"/coordinator/reports/materials",headers=coordinator,params={
+            "start":"2000-01-01T00:00:00Z","end":"2099-01-01T00:00:00Z"})
+        assert report.status_code == 200, report.text
+        assert client.get(api+"/public/collection-info").status_code == 200
+        reward = client.post(api+"/admin/rewards",headers=admin,json={"name":"Semillas","stock":2,"price":20})
+        assert reward.status_code == 201
+        redeem = {"reward_id":reward.json()["id"],"quantity":1,"idempotency_key":str(uuid4())}
+        account = client.get(api+"/auth/me",headers=other).json()["id"]
+        path = api+"/users/me/redemptions"
+        assert client.post(path,headers=other,json=redeem).status_code == 409
+        with engine().begin() as db:
+            db.execute(text("""INSERT INTO points_ledger(user_id,created_by,points,reason,idempotency_key)
+                VALUES (:id,:id,20,'ajuste',gen_random_uuid())"""),{"id":account})
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            results = list(pool.map(lambda _: client.post(path,headers=other,json=redeem),range(2)))
+        assert all(r.status_code==200 for r in results), [r.text for r in results]
+        assert results[0].json()==results[1].json()
+        assert client.post(path,headers=other,json={**redeem,"idempotency_key":str(uuid4())}).status_code==409
+        assert len(client.get(path,headers=other).json())==1
+        with engine().begin() as db:
+            db.execute(text("""INSERT INTO points_ledger(user_id,created_by,points,reason,idempotency_key)
+                VALUES (:id,:id,20,'ajuste',gen_random_uuid())"""),{"id":account})
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            competing = list(pool.map(lambda _: client.post(path,headers=other,json={
+                **redeem,"idempotency_key":str(uuid4())}),range(2)))
+        assert sorted(r.status_code for r in competing)==[200,409]
+        stock = api+"/admin/rewards/"+redeem["reward_id"]+"/stock"
+        assert client.put(stock,headers=admin,json={"expected_stock":0,"stock":5}).json()["stock"] == 5
+        assert client.put(stock,headers=admin,json={"expected_stock":0,"stock":5}).status_code == 409
+        assert client.get(api+"/users/me/points/ledger",headers=other).json()[0]["reason"] == "canje"
+        assert client.get(api+"/users/me/points",headers=other).json()["balance"] == "0.000000"
+        source = client.put(api+"/admin/materials",headers=admin,json={"name":"Material piloto","flow":"reciclable"})
+        assert source.status_code == 200, source.text
+        rate = {"valid_from":"2025-01-01T00:00:00Z","source":"Tabla de prueba","cop_per_kg":"200.50"}
+        price = client.post(api+"/admin/purchase-rates/"+source.json()["id"],headers=admin,json=rate)
+        assert price.status_code == 201, price.text
+        totals = client.get(api+"/coordinator/reports/purchase-value",headers=headers(3),
+                            params={"start":"2020-01-01T00:00:00Z","end":"2099-01-01T00:00:00Z"})
+        assert totals.status_code == 200, totals.text
+        monkeypatch.setenv("LIVE_TRACKING_ENABLED","1")
+        pos = {"request_id":rid,"latitude":10.9,"longitude":-74.8,"accuracy_m":15}
+        where = api+"/collector/location"
+        assert client.put(where,headers=collector,json=pos).status_code == 404
+        with engine().begin() as db:
+            db.execute(text("""UPDATE request_schedules SET scheduled_start=now(),scheduled_end=now()+interval '1 hour'
+                          WHERE request_id=:id"""),{"id":rid})
+        assert client.put(where,headers=collector,json=pos).status_code == 204
+        assert client.get(api+"/coordinator/locations",headers=coordinator).json()[0]["collector_id"] == uid
+        assert client.get(api+"/coordinator/locations",headers=headers(3)).json() == []
+        assert client.post(api+f"/coordinator/requests/{rid}/verify-location",headers=coordinator).status_code == 204
+        with engine().begin() as db:
+            db.execute(text("UPDATE live_positions SET updated_at=now()-interval '6 minutes' WHERE collector_id=:id"),
+                       {"id":uid})
+        assert client.get(api+"/coordinator/locations",headers=coordinator).json() == []
+        from ecoconecta.tracking import purge_expired
+        purge_expired()
+        with engine().connect() as db:
+            assert not db.scalar(text("SELECT count(*) FROM live_positions WHERE collector_id=:id"),{"id":uid})
+        assert client.put(where,headers=collector,json=pos).status_code == 204
+        assert client.delete(where,headers=collector).status_code == 204
+        assert client.get(api+"/coordinator/locations",headers=coordinator).json() == []
+        assert client.post(url+"/missed",headers=coordinator,json={"reason":"Parada de prueba"}).json()["status"]=="asignada"
+        assert client.post(url+"/schedule",headers=coordinator,json={"scheduled_start":start.isoformat(),
+                    "scheduled_end":(start+timedelta(hours=1)).isoformat()}).status_code == 201
+
+
+def test_image_preparation(pilot):
+    from io import BytesIO
+    from PIL import Image
+    _, _, password = pilot
+    with TestClient(app, client=("photo-test",1234)) as client:
+        url="/api/v1/users/me/photo-preview"
+        auth={"Authorization":"Bearer "+login(client,0,password).json()["access_token"],"Content-Type":"image/png"}
+        source=BytesIO()
+        Image.new("RGB",(12,16)).save(source,format="PNG")
+        assert client.post(url,content=source.getvalue()).status_code==401
+        assert client.post(url,content=b"invalid",headers=auth).status_code==422
+        assert client.post(url,content=b"x"*(5*1024*1024+1),headers=auth).status_code==413
+        result=client.post(url,content=source.getvalue(),headers=auth)
+        assert result.status_code==200 and Image.open(BytesIO(result.content)).format=="JPEG"
