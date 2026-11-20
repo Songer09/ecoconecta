@@ -1,0 +1,863 @@
+{
+  "provider": "mock",
+  "summary": {
+    "scenarios": 10,
+    "turns": 43,
+    "checks": {
+      "community_fact": [
+        1,
+        1
+      ],
+      "confirmation": [
+        11,
+        11
+      ],
+      "context": [
+        7,
+        7
+      ],
+      "ignored_part": [
+        0,
+        3
+      ],
+      "main": [
+        8,
+        8
+      ],
+      "multi": [
+        3,
+        3
+      ],
+      "multi_recall": [
+        6,
+        6
+      ],
+      "navigation": [
+        7,
+        7
+      ],
+      "primary_answer": [
+        10,
+        10
+      ],
+      "recover": [
+        4,
+        4
+      ],
+      "switch": [
+        5,
+        5
+      ]
+    },
+    "completed_registrations": [
+      6,
+      6
+    ],
+    "unnecessary_questions": 0,
+    "premature_creations": 0,
+    "unexpected_community_facts": 0,
+    "turns_to_complete": {
+      "mean": 5.333333333333333,
+      "median": 5.0
+    }
+  },
+  "cases": [
+    {
+      "id": "D01",
+      "label": "Ejemplo del vecino",
+      "expected": {
+        "cartón": [
+          2,
+          "bolsas",
+          "Manzana 12, casa 8",
+          "Mañana por la mañana"
+        ],
+        "cáscaras": [
+          1,
+          "baldes",
+          "Manzana 12, casa 8",
+          "Mañana por la mañana"
+        ]
+      },
+      "actual": {
+        "cartón": [
+          2,
+          "bolsas",
+          "Manzana 12, casa 8",
+          "Mañana por la mañana"
+        ],
+        "cáscaras": [
+          1,
+          "baldes",
+          "Manzana 12, casa 8",
+          "Mañana por la mañana"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Hola, tengo dos bolsas de cartón",
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?",
+          "tags": [
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Manzana 12, casa 8",
+          "reply": "Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12, casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "¿Y las cáscaras de banano se pueden reciclar?",
+          "reply": "Las cáscaras de banano son residuos orgánicos. Se pueden aprovechar para hacer compost. Consulta con la huerta las condiciones de entrega.\nFuente: Cáscaras de banano · https://www.epa.gov/recycle/composting-home\n\n¿También tienes cáscaras de banano para entregar?",
+          "tags": [
+            "switch"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true,
+            true
+          ]
+        },
+        {
+          "say": "Sí, como un balde",
+          "reply": "Anoté 2 bolsas de cartón y aprox. 1 balde de cáscaras de banano. ¿Los residuos que acabas de agregar también están en Manzana 12, casa 8?",
+          "tags": [
+            "context",
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "¿Qué día y horario te quedan bien? Si te da igual, puedes decir «sin preferencia».",
+          "tags": [
+            "confirmation",
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Mañana por la mañana",
+          "reply": "Reciclaje · 2 bolsas de cartón / Huerta · aprox. 1 balde de cáscaras de banano. Lugar: Manzana 12, casa 8. Preferencia: Mañana por la mañana. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "recover"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Listo, registré los avisos: ECO-8c524d30-a5c1-45d9-99ff-b2b959d6cc09, ECO-ec4fe4cd-d0a8-413f-9dc6-93be2fa2d0d2. Cada equipo revisará su disponibilidad y te confirmará la visita.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 2,
+          "allowed": 2,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D02",
+      "label": "Dos interrupciones y corrección",
+      "expected": {
+        "cartón": [
+          4,
+          "bolsas",
+          "Manzana 12, casa 8",
+          "sin preferencia"
+        ]
+      },
+      "actual": {
+        "cartón": [
+          4,
+          "bolsas",
+          "Manzana 12, casa 8",
+          "sin preferencia"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo dos bolsas de cartón",
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?",
+          "tags": [
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Manzana 12, casa 8",
+          "reply": "Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12, casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "¿Cuándo es el taller de compostaje?",
+          "reply": "Taller demo de compostaje · 22/11/2026 17:21 (Barranquilla) · Lugar simulado. Organiza Equipo demo. Tu borrador sigue pendiente.",
+          "tags": [
+            "switch"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        },
+        {
+          "say": "¿Puedo compostar la borra de café?",
+          "reply": "Los posos de café pueden entrar al compost con material seco. Retira cápsulas y empaques.\nFuente: Café · https://www.epa.gov/recycle/composting-home\n\n¿También tienes borra para entregar?",
+          "tags": [
+            "switch"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        },
+        {
+          "say": "¿En qué íbamos?",
+          "reply": "Retomemos tu aviso. Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12, casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "recover",
+            "navigation",
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Perdón, son cuatro",
+          "reply": "Reciclaje · 4 bolsas de cartón. Lugar: Manzana 12, casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "navigation",
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Aviso recibido: ECO-edbc71eb-f7f7-4432-8a60-44595db9b721. Coordinación revisará la solicitud. Aún no hay visita programada.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 1,
+          "allowed": 1,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D03",
+      "label": "El periódico era solo una consulta",
+      "expected": {
+        "cartón": [
+          null,
+          null,
+          "Manzana 9 casa 2",
+          "sin preferencia"
+        ]
+      },
+      "actual": {
+        "cartón": [
+          null,
+          null,
+          "Manzana 9 casa 2",
+          "sin preferencia"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo cartón para recoger",
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?",
+          "tags": [
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "¿El papel periódico también sirve?",
+          "reply": "Separa el papel limpio y seco. Mantén aparte el papel con grasa, humedad o restos de comida y confirma la aceptación con la ruta local.\nFuente: Papel para reciclaje · https://www.epa.gov/recycle/frequent-questions-recycling\n\n¿También tienes papel periódico para entregar?",
+          "tags": [
+            "switch"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        },
+        {
+          "say": "No, solo quería saber",
+          "reply": "Entendido, era solo una consulta. Retomemos tu aviso. Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?",
+          "tags": [
+            "recover",
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Manzana 9 casa 2",
+          "reply": "Reciclaje · cartón (cantidad sin indicar). Lugar: Manzana 9 casa 2. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Aviso recibido: ECO-9611e0ae-4d16-4379-87f9-a6ea27301d5e. Coordinación revisará la solicitud. Aún no hay visita programada.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 1,
+          "allowed": 1,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D04",
+      "label": "Agenda y recolección en el mismo mensaje",
+      "expected": null,
+      "actual": {},
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo dos bolsas de plástico, quiero que las recojan y también saber cuándo es la próxima capacitación de compostaje",
+          "reply": "Taller demo de compostaje · 22/11/2026 17:21 (Barranquilla) · Lugar simulado. Organiza Equipo demo.\n\nMe falta confirmar qué material es o si la ruta recibe: plástico. ¿Me lo aclaras?",
+          "tags": [
+            "main",
+            "multi"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true,
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D05",
+      "label": "Dos consultas públicas juntas",
+      "expected": null,
+      "actual": {},
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "¿Hay eventos comunitarios? ¿Cómo separo el papel?",
+          "reply": "Todavía no hay actividades confirmadas publicadas para esa consulta.\n\nSepara el papel limpio y seco. Mantén aparte el papel con grasa, humedad o restos de comida y confirma la aceptación con la ruta local.\nFuente: Papel para reciclaje · https://www.epa.gov/recycle/frequent-questions-recycling",
+          "tags": [
+            "main",
+            "multi"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true,
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D06",
+      "label": "Negación y lenguaje indirecto",
+      "expected": null,
+      "actual": {},
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo la casa llena de cajas y ya no sé qué hacer con ellas",
+          "reply": "Si son cajas de cartón, sepáralas limpias y secas. ¿Son de cartón y quieres que avise a recicladores?",
+          "tags": [
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        },
+        {
+          "say": "No quiero recoger nada, solo necesito saber cómo separar el plástico",
+          "reply": "Vacía el envase y retira los restos. El material y las condiciones de la ruta determinan si puedes entregarlo.\nFuente: Botellas y envases · https://www.epa.gov/recycle/frequent-questions-recycling",
+          "tags": [
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        }
+      ]
+    },
+    {
+      "id": "D07",
+      "label": "Tres materiales y corrección",
+      "expected": {
+        "cartón": [
+          4,
+          "bolsas",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ],
+        "cáscaras": [
+          1,
+          "baldes",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ],
+        "botellas": [
+          5,
+          "botellas",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ]
+      },
+      "actual": {
+        "botellas": [
+          5,
+          "botellas",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ],
+        "cartón": [
+          4,
+          "bolsas",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ],
+        "cáscaras": [
+          1,
+          "baldes",
+          "Manzana 7 casa 4",
+          "sin preferencia"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo dos bolsas de cartón y un balde de cáscaras",
+          "reply": "¿En qué dirección o referencia lo tienes?",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "También tengo cinco botellas",
+          "reply": "¿En qué dirección o referencia lo tienes?",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Manzana 7 casa 4",
+          "reply": "Reciclaje · 2 bolsas de cartón, 5 botellas de botellas / Huerta · 1 balde de cáscaras. Lugar: Manzana 7 casa 4. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Perdón, son cuatro bolsas de cartón",
+          "reply": "Reciclaje · 4 bolsas de cartón, 5 botellas de botellas / Huerta · 1 balde de cáscaras. Lugar: Manzana 7 casa 4. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "navigation",
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Listo, registré los avisos: ECO-295ddb7e-715f-45f4-8eb4-5b5aabbfc96b, ECO-5fcddfbc-eb32-47ba-bd8f-3e0950accf8a. Cada equipo revisará su disponibilidad y te confirmará la visita.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 2,
+          "allowed": 2,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D08",
+      "label": "Pausar, corregir dirección y descartar",
+      "expected": null,
+      "actual": {},
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo dos bolsas de cartón en Manzana 12 casa 8",
+          "reply": "Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Después seguimos con eso",
+          "reply": "Claro, cuéntame tu otra pregunta. Guardé tu aviso para retomarlo después.",
+          "tags": [
+            "navigation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Volvamos a lo anterior",
+          "reply": "Retomemos tu aviso. Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "navigation",
+            "recover"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "No, esa no era la dirección",
+          "reply": "¿Cuál es la dirección correcta?",
+          "tags": [
+            "navigation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Manzana 10 casa 6",
+          "reply": "Reciclaje · 2 bolsas de cartón. Lugar: Manzana 10 casa 6. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "context"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Cancela la solicitud",
+          "reply": "Descarté el borrador.",
+          "tags": [
+            "navigation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Cuéntame qué necesitas y seguimos desde ahí.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D09",
+      "label": "Voz con solicitud y consulta",
+      "expected": {
+        "cartón": [
+          2,
+          "bolsas",
+          "manzana 8 casa 1",
+          "sin preferencia"
+        ]
+      },
+      "actual": {
+        "cartón": [
+          2,
+          "bolsas",
+          "manzana 8 casa 1",
+          "sin preferencia"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "ACEPTO AUDIO",
+          "reply": "Permiso de voz actualizado. Puedes revocarlo con REVOCO AUDIO.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Tengo dos bolsas de cartón en manzana 8 casa 1. ¿Cuándo es el taller de compostaje?",
+          "reply": "Taller demo de compostaje · 22/11/2026 17:21 (Barranquilla) · Lugar simulado. Organiza Equipo demo.\n\nReciclaje · 2 bolsas de cartón. Lugar: manzana 8 casa 1. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "multi",
+            "main"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true,
+            true
+          ]
+        },
+        {
+          "say": "Sí",
+          "reply": "Por favor confirma esa decisión por escrito.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Aviso recibido: ECO-8e8823a8-e067-4c08-9859-0ae0afd3848a. Coordinación revisará la solicitud. Aún no hay visita programada.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 1,
+          "allowed": 1,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    },
+    {
+      "id": "D10",
+      "label": "Un sí tras interrupción pide confirmación nueva",
+      "expected": {
+        "cartón": [
+          2,
+          "bolsas",
+          "Manzana 12 casa 8",
+          "sin preferencia"
+        ]
+      },
+      "actual": {
+        "cartón": [
+          2,
+          "bolsas",
+          "Manzana 12 casa 8",
+          "sin preferencia"
+        ]
+      },
+      "completed": true,
+      "states_ok": true,
+      "turns": [
+        {
+          "say": "Tengo dos bolsas de cartón en Manzana 12 casa 8",
+          "reply": "Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "¿Qué eventos hay esta semana?",
+          "reply": "Todavía no hay actividades confirmadas publicadas para esa consulta. Tu borrador sigue pendiente.",
+          "tags": [
+            "switch",
+            "community_fact"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": [
+            true
+          ]
+        },
+        {
+          "say": "Sí",
+          "reply": "Retomemos tu aviso. Reciclaje · 2 bolsas de cartón. Lugar: Manzana 12 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 0,
+          "allowed": 0,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        },
+        {
+          "say": "Sí",
+          "reply": "Aviso recibido: ECO-f3c13d3b-f91c-4aae-b11a-65eb031e1120. Coordinación revisará la solicitud. Aún no hay visita programada.",
+          "tags": [
+            "confirmation"
+          ],
+          "ok": true,
+          "created": 1,
+          "allowed": 1,
+          "premature": 0,
+          "unnecessary": [],
+          "answers": []
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,36 @@
+name: ecoconecta-chatbot
+x-service: &service
+  build: .
+  env_file: .env
+  environment:
+    DATABASE_URL: postgresql+psycopg://eco:${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}@postgres/eco
+services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_USER: eco
+      POSTGRES_DB: eco
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en .env}
+    volumes: [eco_data:/var/lib/postgresql]
+    healthcheck:
+      test: ["CMD-SHELL","pg_isready -U eco -d eco"]
+      interval: 3s
+      timeout: 3s
+      retries: 30
+  migrate:
+    <<: *service
+    command: ["alembic","upgrade","head"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  api:
+    <<: *service
+    ports: ["127.0.0.1:${ECO_PORT:-8091}:8000"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+  worker:
+    <<: *service
+    command: ["python","-m","app.worker"]
+    depends_on:
+      migrate: {condition: service_completed_successfully}
+volumes:
+  eco_data:

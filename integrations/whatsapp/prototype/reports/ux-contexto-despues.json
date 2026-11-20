@@ -1,0 +1,1156 @@
+{
+  "provider": "mock",
+  "additional_challenge": {
+    "schema_version": 1,
+    "n": 12,
+    "accuracy": 0.9166666666666666,
+    "scope_accuracy": 1.0,
+    "macro_f1": 0.8095238095238095,
+    "false_collection_from_education": 0,
+    "latency_ms": {
+      "p50": 0.023,
+      "p95": 0.045
+    },
+    "labels": [
+      "collection",
+      "compost",
+      "material",
+      "offtopic",
+      "recycling",
+      "track",
+      "training"
+    ],
+    "per_intent": {
+      "collection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 6
+      },
+      "compost": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 1
+      },
+      "material": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "offtopic": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "recycling": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "track": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "training": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      }
+    },
+    "confusion_matrix": {
+      "rows": "expected",
+      "columns": "predicted",
+      "values": [
+        [
+          6,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "material_recall": [
+      13,
+      13
+    ],
+    "material_precision": [
+      13,
+      13
+    ],
+    "all_materials": [
+      12,
+      12
+    ],
+    "all_materials_in_multi": [
+      4,
+      4
+    ],
+    "flow_accuracy": [
+      11,
+      12
+    ],
+    "quantities": [
+      5,
+      5
+    ],
+    "units": [
+      5,
+      5
+    ],
+    "failures": [
+      {
+        "id": "H09",
+        "expected_intent": "training",
+        "actual_intent": "compost",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      }
+    ]
+  },
+  "comprehension": {
+    "schema_version": 1,
+    "n": 56,
+    "accuracy": 1.0,
+    "scope_accuracy": 1.0,
+    "macro_f1": 1.0,
+    "false_collection_from_education": 0,
+    "latency_ms": {
+      "p50": 0.016,
+      "p95": 0.031
+    },
+    "labels": [
+      "ambiguous",
+      "bye",
+      "cancel",
+      "collection",
+      "compost",
+      "event",
+      "hello",
+      "human",
+      "material",
+      "modify",
+      "offtopic",
+      "points",
+      "recycling",
+      "track",
+      "training"
+    ],
+    "per_intent": {
+      "ambiguous": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "bye": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "cancel": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "collection": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 26
+      },
+      "compost": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "event": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "hello": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "human": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "material": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "modify": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "offtopic": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "points": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "recycling": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "track": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "training": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      }
+    },
+    "confusion_matrix": {
+      "rows": "expected",
+      "columns": "predicted",
+      "values": [
+        [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          26,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      ]
+    },
+    "material_recall": [
+      45,
+      45
+    ],
+    "material_precision": [
+      45,
+      45
+    ],
+    "all_materials": [
+      56,
+      56
+    ],
+    "all_materials_in_multi": [
+      11,
+      11
+    ],
+    "flow_accuracy": [
+      43,
+      43
+    ],
+    "quantities": [
+      27,
+      27
+    ],
+    "units": [
+      27,
+      27
+    ],
+    "failures": []
+  },
+  "dialogue": {
+    "n": 12,
+    "completed": 12,
+    "clarifications": 9,
+    "redundant_questions": 0,
+    "cases_with_repetition_needed": 0,
+    "mean_replies_all": 3,
+    "early_confirmation": 0,
+    "mean_replies_completed": 3,
+    "median_replies_completed": 3.0,
+    "mean_registration_seconds_completed": 0.011294166666666666,
+    "median_registration_seconds_completed": 0.010995000000000001,
+    "mean_clarifications": 0.75,
+    "human_review_cases": 0,
+    "routing_errors": 0,
+    "without_confirmation": 0,
+    "automatic_schedule": 0,
+    "early_points": 0,
+    "required_kg": 0,
+    "duplicate_rows": 0,
+    "valid_webhook_errors": 0,
+    "invalid_signature_rejected": true,
+    "invented_event": false
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 2,
+      "responses_until_registration": 2,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01214,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · aprox. 3 bolsas de cartón. Lugar: manzana 12 casa 8. Preferencia: mañana en la tarde. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-6097f722-f166-4075-844a-9f7af9169d4d. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 1,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01167,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · cartón (cantidad sin indicar). Lugar: Manzana 9 casa 2. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-ec4f7bb6-7828-495c-8fa2-2cd07b0d39bf. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {
+        "organic": [
+          "cáscaras"
+        ],
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 1,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.0111,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Huerta · cáscaras de banano (cantidad sin indicar) / Reciclaje · papel (cantidad sin indicar). Lugar: manzana 12, casa 8. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Listo, registré los avisos: ECO-781cb4f1-eae2-425c-bccc-bd34a679edac, ECO-e69a9952-4567-45d9-a4ed-e23e0ec89a4e. Cada equipo revisará su disponibilidad y te confirmará la visita."
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón",
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón",
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "replies": 2,
+      "responses_until_registration": 2,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.00864,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 2 bolsas de papel, 3 costales de cartón / Huerta · 1 balde de cáscaras. Lugar: manzana 4 casa 3. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Listo, registré los avisos: ECO-cecf60e4-bda7-42e6-b09b-fe4179004998, ECO-a67e709a-69b1-4c4b-8958-115893222891. Cada equipo revisará su disponibilidad y te confirmará la visita."
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "botellas"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "botellas"
+        ]
+      },
+      "replies": 2,
+      "responses_until_registration": 2,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.0081,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 1 caja llena de botellas. Lugar: manzana 15 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-655962c9-4651-42eb-ba6e-c4e2f1be4988. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C06",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "replies": 4,
+      "responses_until_registration": 4,
+      "clarifications": 2,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01353,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu papel. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu papel. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 4 bolsas de papel. Lugar: Manzana 2 casa 3. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-8c51aa7c-4f97-4d08-9788-d4298606b93c. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C07",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {
+        "organic": [
+          "cáscaras"
+        ],
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "replies": 5,
+      "responses_until_registration": 5,
+      "clarifications": 2,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01732,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu papel. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Cáscaras: Las cáscaras de banano son residuos orgánicos. Se pueden aprovechar para hacer compost. Consulta con la huerta las condiciones de entrega.\nFuente: Cáscaras de banano · https://www.epa.gov/recycle/composting-home\nPapel: Separa el papel limpio y seco. Mantén aparte el papel con grasa, humedad o restos de comida y confirma la aceptación con la ruta local.\nFuente: Papel para reciclaje · https://www.epa.gov/recycle/frequent-questions-recycling Tu borrador sigue pendiente."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 2 bolsas de papel / Huerta · cáscaras de banano (cantidad sin indicar). Lugar: Manzana 3 casa 2. Se enviará un aviso por colectivo. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Listo, registré los avisos: ECO-dcaaae52-8e9f-403f-8afc-c1381c741f8e, ECO-e0ea35ef-e8de-4e27-bb67-c3f20b0cf489. Cada equipo revisará su disponibilidad y te confirmará la visita."
+        }
+      ]
+    },
+    {
+      "id": "C08",
+      "complete": true,
+      "expected": {
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01035,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Permiso de voz actualizado. Puedes revocarlo con REVOCO AUDIO."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Huerta · 1 balde de cáscaras. Lugar: manzana 3. Preferencia: sin preferencia. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-42f20b79-6a0d-4da8-bd68-4803914e20aa. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C09",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 4,
+      "responses_until_registration": 4,
+      "clarifications": 1,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01359,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 10 kg de cartón. Lugar: Manzana 12, casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · 10 kg de cartón. Lugar: Manzana 12, casa 8. Preferencia: Mañana por la mañana. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-0a19a89c-96ac-4d63-856b-6884c8444b9f. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 1,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.0106,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "Puedo avisar al equipo de recicladores por tu cartón. ¿En qué dirección o referencia lo tienes?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · cartón (no sé cuánto pesa). Lugar: Manzana 1 casa 8. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-d142a3c0-551f-406a-9d4d-25c2b818c18d. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 1,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01089,
+      "turns": [
+        {
+          "asked": [
+            "eligibility"
+          ],
+          "redundant": [],
+          "reply": "Pilas requiere revisión. ¿Quieres pedir revisión humana? Puedes decir «solo los demás» para continuar con el material reconocido."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · cartón (cantidad sin indicar). Lugar: manzana 4 casa 3. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-13884286-f909-4439-8f84-f6d510a9eac1. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C12",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "replies": 2,
+      "responses_until_registration": 2,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.0076,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Reciclaje · papel (bastante). Lugar: manzana 12 casa 10. ¿Confirmas el aviso? Coordinación te confirmará la visita."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-a05dbbc6-308b-440e-a9f1-6618985beb54. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    }
+  ]
+}

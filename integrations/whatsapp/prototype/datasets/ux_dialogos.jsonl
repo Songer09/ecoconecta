@@ -1,0 +1,12 @@
+{"id":"C01","materials":{"recyclable":["cartón"]},"turns":[["Buenas tardes, tengo unas tres bolsas de cartón en la manzana 12 casa 8 y pueden pasar mañana en la tarde",["material","quantity","address","preference"]]]}
+{"id":"C02","materials":{"recyclable":["cartón"]},"turns":[["Tengo cartón",["material"]],["Manzana 9 casa 2",["address"]]]}
+{"id":"C03","materials":{"recyclable":["papel"],"organic":["cáscaras"]},"turns":[["Tengo cáscaras de banano y papel",["material"]],["En manzana 12, casa 8",["address"]]]}
+{"id":"C04","materials":{"recyclable":["cartón","papel"],"organic":["cáscaras"]},"turns":[["Tengo dos bolsas de papel, tres costales de cartón y un balde de cáscaras, manzana 4 casa 3",["material","quantity","address"]]]}
+{"id":"C05","materials":{"recyclable":["botellas"]},"turns":[["Tengo una caja llena de botellas en la manzana 15 casa 8",["material","quantity","address"]]]}
+{"id":"C06","materials":{"recyclable":["papel"]},"turns":[["Tengo tres bolsas de papel",["material","quantity"]],["Perdón, son cuatro",["quantity"]],["Manzana 2 casa 3",["address"]]]}
+{"id":"C07","materials":{"recyclable":["papel"],"organic":["cáscaras"]},"turns":[["Tengo dos bolsas de papel",["material","quantity"]],["También tengo cáscaras de banano",["material"]],["¿Cómo separo cáscaras de banano y papel?",[]],["Manzana 3 casa 2",["address"]]]}
+{"id":"C08","materials":{"organic":["cáscaras"]},"turns":[["ACEPTO AUDIO",[]],["Tengo un balde de cáscaras en mi negocio, manzana 3, sin preferencia",["material","quantity","address","generator","preference"],"demo_audio"]]}
+{"id":"C09","materials":{"recyclable":["cartón"]},"turns":[["Tengo 10 kilos de cartón en mi hogar",["material","quantity","generator"]],["Manzana 12, casa 8",["address"]],["Mañana por la mañana",["preference"]]]}
+{"id":"C10","materials":{"recyclable":["cartón"]},"turns":[["Tengo cartón y no sé cuánto pesa",["material","quantity"]],["Manzana 1 casa 8",["address"]]]}
+{"id":"C11","materials":{"recyclable":["cartón"]},"turns":[["Tengo cartón y pilas en manzana 4 casa 3",["material","address"]],["solo los demás",["material"]]]}
+{"id":"C12","materials":{"recyclable":["papel"]},"turns":[["Tengo bastante papel en manzana 12 casa 10",["material","quantity","address"]]]}

@@ -1,0 +1,1729 @@
+{
+  "provider": "mock",
+  "additional_challenge": {
+    "schema_version": 1,
+    "n": 12,
+    "accuracy": 0.4166666666666667,
+    "scope_accuracy": 0.8333333333333334,
+    "macro_f1": 0.25,
+    "false_collection_from_education": 0,
+    "latency_ms": {
+      "p50": 0.02,
+      "p95": 0.026
+    },
+    "labels": [
+      "ambiguous",
+      "collection",
+      "compost",
+      "material",
+      "offtopic",
+      "recycling",
+      "track",
+      "training"
+    ],
+    "per_intent": {
+      "ambiguous": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 0
+      },
+      "collection": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "support": 6
+      },
+      "compost": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 1
+      },
+      "material": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "offtopic": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 1
+      },
+      "recycling": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "track": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "training": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      }
+    },
+    "confusion_matrix": {
+      "rows": "expected",
+      "columns": "predicted",
+      "values": [
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          3,
+          0,
+          2,
+          0,
+          1,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    "material_recall": [
+      8,
+      13
+    ],
+    "material_precision": [
+      8,
+      8
+    ],
+    "all_materials": [
+      8,
+      12
+    ],
+    "all_materials_in_multi": [
+      0,
+      4
+    ],
+    "flow_accuracy": [
+      8,
+      12
+    ],
+    "quantities": [
+      1,
+      5
+    ],
+    "units": [
+      2,
+      5
+    ],
+    "failures": [
+      {
+        "id": "H01",
+        "expected_intent": "collection",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H02",
+        "expected_intent": "collection",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "papel": {
+            "expected": [
+              0.5,
+              "bolsas"
+            ],
+            "actual": [
+              null,
+              null
+            ]
+          }
+        }
+      },
+      {
+        "id": "H03",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "cartón": {
+            "expected": [
+              1.5,
+              "costales"
+            ],
+            "actual": [
+              1.0,
+              "costales"
+            ]
+          }
+        }
+      },
+      {
+        "id": "H04",
+        "expected_intent": "recycling",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "latas",
+          "vidrio"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H05",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "tetrapak"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H06",
+        "expected_intent": "collection",
+        "actual_intent": "recycling",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "papel": {
+            "expected": [
+              2,
+              "cajas"
+            ],
+            "actual": [
+              null,
+              null
+            ]
+          }
+        }
+      },
+      {
+        "id": "H07",
+        "expected_intent": "material",
+        "actual_intent": "offtopic",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "OUT_OF_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H08",
+        "expected_intent": "track",
+        "actual_intent": "ambiguous",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "UNCERTAIN",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H09",
+        "expected_intent": "training",
+        "actual_intent": "compost",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "H11",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "botellas de plástico"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "botellas de plástico": {
+            "expected": [
+              12,
+              "botellas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "H12",
+        "expected_intent": "compost",
+        "actual_intent": "compost",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "café"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      }
+    ]
+  },
+  "comprehension": {
+    "schema_version": 1,
+    "n": 56,
+    "accuracy": 0.875,
+    "scope_accuracy": 0.9285714285714286,
+    "macro_f1": 0.8437014522120905,
+    "false_collection_from_education": 0,
+    "latency_ms": {
+      "p50": 0.013,
+      "p95": 0.019
+    },
+    "labels": [
+      "ambiguous",
+      "bye",
+      "cancel",
+      "collection",
+      "compost",
+      "event",
+      "hello",
+      "human",
+      "material",
+      "modify",
+      "offtopic",
+      "points",
+      "recycling",
+      "track",
+      "training"
+    ],
+    "per_intent": {
+      "ambiguous": {
+        "precision": 0.4,
+        "recall": 1.0,
+        "f1": 0.5714285714285715,
+        "support": 2
+      },
+      "bye": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "cancel": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "collection": {
+        "precision": 1.0,
+        "recall": 0.8076923076923077,
+        "f1": 0.8936170212765957,
+        "support": 26
+      },
+      "compost": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "event": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "hello": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 1
+      },
+      "human": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 1
+      },
+      "material": {
+        "precision": 0.5,
+        "recall": 1.0,
+        "f1": 0.6666666666666666,
+        "support": 3
+      },
+      "modify": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "offtopic": {
+        "precision": 0.75,
+        "recall": 1.0,
+        "f1": 0.8571428571428571,
+        "support": 3
+      },
+      "points": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 2
+      },
+      "recycling": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      },
+      "track": {
+        "precision": 1.0,
+        "recall": 0.5,
+        "f1": 0.6666666666666666,
+        "support": 2
+      },
+      "training": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 3
+      }
+    },
+    "confusion_matrix": {
+      "rows": "expected",
+      "columns": "predicted",
+      "values": [
+        [
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          2,
+          0,
+          0,
+          21,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          2,
+          0,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          1,
+          0
+        ],
+        [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          3
+        ]
+      ]
+    },
+    "material_recall": [
+      27,
+      45
+    ],
+    "material_precision": [
+      27,
+      28
+    ],
+    "all_materials": [
+      41,
+      56
+    ],
+    "all_materials_in_multi": [
+      0,
+      11
+    ],
+    "flow_accuracy": [
+      27,
+      43
+    ],
+    "quantities": [
+      12,
+      27
+    ],
+    "units": [
+      10,
+      27
+    ],
+    "failures": [
+      {
+        "id": "U02",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "cáscaras"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U03",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "cáscaras",
+          "papel"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "papel": {
+            "expected": [
+              2,
+              "bolsas"
+            ],
+            "actual": null
+          },
+          "cartón": {
+            "expected": [
+              3,
+              "costales"
+            ],
+            "actual": [
+              2.0,
+              "bolsas"
+            ]
+          },
+          "cáscaras": {
+            "expected": [
+              1,
+              "baldes"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U04",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "botellas"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "botellas": {
+            "expected": [
+              1,
+              "cajas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U05",
+        "expected_intent": "collection",
+        "actual_intent": "ambiguous",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "UNCERTAIN",
+        "missing_materials": [
+          "botellas"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "botellas": {
+            "expected": [
+              20,
+              "botellas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U07",
+        "expected_intent": "collection",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U11",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "botellas de plástico"
+        ],
+        "extra_materials": [
+          "botellas PET"
+        ],
+        "incorrect_quantities": {
+          "botellas de plástico": {
+            "expected": [
+              2,
+              "cajas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U12",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "café"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "café": {
+            "expected": [
+              1,
+              "baldes"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U13",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "papel"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "papel": {
+            "expected": [
+              3,
+              "cajas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U14",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "latas",
+          "restos vegetales"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U16",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "botellas PET": {
+            "expected": [
+              20,
+              "botellas"
+            ],
+            "actual": [
+              20.0,
+              "unidades"
+            ]
+          }
+        }
+      },
+      {
+        "id": "U18",
+        "expected_intent": "collection",
+        "actual_intent": "ambiguous",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "UNCERTAIN",
+        "missing_materials": [
+          "plástico",
+          "residuos de cocina"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U19",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "papel"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "papel": {
+            "expected": [
+              3,
+              "bolsas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U22",
+        "expected_intent": "collection",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "latas": {
+            "expected": [
+              22,
+              "unidades"
+            ],
+            "actual": [
+              null,
+              null
+            ]
+          }
+        }
+      },
+      {
+        "id": "U23",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "botellas"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "latas": {
+            "expected": [
+              3,
+              "unidades"
+            ],
+            "actual": [
+              null,
+              null
+            ]
+          },
+          "botellas": {
+            "expected": [
+              12,
+              "botellas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U24",
+        "expected_intent": "collection",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U25",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "cáscaras"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "cartón": {
+            "expected": [
+              1,
+              "cajas"
+            ],
+            "actual": [
+              1.0,
+              "baldes"
+            ]
+          },
+          "cáscaras": {
+            "expected": [
+              1,
+              "baldes"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U26",
+        "expected_intent": "collection",
+        "actual_intent": "collection",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "restos vegetales"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "restos vegetales": {
+            "expected": [
+              3,
+              "bolsas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U27",
+        "expected_intent": "recycling",
+        "actual_intent": "recycling",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "cáscaras"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U34",
+        "expected_intent": "material",
+        "actual_intent": "material",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "IN_SCOPE",
+        "missing_materials": [
+          "botellas"
+        ],
+        "extra_materials": [],
+        "incorrect_quantities": {
+          "botellas": {
+            "expected": [
+              1,
+              "botellas"
+            ],
+            "actual": null
+          }
+        }
+      },
+      {
+        "id": "U42",
+        "expected_intent": "track",
+        "actual_intent": "offtopic",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "OUT_OF_SCOPE",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      },
+      {
+        "id": "U50",
+        "expected_intent": "hello",
+        "actual_intent": "ambiguous",
+        "expected_scope": "IN_SCOPE",
+        "actual_scope": "UNCERTAIN",
+        "missing_materials": [],
+        "extra_materials": [],
+        "incorrect_quantities": {}
+      }
+    ]
+  },
+  "dialogue": {
+    "n": 12,
+    "completed": 2,
+    "clarifications": 27,
+    "redundant_questions": 10,
+    "cases_with_repetition_needed": 4,
+    "mean_replies_all": 3,
+    "early_confirmation": 0,
+    "mean_replies_completed": 3.5,
+    "median_replies_completed": 3.5,
+    "mean_registration_seconds_completed": 0.00999,
+    "median_registration_seconds_completed": 0.00999,
+    "mean_clarifications": 2.25,
+    "human_review_cases": 1,
+    "routing_errors": 0,
+    "without_confirmation": 0,
+    "automatic_schedule": 0,
+    "early_points": 0,
+    "required_kg": 0,
+    "duplicate_rows": 0,
+    "valid_webhook_errors": 0,
+    "invalid_signature_rejected": true,
+    "invented_event": false
+  },
+  "cases": [
+    {
+      "id": "C01",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {},
+      "replies": 2,
+      "responses_until_registration": null,
+      "clarifications": 2,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        }
+      ]
+    },
+    {
+      "id": "C02",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {},
+      "replies": 3,
+      "responses_until_registration": null,
+      "clarifications": 3,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        }
+      ]
+    },
+    {
+      "id": "C03",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {},
+      "replies": 3,
+      "responses_until_registration": null,
+      "clarifications": 3,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de papel tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de papel tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [],
+          "reply": "¿Qué cantidad aproximada de papel tienes y en qué unidad?"
+        }
+      ]
+    },
+    {
+      "id": "C04",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "cartón",
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {},
+      "replies": 2,
+      "responses_until_registration": null,
+      "clarifications": 2,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        }
+      ]
+    },
+    {
+      "id": "C05",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "botellas"
+        ]
+      },
+      "actual": {},
+      "replies": 2,
+      "responses_until_registration": null,
+      "clarifications": 2,
+      "redundant_questions": 2,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "material"
+          ],
+          "redundant": [
+            "material"
+          ],
+          "reply": "¿Qué material tienes listo?"
+        },
+        {
+          "asked": [
+            "material"
+          ],
+          "redundant": [
+            "material"
+          ],
+          "reply": "¿Qué material tienes listo?"
+        }
+      ]
+    },
+    {
+      "id": "C06",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "actual": {},
+      "replies": 4,
+      "responses_until_registration": null,
+      "clarifications": 4,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        }
+      ]
+    },
+    {
+      "id": "C07",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ],
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {},
+      "replies": 5,
+      "responses_until_registration": null,
+      "clarifications": 4,
+      "redundant_questions": 3,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "generator"
+          ],
+          "redundant": [],
+          "reply": "¿La entrega es de un hogar o de una unidad productiva?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cáscaras tienes y en qué unidad?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Mezcla las cáscaras de frutas y verduras con hojas secas. Mantén la mezcla húmeda y aireada. Consulta con la huerta antes de llevar material.\nFuente: Restos vegetales · https://www.epa.gov/recycle/composting-home Tu borrador sigue pendiente."
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cáscaras tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cáscaras tienes y en qué unidad?"
+        }
+      ]
+    },
+    {
+      "id": "C08",
+      "complete": true,
+      "expected": {
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "actual": {
+        "organic": [
+          "cáscaras"
+        ]
+      },
+      "replies": 3,
+      "responses_until_registration": 3,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.00884,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Permiso de voz actualizado. Puedes revocarlo con REVOCO AUDIO."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "1 baldes de cáscaras. unidad productiva, manzana 3. Preferencia: sin preferencia. ¿Confirmas el aviso a coordinación? La visita queda pendiente de programación."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-b8a98073-a6e5-4747-9988-854385f464f5. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C09",
+      "complete": true,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "replies": 4,
+      "responses_until_registration": 4,
+      "clarifications": 2,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": 0.01114,
+      "turns": [
+        {
+          "asked": [
+            "address"
+          ],
+          "redundant": [],
+          "reply": "¿Cuál es la dirección o referencia de recogida?"
+        },
+        {
+          "asked": [
+            "preference"
+          ],
+          "redundant": [],
+          "reply": "¿Qué día o franja prefieres? También puedes decir «sin preferencia»."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "10 kg de cartón. hogar, Manzana 12, casa 8. Preferencia: Mañana por la mañana. ¿Confirmas el aviso a coordinación? La visita queda pendiente de programación."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Aviso recibido: ECO-b402837f-d346-44e7-9e09-b1cc743f97b9. Coordinación revisará la solicitud. Aún no hay visita programada."
+        }
+      ]
+    },
+    {
+      "id": "C10",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {},
+      "replies": 3,
+      "responses_until_registration": null,
+      "clarifications": 3,
+      "redundant_questions": 3,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de cartón tienes y en qué unidad?"
+        }
+      ]
+    },
+    {
+      "id": "C11",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "cartón"
+        ]
+      },
+      "actual": {},
+      "replies": 3,
+      "responses_until_registration": null,
+      "clarifications": 0,
+      "redundant_questions": 0,
+      "required_kg": 0,
+      "human_review": true,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "Dejé un aviso para revisión humana. Coordinación debe verificar el material antes de solicitar una recolección."
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "¿Quieres avisar que tienes residuos, consultar tu solicitud o preguntar por un material?"
+        },
+        {
+          "asked": [],
+          "redundant": [],
+          "reply": "¿Quieres avisar que tienes residuos, consultar tu solicitud o preguntar por un material?"
+        }
+      ]
+    },
+    {
+      "id": "C12",
+      "complete": false,
+      "expected": {
+        "recyclable": [
+          "papel"
+        ]
+      },
+      "actual": {},
+      "replies": 2,
+      "responses_until_registration": null,
+      "clarifications": 2,
+      "redundant_questions": 2,
+      "required_kg": 0,
+      "human_review": false,
+      "routing_errors": 0,
+      "without_confirmation": 0,
+      "automatic_schedule": 0,
+      "early_points": false,
+      "registration_seconds": null,
+      "turns": [
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de papel tienes y en qué unidad?"
+        },
+        {
+          "asked": [
+            "quantity"
+          ],
+          "redundant": [
+            "quantity"
+          ],
+          "reply": "¿Qué cantidad aproximada de papel tienes y en qué unidad?"
+        }
+      ]
+    }
+  ]
+}
