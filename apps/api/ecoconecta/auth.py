@@ -101,6 +101,11 @@ def login(body: Login, request: Request):
         raise HTTPException(401, "invalid_credentials")
     token = secrets.token_urlsafe(32)
     with engine().begin() as conn:
+        eligible = conn.scalar(text("""
+            SELECT id FROM users WHERE id=:id AND is_active AND is_pilot AND password_hash=:hash FOR SHARE
+        """), {"id": user["id"], "hash": stored})
+        if eligible is None:
+            raise HTTPException(401, "invalid_credentials")
         conn.execute(text("""
             INSERT INTO api_sessions(token_digest,user_id,expires_at)
             VALUES (:key,:uid,now()+interval '1 hour')

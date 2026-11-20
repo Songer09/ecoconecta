@@ -41,14 +41,14 @@ lo que falta y distingue los acuerdos actuales de las referencias de diseño.
 
 | Pantalla | Pendiente de backend | Complejidad |
 | --- | --- | --- |
-| Acceso y usuarios/roles | Alta y gestión del piloto, permisos y asignación de zonas. El servidor determina el rol desde la cuenta autenticada. | Media |
+| Acceso y usuarios/roles | Conectar la administración del piloto en frontend. Completar el alta de personal operativo, sus roles y zonas. El servidor determina el rol desde la cuenta autenticada. | Media |
 | Perfil del vecino | Edición de datos autorizados e historial de sus solicitudes, además de saldo y movimientos. | Media |
 | Mapa de coordinador y ruta del recolector | Consultar paradas y asignar una ruta al recolector. En la última fase, sugerir un orden optimizado editable por el coordinador. | Alta |
 | Disponibilidad del recolector | Leer y cambiar el estado operativo propio. Distinguirlo de las franjas de cobertura y del estado de las citas ya asignadas. | Media |
 | Historial de coordinación | Filtros por período, estado y zona, con resúmenes autorizados. Definir reprogramación y motivo para `No se pudo`. | Media |
 | Foto | Carga validada, acceso restringido e integración con visión como sugerencia de clasificación. Mantener selección manual. | Alta |
 | Educación | Conectar catálogo, perfil y editor administrativo en frontend. El equipo de contenidos puede cargar los módulos iniciales como borradores. | Baja–media |
-| Información comunitaria | Preparar y publicar información de Villas de San Pablo y de la Fundación Santo Domingo. | Baja–media |
+| Información comunitaria | Conectar las fichas públicas de ambas entidades en frontend. | Baja–media |
 | Eventos y administración | Conectar las pantallas a la agenda pública y al editor administrativo. Cargar eventos confirmados. Coordinar los avisos por WhatsApp y su consentimiento con mensajería. | Media–alta |
 | Canjes | Catálogo y stock, transacción para descontar puntos y existencias, historial y control de duplicados. Los valores de las imágenes son referencias de pantalla. | Alta |
 | Inventario faltante del huerto | Gestionar insumos, cantidades y estado del faltante. Confirmar si se conecta al catálogo de canje. | Media |

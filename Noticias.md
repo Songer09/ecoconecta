@@ -1,9 +1,5 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core` ya se puede consultar la agenda comunitaria sin iniciar
-sesión. Administración puede preparar, publicar, reprogramar y retirar eventos.
-Frontend tiene los [contratos para la agenda y el editor](docs/API_CONTRACTS.md#agenda-comunitaria).
+En `feat/backend-core` la API pública ofrece fichas de Villas de San Pablo y la Fundación Santo Domingo con enlaces oficiales. Administración puede listar usuarios, dar de alta vecinos y gestionar el acceso al piloto. Retirar el acceso revoca las sesiones.
 
-La migración 0005 está aplicada en PostgreSQL local. Pasaron las nueve pruebas
-del backend. Queda conectar las pantallas y cargar eventos confirmados. Los
-avisos por WhatsApp requieren coordinación con el compañero de mensajería.
+Los [contratos](docs/API_CONTRACTS.md) están disponibles para frontend. Pasaron las diez pruebas del backend con PostgreSQL. La gestión de roles y zonas queda pendiente.
