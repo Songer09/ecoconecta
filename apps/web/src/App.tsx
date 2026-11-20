@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import type { FormEvent } from 'react'
 import type { CollectionRequest, EducationTopic, MaterialPointsRuleDraft, NewRequest, PointsRuleDraft, Role } from './domain/types'
 import { service } from './services/service'
 import { Brand } from './components/Brand'
@@ -220,14 +221,50 @@ function DashboardSection({ role, section, requests, allRequests, showAllRequest
 function AdminSection({ section, requests, onNotify }: { section: Section; requests: CollectionRequest[]; onNotify: (message: string) => void }) {
   if (section === 'home') return <div className="admin-grid"><div className="metric-card"><span>Solicitudes de demostración</span><strong>{requests.length}</strong><small>Datos temporales en este navegador</small></div><div className="metric-card"><span>Flujo orgánico</span><strong>{requests.filter((item) => item.flow === 'ORGANIC').length}</strong><small>Coordinación de huerta</small></div><div className="metric-card"><span>Flujo reciclable</span><strong>{requests.filter((item) => item.flow === 'RECYCLABLE').length}</strong><small>Coordinación de reciclaje</small></div><div className="admin-shortcuts"><h2>Herramientas de administración</h2><p>Gestiona cada módulo desde la navegación.</p><span>Usuarios · eventos · materiales · puntos · reportes</span></div></div>
   if (section === 'points') return <PointsConfiguration onNotify={onNotify}/>
+  if (section === 'users') return <AdminUsersDemo onNotify={onNotify}/>
+  if (section === 'events') return <AdminEventsDemo onNotify={onNotify}/>
+  if (section === 'catalog') return <AdminMaterialsDemo onNotify={onNotify}/>
+  if (section === 'reports') return <AdminReportsDemo requests={requests}/>
   const contents: Record<string, { title: string; description: string; items: string[] }> = {
-    users: { title: 'Usuarios y roles', description: 'El piloto debe habilitar usuarios validados por la Fundación.', items: ['Vecinos y unidades productivas', 'Recolectores y disponibilidad', 'Coordinadoras y roles'] },
-    events: { title: 'Eventos comunitarios', description: 'Publica actividades confirmadas para los conjuntos.', items: ['Aún no hay eventos publicados', 'Los datos de contacto deben ser validados'] },
-    catalog: { title: 'Catálogos y puntos', description: 'El equipo aún no ha confirmado materiales, unidades ni equivalencias oficiales.', items: ['Catálogo de materiales pendiente de validar', 'Reglas de puntos sin valores configurados', 'No se cargaron tarifas de demostración'] },
-    reports: { title: 'Reportes generales', description: 'Los indicadores usan solo datos de la demostración.', items: [`${requests.length} solicitudes registradas en este navegador`, `${requests.filter((item) => item.status === 'COMPLETED').length} recolecciones verificadas`, 'Sin datos personales exportados'] },
+    needs: { title: 'Administración', description: 'Selecciona un módulo desde la navegación.', items: [] },
   }
-  const data = contents[section] ?? contents.users
+  const data = contents[section] ?? contents.needs
   return <OperationPanel title={data.title} subtitle={data.description} items={data.items} action="Entendido" onAction={() => onNotify('Los cambios administrativos estarán disponibles al definir el contrato backend.')}/>
+}
+
+function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
+  const [users, setUsers] = useState<{ id: number; name: string; role: Role }[]>([])
+  const [name, setName] = useState('')
+  const [role, setRole] = useState<Role>('neighbor')
+  function addUser(event: FormEvent) { event.preventDefault(); if (!name.trim()) return; setUsers((current) => [...current, { id: Date.now(), name: name.trim(), role }]); setName(''); onNotify('Usuario de prueba añadido solo a esta demostración.') }
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">ADMINISTRACIÓN · DEMOSTRACIÓN</p><h2>Usuarios y roles</h2><p>Administra registros de prueba en esta vista. La lista real y los cambios de roles requieren la API y permisos de backend.</p></div><form className="admin-inline-form" onSubmit={addUser}><label>Nombre de prueba<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Escribe un nombre" required/></label><label>Rol<select value={role} onChange={(event) => setRole(event.target.value as Role)}>{roleOptions.map((option) => <option key={option} value={option}>{roleInfo[option].name}</option>)}</select></label><button className="button button-primary" type="submit">＋ Añadir registro</button></form>{users.length ? <div className="admin-table-wrap"><table className="admin-table"><thead><tr><th>Usuario</th><th>Rol</th><th>Alcance</th></tr></thead><tbody>{users.map((user) => <tr key={user.id}><td>{user.name}<small>Registro de prueba</small></td><td><select aria-label={`Rol de ${user.name}`} value={user.role} onChange={(event) => { const nextRole = event.target.value as Role; setUsers((current) => current.map((row) => row.id === user.id ? { ...row, role: nextRole } : row)); onNotify('Rol simulado actualizado solo en esta vista.') }}>{roleOptions.map((option) => <option key={option} value={option}>{roleInfo[option].name}</option>)}</select></td><td>Sin permisos reales</td></tr>)}</tbody></table></div> : <div className="admin-empty"><strong>No hay usuarios de prueba agregados</strong><span>Los usuarios registrados se cargarán al conectar la API.</span></div>}</section>
+}
+
+function AdminEventsDemo({ onNotify }: { onNotify: (message: string) => void }) {
+  const [events, setEvents] = useState<{ id: number; title: string; date: string; description: string }[]>([])
+  const [title, setTitle] = useState('')
+  const [date, setDate] = useState('')
+  const [description, setDescription] = useState('')
+  const todayParts = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).formatToParts(new Date())
+  const today = `${todayParts.find((part) => part.type === 'year')?.value}-${todayParts.find((part) => part.type === 'month')?.value}-${todayParts.find((part) => part.type === 'day')?.value}`
+  function addEvent(event: FormEvent) { event.preventDefault(); if (!title.trim() || !date) return; setEvents((current) => [...current, { id: Date.now(), title: title.trim(), date, description: description.trim() }].sort((a, b) => a.date.localeCompare(b.date))); setTitle(''); setDate(''); setDescription(''); onNotify('Evento de prueba agregado solo a esta demostración.') }
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">AGENDA COMUNITARIA · DEMOSTRACIÓN</p><h2>Eventos próximos</h2><p>Agrega eventos confirmados para probar la vista. No se publica ni se avisa a la comunidad desde este formulario.</p></div><form className="admin-inline-form admin-event-form" onSubmit={addEvent}><label>Nombre del evento<input value={title} onChange={(event) => setTitle(event.target.value)} placeholder="Nombre confirmado" required/></label><label>Fecha<input type="date" min={today} value={date} onChange={(event) => setDate(event.target.value)} required/></label><label>Descripción<input value={description} onChange={(event) => setDescription(event.target.value)} placeholder="Información opcional"/></label><button className="button button-primary" type="submit">＋ Añadir borrador</button></form>{events.length ? <div className="admin-record-list">{events.map((event) => <article key={event.id}><div className="event-date"><strong>{new Date(`${event.date}T12:00:00`).toLocaleDateString('es-CO', { day: '2-digit' })}</strong><span>{new Date(`${event.date}T12:00:00`).toLocaleDateString('es-CO', { month: 'short' })}</span></div><div><strong>{event.title}</strong><small>{event.description || 'Sin descripción añadida'}</small></div><button className="text-button" onClick={() => { setEvents((current) => current.filter((row) => row.id !== event.id)); onNotify('Borrador de evento retirado de la demostración.') }}>Quitar</button></article>)}</div> : <div className="admin-empty"><strong>No hay eventos próximos cargados</strong><span>El calendario oficial se mostrará al conectar la API de eventos.</span></div>}</section>
+}
+
+function AdminMaterialsDemo({ onNotify }: { onNotify: (message: string) => void }) {
+  const [materials, setMaterials] = useState<{ id: number; name: string; flow: NewRequest['flow']; unit: string }[]>([])
+  const [name, setName] = useState('')
+  const [flow, setFlow] = useState<NewRequest['flow']>('RECYCLABLE')
+  const [unit, setUnit] = useState('')
+  function addMaterial(event: FormEvent) { event.preventDefault(); if (!name.trim() || !unit.trim()) return; setMaterials((current) => [...current, { id: Date.now(), name: name.trim(), flow, unit: unit.trim() }]); setName(''); setUnit(''); onNotify('Material de prueba añadido solo a esta demostración.') }
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">CATÁLOGO · DEMOSTRACIÓN</p><h2>Materiales disponibles</h2><p>Prueba la captura del catálogo. La lista oficial, unidades y activación se administran en backend.</p></div><form className="admin-inline-form" onSubmit={addMaterial}><label>Material<input value={name} onChange={(event) => setName(event.target.value)} placeholder="Nombre definido por el equipo" required/></label><label>Flujo<select value={flow} onChange={(event) => setFlow(event.target.value as NewRequest['flow'])}><option value="RECYCLABLE">Reciclable</option><option value="ORGANIC">Orgánico · huerta</option></select></label><label>Unidad oficial<input value={unit} onChange={(event) => setUnit(event.target.value)} placeholder="Unidad por confirmar" required/></label><button className="button button-primary" type="submit">＋ Añadir borrador</button></form>{materials.length ? <div className="admin-record-list">{materials.map((item) => <article key={item.id}><span className={`flow-label ${item.flow === 'ORGANIC' ? 'flow-label-green' : ''}`}>{item.flow === 'ORGANIC' ? 'Orgánico' : 'Reciclable'}</span><div><strong>{item.name}</strong><small>Unidad indicada: {item.unit}</small></div><button className="text-button" onClick={() => { setMaterials((current) => current.filter((row) => row.id !== item.id)); onNotify('Borrador de material retirado de la demostración.') }}>Quitar</button></article>)}</div> : <div className="admin-empty"><strong>No hay materiales de prueba agregados</strong><span>El catálogo oficial aparecerá cuando esté configurado.</span></div>}</section>
+}
+
+function AdminReportsDemo({ requests }: { requests: CollectionRequest[] }) {
+  const statuses = ['RECEIVED', 'UNDER_REVIEW', 'ASSIGNED', 'SCHEDULED', 'COLLECTED', 'COMPLETED', 'CANCELLED'] as const
+  const labels: Record<typeof statuses[number], string> = { RECEIVED: 'Recibidas', UNDER_REVIEW: 'En revisión', ASSIGNED: 'Asignadas', SCHEDULED: 'Programadas', COLLECTED: 'Recolectadas', COMPLETED: 'Verificadas', CANCELLED: 'Canceladas' }
+  const peak = Math.max(1, ...statuses.map((status) => requests.filter((item) => item.status === status).length))
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">SEGUIMIENTO · DATOS DE DEMOSTRACIÓN</p><h2>Actividad del proyecto</h2><p>Resumen de solicitudes sintéticas que están en la memoria del navegador.</p></div><div className="report-summary"><article><span>Solicitudes registradas</span><strong>{requests.length}</strong></article><article><span>Flujos orgánicos</span><strong>{requests.filter((item) => item.flow === 'ORGANIC').length}</strong></article><article><span>Flujos reciclables</span><strong>{requests.filter((item) => item.flow === 'RECYCLABLE').length}</strong></article></div><div className="report-status-list">{statuses.map((status) => { const count = requests.filter((item) => item.status === status).length; return <div key={status}><span>{labels[status]}</span><div className="report-bar"><i style={{ width: `${count / peak * 100}%` }}/></div><strong>{count}</strong></div> })}</div></section>
 }
 
 function PointsConfiguration({ onNotify }: { onNotify: (message: string) => void }) {
