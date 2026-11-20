@@ -613,3 +613,35 @@ def test_image_preparation(pilot):
         assert client.post(url,content=b"x"*(5*1024*1024+1),headers=auth).status_code==413
         result=client.post(url,content=source.getvalue(),headers=auth)
         assert result.status_code==200 and Image.open(BytesIO(result.content)).format=="JPEG"
+
+
+def test_recognition_adapter(pilot, monkeypatch):
+    from io import BytesIO
+    import httpx
+    from PIL import Image
+
+    _, _, password = pilot
+    source = BytesIO()
+    Image.new("RGB", (4, 4)).save(source, format="PNG")
+    payload = source.getvalue()
+    path = "/api/v1/users/me/photo-recognition"
+    reply = {"status":"recognized", "material":"vidrio", "waste_category":"inorganic",
+             "confidence":0.8, "confidence_calibrated":False, "manual_review_required":False,
+             "model_version":"test"}
+    def service(request):
+        assert request.url.path == "/api/v1/recognize"
+        assert b'name="image"' in request.content and b'image/jpeg' in request.content
+        assert b'name="compost_profile"' in request.content and b'household' in request.content
+        return httpx.Response(200, json=reply)
+    real_client = httpx.AsyncClient
+    with TestClient(app, client=("recognition-test",1234)) as client:
+        auth = {"Authorization":"Bearer "+login(client,0,password).json()["access_token"],"Content-Type":"image/png"}
+        monkeypatch.delenv("COMPOST_AI_BASE_URL", raising=False)
+        assert client.post(path, headers=auth, content=payload).status_code == 503
+        monkeypatch.setenv("COMPOST_AI_BASE_URL", "http://vision.test")
+        monkeypatch.setattr(httpx, "AsyncClient", lambda **kw: real_client(transport=httpx.MockTransport(service), **kw))
+        assert client.post(path, headers=auth, content=payload).json() == reply
+        reply.update(status="review_required", manual_review_required=True)
+        assert client.post(path, headers=auth, content=payload).json()["material"] is None
+        reply.clear()
+        assert client.post(path, headers=auth, content=payload).status_code == 503

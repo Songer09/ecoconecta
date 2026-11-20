@@ -15,6 +15,7 @@ dependencies = [
     "alembic>=1.14,<2",
     "argon2-cffi>=23.1,<26",
     "pillow>=13.0.0",
+    "httpx>=0.27,<0.29",
 ]
 
 [project.optional-dependencies]
