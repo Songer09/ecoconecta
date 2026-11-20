@@ -44,7 +44,12 @@ async function main() {
       GRANT CONNECT ON DATABASE ecoconecta TO ecoconecta_app;
       REVOKE CREATE ON SCHEMA public FROM PUBLIC;
       GRANT USAGE ON SCHEMA public TO ecoconecta_app;
-      GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public TO ecoconecta_app;
+      GRANT SELECT, INSERT, UPDATE ON users, consents, requester_profiles, collectives,
+        collective_members, zones, collector_zone_coverage, availability_slots, collection_schedules,
+        waste_types, points_rules, pickup_requests, request_items, request_assignments,
+        request_schedules, request_status_history, collections, collection_items, points_ledger,
+        educational_content, whatsapp_messages, webhook_events, chat_conversations, chat_messages,
+        chat_tool_calls, chat_faq, audit_log TO ecoconecta_app;
       REVOKE UPDATE ON points_ledger, audit_log FROM ecoconecta_app;
       REVOKE ALL ON requester_points_balances FROM ecoconecta_app;
       GRANT SELECT ON requester_points_balances TO ecoconecta_app;

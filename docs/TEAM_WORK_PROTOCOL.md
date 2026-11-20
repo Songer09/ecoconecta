@@ -4,9 +4,8 @@
 
 Actualización de coordinación: Backend/Integración es el agente principal. Se añade
 un responsable de WhatsApp/ChatBot en `feat/whatsapp-chatbot`, bajo su coordinación
-técnica; ver `docs/agents/WHATSAPP_CHATBOT.md`. El desarrollo del backend continúa
-solo tras la confirmación solicitada por el usuario; esta entrega prepara SQL,
-PostgreSQL local y ramas para revisión.
+técnica; ver `docs/agents/WHATSAPP_CHATBOT.md`. El backend está en desarrollo en
+`feat/backend-core`; consultar `apps/api/README.md` para ejecutar y probar el primer flujo.
 
 ### Codex 1 — Backend, base unificada e integración
 Responsable de:

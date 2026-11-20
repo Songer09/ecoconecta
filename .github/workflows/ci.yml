@@ -8,21 +8,28 @@ on:
 jobs:
   backend:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: ecoconecta_api_test
+          POSTGRES_PASSWORD: ci_ephemeral
+        ports: ["5432:5432"]
+        options: --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    env:
+      TEST_DATABASE_URL: postgresql://postgres:ci_ephemeral@localhost:5432/ecoconecta_api_test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+      - uses: astral-sh/setup-uv@v7
       - name: Install backend
         working-directory: apps/api
-        run: |
-          python -m pip install --upgrade pip
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-          if [ -f pyproject.toml ]; then pip install -e ".[dev]"; fi
+        run: uv sync --locked --extra dev
       - name: Run backend tests
         working-directory: apps/api
-        run: pytest
-        continue-on-error: true
+        run: uv run --no-sync pytest
 
   frontend:
     runs-on: ubuntu-latest
