@@ -50,6 +50,14 @@ export function PickupOperations({item, role, refresh, onDone}: {item: Collectio
   },[item.id,item.flow,item.status,coord,role])
   const post = <T,>(url: string, body?: unknown) => request<T>(url,{method:'POST',body:JSON.stringify(body)})
   async function submit() {
+    if (coord && item.status === 'ASSIGNED') {
+      if (!start || !end || start.slice(0,10) !== end.slice(0,10) || end <= start) {
+        setMessage('La visita debe comenzar y terminar el mismo día, con fin posterior al inicio.'); return
+      }
+      if (new Date(start + ':00-05:00').getTime() <= Date.now()) {
+        setMessage('Elige una fecha y hora futuras.'); return
+      }
+    }
     setBusy(true); setMessage('')
     try {
       if (coord && item.status==='RECEIVED') await post(path+'/review')
@@ -78,7 +86,7 @@ export function PickupOperations({item, role, refresh, onDone}: {item: Collectio
   const needsMaterial = item.status === 'UNDER_REVIEW' || (role === 'collector' && item.status === 'SCHEDULED')
   return <form className="admin-inline-form" onSubmit={e=>{e.preventDefault();void submit()}}>
     {needsMaterial && <label>{coord?'Recolector disponible':'Material'}<select required value={selected} onChange={e=>setSelected(e.target.value)}><option value="">Selecciona una opción</option>{selectableOptions.map(o=><option key={o.id} value={o.id}>{o.name}</option>)}</select></label>}
-    {item.status==='ASSIGNED' && <><label>Inicio (Colombia)<input type="datetime-local" required value={start} onChange={e=>setStart(e.target.value)}/></label><label>Fin (Colombia)<input type="datetime-local" required min={start} value={end} onChange={e=>setEnd(e.target.value)}/></label></>}
+    {item.status==='ASSIGNED' && <><p>Elige una jornada: inicio y fin deben corresponder al mismo día.</p><label>Inicio (Colombia)<input type="datetime-local" required value={start} onChange={e=>{ const value=e.target.value; setStart(value); if(value){ const date=new Date(value+':00-05:00'); date.setMinutes(date.getMinutes()+30); const suggested=new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Bogota',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hour12:false}).format(date).replace(' ','T'); setEnd(suggested.slice(0,10)===value.slice(0,10)?suggested:value.slice(0,10)+'T23:59') } }}/></label><label>Fin (Colombia)<input type="datetime-local" required min={start} max={start ? start.slice(0,10)+'T23:59' : undefined} value={end} onChange={e=>setEnd(e.target.value)}/></label></>}
     {role==='collector' && <label>Peso en kg<input type="number" required min="0.0001" step="0.0001" value={weight} onChange={e=>setWeight(e.target.value)}/></label>}
     {pickup && <ul>{pickup.items.map(i=><li key={i.waste_type_id}>{options.find(o=>o.id===i.waste_type_id)?.name??'Material registrado'} · {i.quantity} {i.unit}</li>)}</ul>}
     {role === 'collector' && pickup && !selectableOptions.length && <p role="status">Todos los materiales activos ya están registrados.</p>}

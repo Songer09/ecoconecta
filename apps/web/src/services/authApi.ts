@@ -130,7 +130,11 @@ export async function request<T>(path: string, init: RequestInit = {}, authentic
   }
   if (!response.ok) {
     const body = await response.json().catch(() => null) as ApiErrorBody | null
-    const friendlyMessage = body?.code === 'invalid_credentials' ? 'El teléfono o la contraseña no son correctos.'
+    const friendlyMessage = body?.code === 'outside_availability' ? 'Elige inicio y fin dentro de la misma jornada disponible del recolector.'
+      : body?.code === 'schedule_overlap' ? 'El recolector ya tiene una visita en ese horario. Elige otra franja.'
+      : body?.code === 'collector_unavailable' ? 'El recolector no tiene disponibilidad vigente para esta zona.'
+      : body?.code === 'invalid_transition' ? 'La solicitud cambió de estado. Actualiza el listado antes de continuar.'
+      : body?.code === 'invalid_credentials' ? 'El teléfono o la contraseña no son correctos.'
       : body?.code === 'phone_in_use' ? 'Ya existe una cuenta con este teléfono.'
       : body?.code === 'login_rate_limit' ? 'Hay muchos intentos. Espera un minuto e inténtalo de nuevo.'
       : body?.code === 'registration_rate_limit' ? 'Se alcanzó el límite de registros desde esta conexión. Espera un minuto e inténtalo de nuevo.'
