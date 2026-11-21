@@ -18,6 +18,7 @@ Estos endpoints usan los valores de estado y flujo en español del esquema Postg
 
 ## Endpoints propuestos
 ### Auth
+- POST `/auth/register` — registro público de vecinos únicamente. Recibe nombre, teléfono internacional, contraseña, etapa, conjunto, torre, apartamento y aceptación de tratamiento de datos. El servidor crea una cuenta solicitante activa del piloto y guarda perfil y consentimiento en una transacción; limita intentos y rechaza teléfonos duplicados.
 - POST `/auth/login`
 - POST `/auth/logout`
 - GET `/auth/me`
