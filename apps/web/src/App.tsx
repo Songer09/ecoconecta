@@ -63,7 +63,8 @@ function RoleIcon({ role }: { role: Role }) {
 }
 
 function SiteHeader({ onHome, onEducation, onEvents, active, tools }: { onHome: () => void; onEducation: () => void; onEvents: () => void; active?: 'education' | 'events'; tools?: ReactNode }) {
-  const whatsappUrl = import.meta.env.VITE_ECOCONECTA_WHATSAPP_URL?.trim()
+  const chatbotPanelUrl = 'https://whatsapp-web-production-c49ad447.up.railway.app/panel'
+  const whatsappUrl = import.meta.env.VITE_ECOCONECTA_WHATSAPP_URL?.trim() || chatbotPanelUrl
   const whatsappLabel = <><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.65" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M20.8 11.9a8.8 8.8 0 0 1-13 7.7l-4.5 1.2 1.2-4.4a8.8 8.8 0 1 1 16.3-4.5Z"/><path d="M8.6 7.7h1l1.1 2.5-.9 1c.7 1.5 1.8 2.5 3.2 3.2l1-1 2.4 1.1v1c0 .6-.8 1.2-1.5 1.2-3.6-.3-7.1-3.7-7.4-7.4 0-.7.5-1.6 1.1-1.6Z"/></svg>WhatsApp</>
   return <header className="site-header">
     <button className="site-brand-button" onClick={onHome} aria-label="Volver al inicio"><Brand/></button>
@@ -73,8 +74,8 @@ function SiteHeader({ onHome, onEducation, onEvents, active, tools }: { onHome: 
       <button className={active === 'events' ? 'site-nav-active' : ''} data-mascot-target="events" onClick={onEvents}>Eventos</button>
     </nav>
     <div className="site-header-actions">
-      {whatsappUrl ? <a className="site-whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer">{whatsappLabel}</a>
-        : <button type="button" className="site-whatsapp" title="WhatsApp estará disponible próximamente" disabled>{whatsappLabel}</button>}
+      <a className="site-whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer"
+        aria-label={whatsappUrl === chatbotPanelUrl ? 'WhatsApp: abrir demo del chatbot' : 'WhatsApp'}>{whatsappLabel}</a>
       {tools && <div className="site-header-tools">{tools}</div>}
     </div>
   </header>
