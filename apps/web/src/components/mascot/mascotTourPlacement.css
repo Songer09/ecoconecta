@@ -1,0 +1,41 @@
+.mascot-tour[data-card-placement] .mascot-tour-card {
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: min(65%, 166px, max(112px, var(--tour-card-space, 166px)));
+  overflow: hidden;
+}
+
+.mascot-tour[data-card-placement="top"] .mascot-tour-card {
+  top: calc(12px + env(safe-area-inset-top));
+  bottom: auto;
+}
+
+.mascot-tour[data-card-placement] .mascot-tour-card img {
+  max-height: 100%;
+}
+
+.mascot-tour[data-card-placement] .mascot-tour-step {
+  min-height: 0;
+  max-height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.mascot-tour[data-card-placement] .mascot-tour-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mascot-tour[data-card-placement] .mascot-tour-actions .button {
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 760px) {
+  .mascot-screen[data-mascot-screen="dashboard"] ~ .mascot-tour {
+    --tour-bottom: 63px;
+  }
+
+  .mascot-screen .coordinator-map-layout-wide {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
