@@ -3,6 +3,17 @@ import { request } from '../services/authApi'
 
 type Row = Record<string,string | number | boolean>
 const labels: Record<string,string> = {code:'Código',scheduled_start:'Inicio',scheduled_end:'Fin',accounts:'Cuentas',active:'Activas',name:'Nombre',title:'Nombre',location:'Lugar',organizer:'Organiza',description:'Descripción',starts_at:'Inicio',ends_at:'Fin',flow:'Tipo de residuo',points_per_kg:'Puntos por kg',quantity:'Cantidad',unit:'Unidad',stock:'Disponibles',price:'Puntos necesarios',full_name:'Nombre',role:'Rol',kg:'Peso (kg)',estimated_cop:'Valor estimado (COP)',missing_prices:'Tarifas pendientes',is_available:'Disponible',is_published:'Publicado',weekday:'Día',address:'Dirección',balance:'Saldo',neighborhood:'Conjunto',member_role:'Función'}
+function displayValue(field: string, value: Row[string] | null | undefined) {
+  if (typeof value === 'boolean') return value ? 'Sí' : 'No'
+  const text = String(value ?? 'Pendiente')
+  if (field !== 'points_per_kg') return text
+
+  // The API sends exact decimal strings. Keep their precision when formatting.
+  const [whole, fraction] = text.split('.')
+  const decimals = fraction?.replace(/0+$/, '')
+  return decimals ? `${whole},${decimals}` : whole
+}
+
 export function LiveWorkspace({section}: {section:string}) {
   const [rows,setRows]=useState<Row[]>([])
   const [materials,setMaterials]=useState<Row[]>([])
@@ -70,7 +81,7 @@ export function LiveWorkspace({section}: {section:string}) {
       {section==='points'&&<><label>Regla<select name="material"><option value="organic">Orgánicos</option>{materials.map(r=><option key={String(r.id)} value={String(r.id)}>{r.name}</option>)}</select></label><label>Puntos por kilogramo<input name="rate" type="number" min="0.000001" step="0.000001" required/></label></>}
       <button className="button button-primary" disabled={busy}>{section==='events'?'Guardar borrador':'Guardar'}</button>
     </form>}
-    {loading?<p role="status">Cargando…</p>:error?<p role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Actualizar</button></p>:!rows.length?<p>Aún no hay registros.</p>:<div className="admin-record-list">{rows.map((r,i)=><article key={String(r.id??r.collective_id??i)}><div>{Object.entries(r).filter(([k])=>labels[k]).map(([k,v])=><p key={k}><strong>{labels[k]}</strong> {typeof v==='boolean'?(v?'Sí':'No'):String(v??'Pendiente')}</p>)}</div>
+    {loading?<p role="status">Cargando…</p>:error?<p role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Actualizar</button></p>:!rows.length?<p>Aún no hay registros.</p>:<div className="admin-record-list">{rows.map((r,i)=><article key={String(r.id??r.collective_id??i)}><div>{Object.entries(r).filter(([k])=>labels[k]).map(([k,v])=><p key={k}><strong>{labels[k]}</strong> {displayValue(k, v)}</p>)}</div>
       {section==='availability'&&<button disabled={busy} onClick={()=>void save('/collector/availability/'+r.collective_id,'PUT',{is_available:!r.is_available})}>Cambiar disponibilidad</button>}
       {section==='events'&&<button disabled={busy} onClick={()=>void save('/admin/events/'+r.id,'PUT',{title:r.title,description:r.description,organizer:r.organizer,location:r.location,starts_at:r.starts_at,ends_at:r.ends_at,is_published:!r.is_published,expected_updated_at:r.updated_at})}>{r.is_published?'Retirar publicación':'Publicar'}</button>}
     </article>)}</div>}
