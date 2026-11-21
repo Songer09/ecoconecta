@@ -1,0 +1,5 @@
+node_modules/
+app/static/panel.js
+.ruff_cache/
+.pytest_cache/
+.demo-keys

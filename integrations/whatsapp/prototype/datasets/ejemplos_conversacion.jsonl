@@ -1,0 +1,3 @@
+{"scenario":"aviso reciclable","messages":["Tengo 10 kilos de cartón en mi hogar","Manzana 12, casa 8","Mañana por la mañana","Sí"],"expected":"recibida y alerta de reciclaje"}
+{"scenario":"voz orgánica","messages":["ACEPTO AUDIO",{"type":"demo_audio","text":"Tengo tres bolsas de cáscaras en mi negocio, manzana 3, sin preferencia"},"Sí"],"expected":"recibida y alerta de huerta"}
+{"scenario":"consulta fuera de dominio","messages":["Escribe una canción sobre bitcoin"],"expected":"límite de alcance sin operación"}

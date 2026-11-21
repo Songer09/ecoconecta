@@ -3,7 +3,9 @@
 Responsable: compañero encargado de mensajería. Esta carpeta contiene configuración
 y acuerdos del adaptador; la aplicación sigue siendo un monolito FastAPI con una
 única PostgreSQL. No crear aquí un backend, base de datos o sistema de usuarios paralelo.
-No hay conexión implementada ni credenciales configuradas todavía.
+La integración con el backend compartido y las credenciales reales están pendientes.
+
+El [prototipo ejecutable del chatbot](prototype/README.md) permite probar la conversación en Docker con datos sintéticos y modo local. Su adaptador experimental usa Meta Cloud API, con Gemini configurable y un adaptador de OpenAI. El plan de Twilio descrito abajo corresponde a la integración coordinada. Para la evaluación oficial, Gemini requiere autorización escrita.
 
 Rama propia: `feat/whatsapp-chatbot`. El agente principal coordina contratos y revisa
 integración; no editar en paralelo archivos de backend/esquema sin acuerdo.

@@ -1,0 +1,10 @@
+.venv
+.env
+.env.*
+__pycache__
+.pytest_cache
+.ruff_cache
+node_modules
+app/static/panel.js
+reports
+.demo-keys

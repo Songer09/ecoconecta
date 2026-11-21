@@ -1,0 +1,14 @@
+{"id":"H01","intent":"collection","text":"El canasto de cartón ya está a tope, ¿lo pueden retirar?","scope":"IN_SCOPE","materials":[{"name":"cartón","quantity":null,"unit":null,"flow":"recyclable"}]}
+{"id":"H02","intent":"collection","text":"Se me amontonó el papel. Será media bolsa, más o menos.","scope":"IN_SCOPE","materials":[{"name":"papel","quantity":0.5,"unit":"bolsas","flow":"recyclable"}]}
+{"id":"H03","intent":"collection","text":"Tenemos un costal y medio de cartón listo para recoger","scope":"IN_SCOPE","materials":[{"name":"cartón","quantity":1.5,"unit":"costales","flow":"recyclable"}]}
+{"id":"H04","intent":"recycling","text":"¿Cómo preparo las latas, el cartón y las botellas de vidrio?","scope":"IN_SCOPE","materials":[{"name":"latas","quantity":null,"unit":null,"flow":"recyclable"},{"name":"cartón","quantity":null,"unit":null,"flow":"recyclable"},{"name":"vidrio","quantity":null,"unit":null,"flow":"recyclable"}]}
+{"id":"H05","intent":"collection","text":"Tengo cartón y tetrapak listos","scope":"IN_SCOPE","materials":[{"name":"cartón","quantity":null,"unit":null,"flow":"recyclable"},{"name":"tetrapak","quantity":null,"unit":null,"flow":null}]}
+{"id":"H06","intent":"collection","text":"Quedaron 2 cajas de papel reciclado en el local","scope":"IN_SCOPE","materials":[{"name":"papel","quantity":2,"unit":"cajas","flow":"recyclable"}]}
+{"id":"H07","intent":"material","text":"Y esas bolsas negras del negocio, ¿se recuperan?","scope":"IN_SCOPE","materials":[]}
+{"id":"H08","intent":"track","text":"Revísame en qué quedó lo que iban a llevarse","scope":"IN_SCOPE","materials":[]}
+{"id":"H09","intent":"training","text":"¿Hay algún encuentro donde expliquen cómo armar una compostera?","scope":"IN_SCOPE","materials":[]}
+{"id":"H10","intent":"offtopic","text":"¿Puedes traducir mi carta al francés?","scope":"OUT_OF_SCOPE","materials":[]}
+{"id":"H11","intent":"collection","text":"De botellas de plástico cuento unas doce y de papel, dos bolsas","scope":"IN_SCOPE","materials":[{"name":"botellas de plástico","quantity":12,"unit":"botellas","flow":"recyclable"},{"name":"papel","quantity":2,"unit":"bolsas","flow":"recyclable"}]}
+{"id":"H12","intent":"compost","text":"¿El compost se puede hacer con hojas o borra de café?","scope":"IN_SCOPE","materials":[{"name":"hojas","quantity":null,"unit":null,"flow":"organic"},{"name":"café","quantity":null,"unit":null,"flow":"organic"}]}
+{"id":"H13","intent":"training","text":"Me gustaría ir a una sesión donde aprendamos a preparar una compostera","scope":"IN_SCOPE","materials":[]}
+{"id":"H14","intent":"training","text":"¿Hay una reunión en la que nos enseñen a preparar abono para el jardín?","scope":"IN_SCOPE","materials":[]}
