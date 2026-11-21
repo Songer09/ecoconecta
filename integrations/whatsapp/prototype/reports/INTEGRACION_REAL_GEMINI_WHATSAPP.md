@@ -12,6 +12,8 @@ Actualizado: 2026-11-20. Rama: `feat/whatsapp-chatbot`.
 
 El contenedor activo observado está en `APP_ENV=demo`, `AI_PROVIDER=mock` y `WHATSAPP_PROVIDER=mock`. La clave Gemini no está configurada. No se hizo ninguna solicitud al proveedor externo. En el checkout de desarrollo tampoco existe un `.env` con credenciales.
 
+En la revisión del 2026-11-20, el contenedor activo respondió `GET /health` con `ai=mock` y `channel=mock`. Su bundle `/panel/panel.js` todavía no incluye el diagnóstico por turno añadido en `4401fff`, por lo que el servicio activo no está ejecutando la imagen de la rama actual. No se reconstruyó ni reinició al faltar la clave Gemini.
+
 ## Fase A
 
 El panel conserva el canal de mensajería simulado y permite usar el adaptador Gemini existente al configurar `AI_PROVIDER=gemini`. El panel muestra por turno si Gemini respondió correctamente, si el mensaje permaneció local por privacidad, o si el adaptador usó el respaldo local después de un error. Los fallos se reducen a códigos seguros como `timeout`, `authentication_rejected`, `model_not_found`, `quota_exceeded`, `service_unavailable` e `invalid_response`; no se guardan mensajes de error del proveedor ni secretos.
