@@ -1,16 +1,16 @@
 # EcoConecta — documentación técnica coordinada v3
 
-**Propósito:** servir como fuente de verdad operativa para los cuatro agentes de desarrollo y para el equipo humano.
+**Propósito:** servir como fuente de verdad operativa para el equipo de EcoConecta.
 
 ## Lectura obligatoria antes de modificar código
 
-1. `AGENTS.md`
+1. `docs/REQUIREMENTS.md`
 2. `docs/00_START_HERE.md`
 3. `docs/FOUNDATION_BRIEF.md`
 4. `docs/DESIGN_GUIDE.md`
-5. `docs/TEAM_WORK_PROTOCOL.md`
+5. `docs/ARCHITECTURE.md`
 6. `docs/UNIFIED_DATA_MODEL.md`
-7. `docs/AI_VISION_INTEGRATION.md` (especialmente Codex de visión)
+7. `docs/AI_VISION_INTEGRATION.md`
 8. `docs/SECURITY_2026_2027.md`
 
 Después, leer los documentos de dominio correspondientes al módulo que se vaya a modificar.

@@ -44,5 +44,5 @@ OpenAPI generado por FastAPI como contrato inicial. Versionar cambios. Frontend 
 ## 8. Despliegue
 Contenedor web, contenedor API y PostgreSQL. Para producción, declarar proveedor cloud y servicios concretos aprobados. No desplegar con SQLite ni sustituir PostgreSQL. Secretos solo como variables protegidas del entorno.
 
-> **ACTUALIZACIÓN v3:** Este documento proviene de la versión 2. Si contradice `AGENTS.md`, `docs/DECISION_LOG.md`, `docs/FOUNDATION_BRIEF.md` o `docs/DESIGN_GUIDE.md`, prevalece v3. En particular, Twilio está permitido para prototipo, la IA tiene libertad de elección bajo controles de privacidad/seguridad y la aplicación usa una única PostgreSQL compartida.
+> **ACTUALIZACIÓN v3:** Este documento proviene de la versión 2. Si contradice `docs/DECISION_LOG.md`, `docs/FOUNDATION_BRIEF.md` o `docs/DESIGN_GUIDE.md`, prevalece v3. En particular, Twilio está permitido para prototipo, la IA tiene libertad de elección bajo controles de privacidad/seguridad y la aplicación usa una única PostgreSQL compartida.
 
