@@ -12,9 +12,9 @@ import { EmptyState, InfoSection, OperationPanel } from './components/PanelState
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
 import { authApi } from './services/authApi'
 import { CoordinatorDirectory } from './components/CoordinatorDirectory'
-import { InstitutionalSection } from './components/InstitutionalSection'
+import { CommunityFooter, VillasStorySection } from './components/LandingSections'
 
-type View = 'welcome' | 'login' | 'learning' | 'dashboard'
+type View = 'welcome' | 'login' | 'register' | 'learning' | 'dashboard'
 type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports' | 'team'
 
 const roleInfo: Record<Role, { name: string; title: string; description: string }> = {
@@ -46,9 +46,9 @@ function RoleIcon({ role }: { role: Role }) {
   return <svg className="role-icon" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d={paths[role]}/></svg>
 }
 
-function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void }) {
+function Welcome({ onRole, onRegister, onDemo, onLearn, onEvents }: { onRole: (role: Role) => void; onRegister: () => void; onDemo: () => void; onLearn: () => void; onEvents: () => void }) {
   return <main className="welcome-page">
-    <header className="welcome-header"><Brand/><nav className="welcome-nav" aria-label="Información del proyecto"><a href="#conocenos">Conócenos</a></nav></header>
+    <header className="welcome-header"><Brand/><button className="button welcome-register-button" onClick={onRegister}>Registrarse</button></header>
     <div className="welcome-grid">
       <section className="welcome-copy">
         <p className="eyebrow">BIENVENIDO</p>
@@ -59,7 +59,7 @@ function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; 
           <div className="role-grid">
             {roleOptions.map((role) => <button key={role} className="role-card" onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}><RoleIcon role={role}/></span><span className="role-copy"><strong>{roleInfo[role].name}</strong><small>{roleInfo[role].description}</small></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
           </div>
-          <p className="demo-note">Usa el acceso correspondiente a tu participación en la comunidad.</p>
+          <div className="welcome-actions"><p className="demo-note">Usa el acceso correspondiente a tu participación en la comunidad.</p><button className="button button-secondary welcome-demo-button" onClick={onDemo}>Ver demostración</button></div>
         </section>
       </section>
       <aside className="welcome-aside" aria-label="Accesos directos">
@@ -67,11 +67,12 @@ function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; 
         <button className="welcome-resource-card events-resource" onClick={onEvents}><img src="/images/community-events.jpg" alt="Actividad comunitaria en Villas de San Pablo"/><span className="resource-action"><span><small>AGENDA COMUNITARIA</small><strong>Eventos</strong></span><b aria-hidden="true">→</b></span></button>
       </aside>
     </div>
-    <InstitutionalSection/>
+    <VillasStorySection/>
+    <CommunityFooter/>
   </main>
 }
 
-function LoginScreen({ role, onBack, onSuccess }: { role: Role; onBack: () => void; onSuccess: (role: Role) => void }) {
+function LoginScreen({ role, onBack, onRegister, onSuccess }: { role: Role; onBack: () => void; onRegister: () => void; onSuccess: (role: Role) => void }) {
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
@@ -107,7 +108,73 @@ function LoginScreen({ role, onBack, onSuccess }: { role: Role; onBack: () => vo
         <button className="button button-primary" type="submit" disabled={busy}>{busy ? 'Verificando…' : 'Iniciar sesión'}</button>
       </form>
       {message && <p className="login-api-notice" role="alert">{message}</p>}
-      <p className="login-help">El teléfono debe incluir + y el indicativo del país. Si aún no tienes cuenta, solicita el registro a administración.</p>
+      {role === 'neighbor' && <p className="login-help">¿Aún no tienes cuenta? <button type="button" className="inline-register-link" onClick={onRegister}>Regístrate aquí</button></p>}
+      <p className="login-help">El teléfono debe incluir + y el indicativo del país.</p>
+    </section>
+  </main>
+}
+
+function ResidentRegistrationScreen({ onBack, onLogin, onSuccess }: { onBack: () => void; onLogin: () => void; onSuccess: () => void }) {
+  const [fullName, setFullName] = useState('')
+  const [phone, setPhone] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [stage, setStage] = useState('')
+  const [neighborhood, setNeighborhood] = useState('')
+  const [tower, setTower] = useState('')
+  const [apartment, setApartment] = useState('')
+  const [dataTreatmentAccepted, setDataTreatmentAccepted] = useState(false)
+  const [message, setMessage] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [accountCreated, setAccountCreated] = useState(false)
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setMessage('')
+    if (password !== confirmPassword) { setMessage('Las contraseñas no coinciden.'); return }
+    if (!dataTreatmentAccepted) { setMessage('Debes autorizar el tratamiento de datos para crear tu cuenta.'); return }
+    setBusy(true)
+    let created = false
+    try {
+      await authApi.registerResident({
+        full_name: fullName.trim(), phone: phone.trim(), password,
+        stage: stage.trim(), neighborhood: neighborhood.trim(), tower: tower.trim(), apartment: apartment.trim(),
+        data_treatment_accepted: true,
+      })
+      created = true
+      setAccountCreated(true)
+      const session = await authApi.login({ phone: phone.trim(), password })
+      if (session.role !== 'neighbor') throw new Error('La cuenta se creó, pero no tiene el perfil de vecino esperado.')
+      onSuccess()
+    } catch (error) {
+      setMessage(created
+        ? 'Tu cuenta quedó creada y activa. Inicia sesión con el teléfono y la contraseña que registraste.'
+        : error instanceof Error ? error.message : 'No se pudo completar el registro.')
+    } finally { setBusy(false) }
+  }
+
+  return <main className="register-page">
+    <header className="simple-header"><button className="text-button login-back" onClick={onBack}>← Volver a roles</button><Brand compact/><span className="login-header-spacer"/></header>
+    <section className="register-card">
+      <p className="eyebrow">CUENTA DE VECINO</p>
+      <h1>Regístrate en EcoConecta</h1>
+      <p className="register-description">Crea tu cuenta para solicitar recolecciones y conectar con las iniciativas de tu comunidad.</p>
+      <form className="register-form" onSubmit={submit}>
+        <label>Nombre completo<input autoComplete="name" maxLength={200} value={fullName} onChange={(event) => setFullName(event.target.value)} required/></label>
+        <label>Celular con indicativo internacional<input type="tel" inputMode="tel" autoComplete="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
+        <div className="address-grid resident-address-grid">
+          <label>Etapa<input maxLength={80} placeholder="Ej. Etapa 4" value={stage} onChange={(event) => setStage(event.target.value)} required/></label>
+          <label className="wide-field">Conjunto<input maxLength={120} autoComplete="address-line1" value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} required/></label>
+          <label>Torre<input maxLength={30} value={tower} onChange={(event) => setTower(event.target.value)} required/></label>
+          <label>Apartamento<input maxLength={30} value={apartment} onChange={(event) => setApartment(event.target.value)} required/></label>
+        </div>
+        <label>Contraseña<input type="password" minLength={12} maxLength={256} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/><small>Usa al menos 12 caracteres.</small></label>
+        <label>Confirma tu contraseña<input type="password" minLength={12} maxLength={256} autoComplete="new-password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} required/></label>
+        <label className="register-consent"><input type="checkbox" checked={dataTreatmentAccepted} onChange={(event) => setDataTreatmentAccepted(event.target.checked)} required/><span><strong>Autorizo el tratamiento de mis datos personales.</strong> Se usarán para gestionar mis solicitudes, registrar los puntos que correspondan después de verificar una recolección y enviarme avisos operativos o comunitarios. <a href="https://fundacionsantodomingo.org/conocenos/politica-de-proteccion-de-datos/" target="_blank" rel="noreferrer">Consulta la política de protección de datos.</a></span></label>
+        {message && <p className={accountCreated ? 'register-success' : 'login-api-notice'} role={accountCreated ? 'status' : 'alert'}>{message}</p>}
+        {accountCreated ? <button type="button" className="button button-primary" onClick={onLogin}>Ir a iniciar sesión</button> : <button className="button button-primary" type="submit" disabled={busy}>{busy ? 'Creando cuenta…' : 'Crear mi cuenta'}</button>}
+      </form>
+      <p className="login-help">¿Ya tienes una cuenta? <button type="button" className="inline-register-link" onClick={onLogin}>Inicia sesión</button></p>
     </section>
   </main>
 }
@@ -320,11 +387,6 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
-  const [residentStage, setResidentStage] = useState('Etapa 4')
-  const [residentNeighborhood, setResidentNeighborhood] = useState('')
-  const [residentTower, setResidentTower] = useState('')
-  const [residentApartment, setResidentApartment] = useState('')
-  const [dataTreatmentAccepted, setDataTreatmentAccepted] = useState(false)
   const [staffRole, setStaffRole] = useState<'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'>('recolector')
   const [collectorFlow, setCollectorFlow] = useState<'organico' | 'reciclable'>('reciclable')
   const [zoneIds, setZoneIds] = useState<string[]>([])
@@ -339,37 +401,23 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
   async function createAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setBusy(true)
     try {
-      if (accountType === 'resident') await authApi.createResident({
-        full_name: fullName.trim(), phone: phone.trim(), password,
-        stage: residentStage, neighborhood: residentNeighborhood.trim(), tower: residentTower.trim(), apartment: residentApartment.trim(),
-        data_treatment_accepted: true,
-      })
+      if (accountType === 'resident') await authApi.createResident({ full_name: fullName.trim(), phone: phone.trim(), password })
       else {
         const flow = staffRole === 'coordinador_huerteros' ? 'organico' : staffRole === 'coordinador_recicladores' ? 'reciclable' : collectorFlow
         await authApi.createStaff({ full_name: fullName.trim(), phone: phone.trim(), password, role: staffRole, flow, zone_ids: zoneIds, valid_from: validFrom })
       }
-      setFullName(''); setPhone(''); setPassword(''); setZoneIds([]); setResidentStage('Etapa 4'); setResidentNeighborhood(''); setResidentTower(''); setResidentApartment(''); setDataTreatmentAccepted(false)
+      setFullName(''); setPhone(''); setPassword(''); setZoneIds([])
       await reload()
       onNotify('Cuenta piloto creada. Entrega el teléfono y la contraseña al titular de forma segura.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo crear la cuenta.') }
     finally { setBusy(false) }
   }
-  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">CUENTAS PILOTO · ADMINISTRACIÓN</p><h2>Registro de personas</h2><p>El backend solo permite que administración aprovisione usuarios. El acceso se entrega con teléfono internacional y contraseña; los roles no se asignan desde un registro público.</p></div>
+  return <section className="admin-workspace"><div className="admin-panel-intro"><p className="eyebrow">CUENTAS PILOTO · ADMINISTRACIÓN</p><h2>Registro de personas</h2><p>Desde aquí administración crea cuentas del piloto y asigna roles operativos. Los vecinos también pueden crear su cuenta desde el botón Registrarse.</p></div>
     <div className="admin-account-tabs"><button className={accountType === 'resident' ? 'account-tab active' : 'account-tab'} onClick={() => setAccountType('resident')}>Vecino o unidad productiva</button><button className={accountType === 'staff' ? 'account-tab active' : 'account-tab'} onClick={() => setAccountType('staff')}>Personal operativo</button></div>
     <form className="admin-account-form" onSubmit={createAccount}>
       <label>Nombre completo<input value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={1} maxLength={200} required/></label>
       <label>Teléfono con indicativo<input type="tel" inputMode="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
       <label>Contraseña inicial<input type="password" minLength={12} maxLength={256} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/><small>Mínimo 12 caracteres. Entrégala al titular de forma segura.</small></label>
-      {accountType === 'resident' && <>
-        <div className="address-grid resident-address-grid">
-          <label>Etapa<select value={residentStage} onChange={(event) => setResidentStage(event.target.value)} required><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label>
-          <label className="wide-field">Conjunto<input value={residentNeighborhood} onChange={(event) => setResidentNeighborhood(event.target.value)} maxLength={120} autoComplete="address-line1" required/></label>
-          <label>Torre<input value={residentTower} onChange={(event) => setResidentTower(event.target.value)} maxLength={30} required/></label>
-          <label>Apartamento<input value={residentApartment} onChange={(event) => setResidentApartment(event.target.value)} maxLength={30} required/></label>
-        </div>
-        <label className="privacy-consent"><input type="checkbox" checked={dataTreatmentAccepted} onChange={(event) => setDataTreatmentAccepted(event.target.checked)} required/><span><strong>Autorización para el uso de datos.</strong> La persona titular acepta que sus datos se usen para gestionar solicitudes, acreditar puntos después de verificar la recolección y enviar avisos operativos o comunitarios.</span></label>
-        <small className="privacy-consent-note">Completa esta casilla con la persona titular. La dirección se comparte con el equipo que atiende la solicitud.</small>
-      </>}
       {accountType === 'staff' && <>
         <label>Rol operativo<select value={staffRole} onChange={(event) => setStaffRole(event.target.value as typeof staffRole)}><option value="recolector">Recolector</option><option value="coordinador_huerteros">Coordinación de huerta</option><option value="coordinador_recicladores">Coordinación de reciclaje</option></select></label>
         {staffRole === 'recolector' && <label>Flujo de recolección<select value={collectorFlow} onChange={(event) => setCollectorFlow(event.target.value as typeof collectorFlow)}><option value="reciclable">Reciclable</option><option value="organico">Orgánico</option></select></label>}
@@ -424,7 +472,8 @@ export default function App() {
   const [dashboardSection, setDashboardSection] = useState<Section>('home')
   const openLearning = () => { setEducationReturnView(view); setView('learning') }
   if (view === 'learning') return <Education onBack={() => setView(educationReturnView)} onNeighbor={() => { setRole('neighbor'); setView('login') }}/>
-  if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')} onSuccess={(authenticatedRole) => { setRole(authenticatedRole); setDashboardSection('home'); setView('dashboard') }}/>
+  if (view === 'register') return <ResidentRegistrationScreen onBack={() => setView('welcome')} onLogin={() => { setRole('neighbor'); setView('login') }} onSuccess={() => { setRole('neighbor'); setDashboardSection('home'); setView('dashboard') }}/>
+  if (view === 'login') return <LoginScreen role={role} onBack={() => setView('welcome')} onRegister={() => setView('register')} onSuccess={(authenticatedRole) => { setRole(authenticatedRole); setDashboardSection('home'); setView('dashboard') }}/>
   if (view === 'dashboard') return <Dashboard role={role} initialSection={dashboardSection} onExit={() => { void authApi.logout(); setDashboardSection('home'); setView('welcome') }} onLearn={openLearning}/>
-  return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }}/>
+  return <Welcome onRole={(selected) => { setRole(selected); setView('login') }} onRegister={() => setView('register')} onDemo={() => { setRole('neighbor'); setDashboardSection('home'); setView('dashboard') }} onLearn={openLearning} onEvents={() => { setRole('neighbor'); setDashboardSection('events'); setView('dashboard') }}/>
 }

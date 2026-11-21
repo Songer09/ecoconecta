@@ -33,11 +33,11 @@ Las solicitudes y operaciones del dashboard aún usan el modo demo; no se envía
 
 ## Acceso al piloto y registro de cuentas
 
-El frontend consume el backend de `feat/backend-core` para `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`, `GET /zones`, `GET/POST /admin/users` y `POST /admin/staff`. Configura `VITE_API_BASE_URL` con la URL base del backend (por defecto `http://127.0.0.1:8000/api/v1`) y, en la API local, permite el origen del frontend mediante `FRONTEND_ORIGINS=http://127.0.0.1:5173`.
+El frontend consume `POST /auth/register`, `POST /auth/login`, `GET /auth/me`, `POST /auth/logout`, `GET /zones`, `GET/POST /admin/users` y `POST /admin/staff`. Configura `VITE_API_BASE_URL` con la URL base del backend (por defecto `http://127.0.0.1:8000/api/v1`) y, en la API local, permite el origen del frontend mediante `FRONTEND_ORIGINS=http://127.0.0.1:5173`.
 
-El login requiere teléfono internacional (`+` y de 7 a 15 dígitos) y contraseña. La API identifica el rol de la cuenta; el rol seleccionado en la pantalla debe coincidir. El token se mantiene solo en memoria y se elimina al cerrar sesión.
+El registro público crea vecinos activos del piloto con nombre, teléfono internacional, contraseña de mínimo 12 caracteres, etapa, conjunto, torre y apartamento. El consentimiento es obligatorio y se guarda con el perfil en la misma transacción. Al terminar, la web inicia la sesión del vecino. La cuenta administradora inicial debe aprovisionarla el operador de despliegue por un procedimiento seguro; administración crea las cuentas operativas.
 
-El backend no ofrece auto-registro público ni una ruta para crear el primer administrador. La cuenta administradora inicial debe aprovisionarla el operador de despliegue por un procedimiento seguro. Después, administración crea cuentas piloto desde Usuarios: residentes con nombre, teléfono y contraseña de mínimo 12 caracteres; personal operativo requiere también rol, flujo, una o más zonas activas y fecha de inicio. No inventar ni compartir credenciales en la interfaz; entregarlas al titular de forma segura. Las operaciones de solicitudes del frontend aún siguen en modo demo hasta contar con el adaptador de datos correspondiente.
+El endpoint de registro y su migración están en la rama `feat/backend-public-registration` hasta que se integren con el backend. Para utilizarlo, inicia esa API en `127.0.0.1:8000`, aplica `uv run alembic upgrade head` y mantén el frontend en `127.0.0.1:5173`. Si aparece “No se pudo conectar”, la API no está ejecutándose en la URL indicada; la web incluye el botón **Ver demostración** para consultar el dashboard mientras la API está apagada. Las solicitudes del dashboard siguen usando datos de demostración.
 
 ## Mapa
 
