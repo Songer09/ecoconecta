@@ -72,3 +72,9 @@ Cris es una guía de la interfaz. Toca la oruga para ver la ayuda de la pantalla
 - La guía de la mascota no realiza peticiones a la API. El avance de Educación se guarda mediante el servicio backend.
 
 - Los recordatorios respetan el tiempo en primer plano, las interacciones recientes y los estados de carga o error. El proveedor conserva el límite de tres por sesión de pestaña.
+
+## Mapa de calles
+
+`VITE_OSM_TILE_URL` permite configurar la capa de calles al compilar. Por defecto se usa la capa humanitaria de OSM France, con atribución visible a OpenStreetMap, HOT y OSM France. Si falla, se intenta la capa estándar de OpenStreetMap. Cada intento tiene un límite de ocho segundos si no carga ninguna tesela; si ambas capas fallan, se muestra un aviso con reintento y un enlace al mapa. No se descargan mapas por adelantado. El tamaño se recalcula al cambiar el espacio disponible mediante ResizeObserver.
+
+El punto central indica el centro aproximado del barrio; no representa una solicitud ni seguimiento GPS. Las bandejas muestran las solicitudes reales del piloto, con su ámbito por rol.
