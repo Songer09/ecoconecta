@@ -93,7 +93,11 @@ def classify(text):
         ),
         (
             "training",
-            r"\b(taller\w*|curso\w*|capacit\w*|formacion(?:es)?|ensen\w*|charla\w*|encuentro en el que expliquen)\b",
+            r"\b(taller\w*|curso\w*|capacit\w*|formacion(?:es)?|"
+            r"ensen\w*|charla\w*|encuentro en el que expliquen|"
+            r"(?:encuentro|espacio|jornada|sesion|reunion)\w*.{0,40}\b"
+            r"(?:donde|en el que|en la que)\s+(?:nos\s+)?"
+            r"(?:expliquen|ensen\w*|muestren|aprend\w*))\b",
         ),
         ("event", r"\b(evento\w*|actividad\w*|jornada\w*|agenda)\b"),
         ("human", r"\b(humano|asesor|persona real|hablar con coordinacion)\b"),
