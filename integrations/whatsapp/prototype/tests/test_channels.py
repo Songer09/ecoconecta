@@ -134,6 +134,10 @@ def test_gemini_structured_result_cannot_publish_unreviewed_text(
         assert url.endswith("/gemini-3.6-flash:generateContent")
         assert kw["headers"]["x-goog-api-key"] == "synthetic"
         assert kw["json"]["generationConfig"]["responseMimeType"] == "application/json"
+        assert kw["json"]["generationConfig"]["thinkingConfig"] == {
+            "thinkingLevel": "low"
+        }
+        assert kw["timeout"].read == 12.0
         return httpx.Response(
             200,
             request=httpx.Request("POST", url),

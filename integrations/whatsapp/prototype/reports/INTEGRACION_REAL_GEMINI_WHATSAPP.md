@@ -1,56 +1,59 @@
-# Integración Gemini y WhatsApp
+# Integración real de Gemini y WhatsApp
 
-Actualizado: 2026-11-20. Rama: `feat/whatsapp-chatbot`.
+Actualizado: 2026-11-20. Rama objetivo: `feat/whatsapp-chatbot`.
 
-## Estado de integración
+## Estado verificado
 
-| Integración | Implementado | Configurado ahora | Probado con mock | Probado con API real | Estado |
-|---|---:|---:|---:|---:|---|
-| Gemini para el panel de demostración | Sí | No: falta `GEMINI_API_KEY` | Sí | No | Fase A lista para configurar; prueba real pendiente |
-| WhatsApp Business Cloud API | Sí, adaptador/webhook existente | No | Sí | No | Fase B pendiente |
-| Gemini + WhatsApp real | — | — | — | No | Fase C pendiente |
+| Tramo | Código | Credenciales/servicio | Resultado real |
+|---|---|---|---|
+| Panel → Gemini | Adaptador `generateContent`, salida JSON validada y respaldo local | La clave se creó en `Default Gemini Project`; requiere rotación antes de volver a usarla. El checkout no contiene `.env`. | La autenticación contra el catálogo de modelos devolvió HTTP 200 y el catálogo incluyó `gemini-3.8-flash`. Las solicitudes de generación agotaron el tiempo de espera; no se obtuvo respuesta de Gemini. |
+| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | La cuenta de desarrollador ya está registrada, pero Meta muestra **Aún no hay apps**. No hay token, número ni cuenta de WhatsApp Business configurados. | No se ha probado con Meta ni enviado ningún mensaje real. |
+| WhatsApp → Gemini → panel | La aplicación puede combinar los adaptadores al configurarse | Depende de completar Gemini y Meta | Sin validar. |
 
-El contenedor activo observado está en `APP_ENV=demo`, `AI_PROVIDER=mock` y `WHATSAPP_PROVIDER=mock`. La clave Gemini no está configurada. No se hizo ninguna solicitud al proveedor externo. En el checkout de desarrollo tampoco existe un `.env` con credenciales.
+El servicio de la rama usó únicamente datos sintéticos en su base aislada. No se modificó ni reinició ningún servicio de `main`. No se creó una app de Meta ni se aceptaron permisos de WhatsApp.
 
-En la revisión del 2026-11-20, el contenedor activo respondió `GET /health` con `ai=mock` y `channel=mock`. Su bundle `/panel/panel.js` todavía no incluye el diagnóstico por turno añadido en `4401fff`, por lo que el servicio activo no está ejecutando la imagen de la rama actual. No se reconstruyó ni reinició al faltar la clave Gemini.
+Tras las pruebas, retiré los contenedores aislados de esta rama para que no conservaran la credencial en su configuración. El volumen de datos no se borró. El servicio se debe recrear después de rotar la clave.
 
-## Fase A
+## Gemini
 
-El panel conserva el canal de mensajería simulado y permite usar el adaptador Gemini existente al configurar `AI_PROVIDER=gemini`. El panel muestra por turno si Gemini respondió correctamente, si el mensaje permaneció local por privacidad, o si el adaptador usó el respaldo local después de un error. Los fallos se reducen a códigos seguros como `timeout`, `authentication_rejected`, `model_not_found`, `quota_exceeded`, `service_unavailable` e `invalid_response`; no se guardan mensajes de error del proveedor ni secretos.
+La clave se creó con autorización del propietario en el proyecto existente `Default Gemini Project`. Se verificó que el catálogo de Gemini responde y anuncia `generateContent` para el modelo configurado. Eso confirma que la clave autentica y que el modelo aparece disponible; no confirma que la generación esté funcionando.
 
-Para activar Gemini localmente, configura en `integrations/whatsapp/prototype/.env`:
+Las solicitudes de generación probadas desde el chatbot agotaron el tiempo de espera; una solicitud directa mínima también superó 45 segundos. El chatbot devolvió el resultado local de respaldo. El adaptador ahora solicita razonamiento `low`, pero ese ajuste aún requiere una nueva llamada para verificar su efecto. Por ello, Gemini real todavía no está validado. Antes de otra llamada se debe rotar la clave desde AI Studio. El archivo `.env` no se versiona y debe permanecer fuera de Git.
+
+El adaptador ahora solicita `thinkingLevel=low` y limita cada petición a 12 segundos (5 segundos para conexión), para que un proveedor lento no bloquee el flujo conversacional durante 45 segundos. El estado de respaldo conserva códigos de error seguros y no expone secretos.
+
+Para activar el panel después de rotar la clave, configura localmente `integrations/whatsapp/prototype/.env` a partir de `.env.example`, con:
 
 ```dotenv
 APP_ENV=demo
 AI_PROVIDER=gemini
 WHATSAPP_PROVIDER=mock
-GEMINI_API_KEY=<clave-local>
-GEMINI_MODEL=gemini-3.6-flash
+GEMINI_API_KEY=<clave-nueva-local>
+GEMINI_MODEL=gemini-3.8-flash
 ```
 
-La clave debe permanecer en ese `.env` ignorado por Git. Reinicia solo el prototipo y conversa desde el panel como `hogar-demo`. Usa texto sintético. El backend continúa validando el esquema y conserva la responsabilidad de aceptación de materiales, confirmaciones y registros.
+Usa solo texto sintético y confirma que el panel informa `status=success` y `used=gemini`. `status=fallback` significa que respondió el procesador local, no Gemini.
 
-## Evidencia y límites
+## Meta y WhatsApp
 
-- El adaptador Gemini usa `generateContent`, instrucciones de sistema, JSON estructurado y validación Pydantic.
-- La ficha oficial del modelo declara entrada de texto y audio y soporte de salidas estructuradas. La API aún permite `generateContent`; la documentación actual marca Interactions como interfaz recomendada para proyectos nuevos.
-- **Configurado** no significa **conectado**. La conexión real se considerará probada solo después de una solicitud autorizada con una clave válida y una respuesta válida que el panel identifique como Gemini.
-- El panel puede enrutar a Gemini solo cuando el mensaje no activa la regla local de privacidad/seguridad. Los campos privados, como direcciones, se mantienen localmente.
-- Los indicadores y resultados de pruebas locales no demuestran recepción, procesamiento o entrega por WhatsApp.
+La cuenta terminó el registro de Meta for Developers. La página de apps confirma que aún no existe una aplicación. Falta crear/configurar la app de Meta, agregar el caso de uso de WhatsApp, vincular una cuenta de WhatsApp Business, configurar credenciales y URL HTTPS del webhook, y autorizar un destinatario de prueba.
 
-### Verificación local (WhatsApp y proveedor IA simulados)
+El código actual verifica la firma del webhook y separa el entorno `pilot` del demo. La prueba con Meta debe comenzar con procesamiento local y un teléfono de prueba autorizado. Solo después de validar ese recorrido se debe habilitar Gemini para WhatsApp. No se enviaron mensajes a teléfonos reales.
 
-- `pytest -q`: 53 pruebas aprobadas.
-- `ruff check app migrations tests datasets`: sin hallazgos.
-- Evaluación de intención mock: 41/41 correctas; accuracy, scope accuracy y macro F1 de 1.0 en el conjunto existente.
-- Benchmark UX: 12/12 recorridos completos, cero preguntas redundantes, cero errores de ruta y cero solicitudes sin confirmación.
-- El contrato Gemini y los estados de éxito/respaldo se ejercitaron con respuestas HTTP sintéticas. Ninguna llamada real a Gemini ni WhatsApp se ejecutó.
+## Verificación local de la rama
 
-## Siguientes fases
+- `pytest -q -p no:cacheprovider`: 53 pruebas aprobadas; una advertencia de obsolescencia de AnyIO en Starlette TestClient.
+- `ruff check --no-cache app migrations tests datasets`: sin hallazgos.
+- Evaluación sintética de intención mock: 41 ejemplos; accuracy, scope accuracy y macro F1 de 1.0 en el conjunto existente.
+- Benchmark UX sintético: 12 recorridos completos, cero preguntas redundantes, cero errores de ruta y cero solicitudes sin confirmación.
+- Las pruebas automatizadas del proveedor usan respuestas HTTP sintéticas. No prueban disponibilidad de generación real ni el canal de Meta.
 
-1. **Desbloqueo de Fase A:** el propietario configura `GEMINI_API_KEY` en el `.env` local; se ejecuta una prueba sintética autorizada y se conserva la evidencia de modelo, estado y latencia.
-2. **Fase B:** configurar Meta en un entorno `pilot`, exponer el webhook por HTTPS y probar texto con procesamiento local, teléfono de prueba autorizado y destinatario autorizado.
-3. **Fase C:** habilitar Gemini en ese entorno después de completar B y validar el recorrido entrante/saliente.
-4. **Fases D–E:** verificar recolecciones por flujo y, tras verificar consentimiento y controles, audio real.
+## Secuencia pendiente
 
-No se activó Meta, no se envió ningún mensaje externo y no se procesaron datos personales con Gemini.
+1. Rotar la clave Gemini en AI Studio y guardar la nueva clave localmente, sin incluirla en Git ni en el chat.
+2. Repetir una solicitud sintética desde el panel y confirmar una respuesta real de Gemini.
+3. Crear y configurar la app de Meta y WhatsApp Business Cloud API; asegurar webhook HTTPS y un destinatario de prueba autorizado.
+4. Probar mensajes de texto entrantes/salientes con procesamiento local; después conectar Gemini y comprobar cada tramo por separado.
+5. Validar notas de voz con audio sintético o expresamente autorizado.
+
+El criterio de integración completa sigue siendo un mensaje entrante desde un teléfono de prueba autorizado, respuesta contextual generada por Gemini y aviso visible en el panel. Aún no se ha alcanzado.
