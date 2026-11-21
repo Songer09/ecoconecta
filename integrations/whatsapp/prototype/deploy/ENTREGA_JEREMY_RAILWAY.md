@@ -66,6 +66,15 @@ destinatario autorizado, ni se configuró webhook, ni se enviaron mensajes.
 Jeremy es el responsable identificado para renovar el acceso, autorizar el
 destinatario y configurar Meta cuando esté disponible la URL HTTPS.
 
+**Renovación ejecutada:** el 21 de noviembre a las **01:19:36 de Bogotá**,
+después del consentimiento completado por el titular en Meta, se verificó el
+token nuevo con consultas de lectura. El número configurado devolvió HTTP 200 y
+su identificador coincidió; `WABA/subscribed_apps` devolvió HTTP 200 con una app
+asociada. Esto sustituye el estado rechazado del token anterior. Es un token
+temporal: no se determinó su nueva fecha de expiración ni se acredita una
+credencial de producción. La asociación de la app no prueba la suscripción a
+`messages` ni la recepción de webhooks.
+
 ## 3. Entrega privada de variables
 
 La demo alojada de Gerson funciona sin secretos de Meta ni Gemini.
@@ -77,26 +86,30 @@ la guía; los valores nunca se introducen en el PR, issues o logs de despliegue.
 
 El 21 de noviembre de 2026 Jeremy autorizó usar su app **EcoConecta Chatbot**
 para el piloto y entregar privadamente a Gerson un token renovado, el secreto de
-la app y las variables de verificación para cargarlos en Railway. La autorización
-no acredita que el token haya sido renovado o que los secretos se hayan enviado.
+la app y las variables de verificación para cargarlos en Railway.
 Después precisó que **él mismo cargará las variables directamente en Railway**.
-Se preparará un fichero privado local para el titular; no se enviarán los valores
-a Gerson ni se usarán Git, PR, issues o logs para compartirlos.
+Se preparó para el titular el fichero privado local `.env.railway-meta`, con
+permisos 0600 y excluido de Git. Contiene las seis variables Meta y
+`APP_ENV=pilot`, `AI_PROVIDER=mock`, `WHATSAPP_PROVIDER=meta`; no contiene
+`DATABASE_URL`, que debe conservar el valor de la base de pruebas del piloto
+configurado por Gerson. No se enviaron valores a Gerson ni se usaron Git, PR,
+issues o logs para compartirlos.
 
-Procedimiento autorizado, con la entrega pendiente de ejecución:
+Procedimiento autorizado y estado de ejecución:
 
 1. Gerson entrega la URL HTTPS del bot y los nombres de los servicios/entorno.
-2. Jeremy renueva el token con el alcance aprobado y se verifica Graph de nuevo.
+2. Completado: token temporal renovado y Graph verificado con HTTP 200, sin
+   ampliar el alcance anterior de los dos permisos de WhatsApp.
 3. Jeremy carga las variables desde el fichero privado local en el gestor de
-   secretos de los servicios del piloto en Railway. Los secretos locales no se
-   han compartido con terceros durante esta entrega documental.
+   secretos de API y worker del piloto en Railway. La carga está pendiente del
+   titular; no se han cambiado las variables del alojamiento desde esta sesión.
 4. Jeremy configura callback `/api/v1/integrations/whatsapp/webhook`, el mismo
    verify token y la suscripción `messages` de la app/WABA correspondiente.
 5. El participante autorizado realiza la prueba de WhatsApp. Registrar resultados
    redactados, sin teléfonos ni encabezados Authorization.
 
-No se transfiere el token que acaba de ser rechazado. La renovación conviene
-hacerla cuando el alojamiento esté listo, por la duración limitada del token.
+No se distribuye el token anterior rechazado. El nuevo token debe volver a
+validarse si transcurre tiempo antes de cargarlo, por su duración limitada.
 
 ## 4. Guion y evidencia
 

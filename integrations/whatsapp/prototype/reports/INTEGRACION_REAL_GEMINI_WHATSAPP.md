@@ -1,8 +1,9 @@
 # Estado de la integración Meta, Gemini y EcoConecta web
 
 > Seguimiento del 21 de noviembre: hay una demo Railway pública con IA y
-> mensajería simuladas, verificada por HTTPS; el token Meta local ahora es
-> rechazado. El estado actualizado y el traspaso están en
+> mensajería simuladas, verificada por HTTPS. A las 01:19 de Bogotá se renovó el
+> token temporal de Meta y se comprobaron número y WABA con HTTP 200. El estado
+> actualizado y el traspaso están en
 > [ENTREGA_JEREMY_RAILWAY.md](../deploy/ENTREGA_JEREMY_RAILWAY.md).
 > Las secciones fechadas el 20 de noviembre conservan la evidencia histórica.
 
