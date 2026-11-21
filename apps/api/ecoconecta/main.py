@@ -9,7 +9,7 @@ from starlette.exceptions import HTTPException
 from sqlalchemy.exc import OperationalError
 from pydantic import BaseModel
 
-from . import catalog_admin, reports, tracking, photos, garden, operations, rewards, routes, auth, collections, community, education, events, pilot_users, points, requests, scheduling
+from . import whatsapp_intake, catalog_admin, reports, tracking, photos, garden, operations, rewards, routes, auth, collections, community, education, events, pilot_users, points, requests, scheduling
 
 class ApiError(BaseModel):
     code: str
@@ -59,6 +59,7 @@ async def unavailable(request, exc):
     return error(request, 503, "database_unavailable", "Servicio temporalmente no disponible.")
 
 
+app.include_router(whatsapp_intake.router, prefix="/api/v1")
 app.include_router(auth.router, prefix="/api/v1")
 app.include_router(requests.router, prefix="/api/v1")
 app.include_router(scheduling.router, prefix="/api/v1")

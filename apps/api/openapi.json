@@ -5,6 +5,114 @@
     "version": "0.1.0"
   },
   "paths": {
+    "/api/v1/integrations/whatsapp/confirmed": {
+      "post": {
+        "summary": "Confirmed",
+        "operationId": "confirmed_api_v1_integrations_whatsapp_confirmed_post",
+        "parameters": [
+          {
+            "name": "authorization",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "",
+              "title": "Authorization"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmedNotice"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unauthorized"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Forbidden"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Not Found"
+          },
+          "409": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Conflict"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Unprocessable Entity"
+          },
+          "429": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Too Many Requests"
+          },
+          "503": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            },
+            "description": "Service Unavailable"
+          }
+        }
+      }
+    },
     "/api/v1/auth/login": {
       "post": {
         "tags": [
@@ -9503,6 +9611,65 @@
         ],
         "title": "ConfirmedCollection"
       },
+      "ConfirmedNotice": {
+        "properties": {
+          "attempt": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Attempt"
+          },
+          "message_id": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 1,
+            "title": "Message Id"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "title": "Phone"
+          },
+          "generator": {
+            "anyOf": [
+              {
+                "type": "string",
+                "enum": [
+                  "hogar",
+                  "unidad_productiva"
+                ]
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generator"
+          },
+          "preference": {
+            "type": "string",
+            "maxLength": 150,
+            "minLength": 1,
+            "title": "Preference"
+          },
+          "pickups": {
+            "items": {
+              "$ref": "#/components/schemas/Pickup"
+            },
+            "type": "array",
+            "maxItems": 20,
+            "minItems": 1,
+            "title": "Pickups"
+          }
+        },
+        "type": "object",
+        "required": [
+          "attempt",
+          "message_id",
+          "phone",
+          "preference",
+          "pickups"
+        ],
+        "title": "ConfirmedNotice"
+      },
       "Coverage": {
         "properties": {
           "id": {
@@ -10904,6 +11071,42 @@
         "additionalProperties": false,
         "type": "object",
         "title": "OrganicRuleInput"
+      },
+      "Pickup": {
+        "properties": {
+          "flow": {
+            "type": "string",
+            "enum": [
+              "organico",
+              "reciclable"
+            ],
+            "title": "Flow"
+          },
+          "address": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Address"
+          },
+          "materials": {
+            "items": {
+              "type": "string",
+              "maxLength": 100,
+              "minLength": 1
+            },
+            "type": "array",
+            "maxItems": 40,
+            "minItems": 1,
+            "title": "Materials"
+          }
+        },
+        "type": "object",
+        "required": [
+          "flow",
+          "address",
+          "materials"
+        ],
+        "title": "Pickup"
       },
       "PilotUser": {
         "properties": {

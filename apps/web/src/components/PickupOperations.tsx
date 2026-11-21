@@ -82,7 +82,7 @@ export function PickupOperations({item, role, refresh, onDone}: {item: Collectio
     {role==='collector' && <label>Peso en kg<input type="number" required min="0.0001" step="0.0001" value={weight} onChange={e=>setWeight(e.target.value)}/></label>}
     {pickup && <ul>{pickup.items.map(i=><li key={i.waste_type_id}>{options.find(o=>o.id===i.waste_type_id)?.name??'Material registrado'} · {i.quantity} {i.unit}</li>)}</ul>}
     {role === 'collector' && pickup && !selectableOptions.length && <p role="status">Todos los materiales activos ya están registrados.</p>}
-    <button className="button button-primary" disabled={busy || loadingChoices || (role === 'collector' && (!selectableOptions.length || !selected || !weight)) || Boolean(coord && item.status === 'SCHEDULED' && (!pickup?.items.length || pickup.confirmed_at))}>{loadingChoices ? 'Cargando…' : busy?'Guardando…':label}</button>
+    <button className="button button-primary" disabled={busy || loadingChoices || (role === 'collector' && (!selectableOptions.length || !selected || !weight)) || Boolean(coord && item.status === 'SCHEDULED' && pickup && (!pickup.items.length || pickup.confirmed_at))}>{loadingChoices ? 'Cargando…' : busy?'Guardando…':label}</button>
     {role === 'collector' && pickup && <button type="button" className="button button-secondary" onClick={onDone}>Terminé de registrar</button>}
     {message&&<p role="status">{message}</p>}
   </form>
