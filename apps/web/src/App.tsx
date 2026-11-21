@@ -256,12 +256,50 @@ const demoMapStops: { position: L.LatLngTuple; area: string }[] = [
 
 function RealCommunityMap({ demo }: { demo: boolean }) {
   const element = useRef<HTMLDivElement>(null)
+  const [mapStatus, setMapStatus] = useState<'loading' | 'ready' | 'error'>('loading')
+  const [retry, setRetry] = useState(0)
   useEffect(() => {
     if (!element.current) return
     const center: L.LatLngExpression = [10.95885, -74.8631]
     const map = L.map(element.current, { scrollWheelZoom: false }).setView(center, 15)
-    const tileUrl = import.meta.env.VITE_OSM_TILE_URL || 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-    L.tileLayer(tileUrl, { maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors' }).addTo(map)
+    setMapStatus('loading')
+    const osmAttribution = '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap</a> contributors'
+    const humanitarianUrl = 'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png'
+    const primaryUrl = import.meta.env.VITE_OSM_TILE_URL?.trim() || humanitarianUrl
+    const fallbackUrl = primaryUrl === humanitarianUrl
+      ? 'https://tile.openstreetmap.org/{z}/{x}/{y}.png' : humanitarianUrl
+    let layer: L.TileLayer | undefined
+    let timeout: number | undefined
+    let disposed = false
+    function loadTiles(url: string, fallback: boolean) {
+      window.clearTimeout(timeout)
+      if (layer) { layer.off(); layer.remove() }
+      let loaded = false
+      const nextLayer = L.tileLayer(url, {
+        minZoom: 1, maxZoom: 19,
+        attribution: url.includes('tile.openstreetmap.fr')
+          ? `${osmAttribution} · <a href="https://www.hotosm.org/" target="_blank" rel="noreferrer">HOT</a> · <a href="https://www.openstreetmap.fr/" target="_blank" rel="noreferrer">OSM France</a>`
+          : osmAttribution,
+      })
+      layer = nextLayer
+      function unavailable() {
+        if (disposed || layer !== nextLayer) return
+        window.clearTimeout(timeout)
+        if (!fallback) loadTiles(fallbackUrl, true)
+        else setMapStatus('error')
+      }
+      nextLayer.on('tileload', () => {
+        if (disposed || layer !== nextLayer) return
+        loaded = true
+        window.clearTimeout(timeout)
+        setMapStatus('ready')
+      })
+      nextLayer.on('tileerror', unavailable)
+      nextLayer.addTo(map)
+      // A blocked host may never emit tileerror; bound the blank-map wait too.
+      timeout = window.setTimeout(() => { if (!loaded) unavailable() }, 8000)
+    }
+    loadTiles(primaryUrl, false)
     if (demo) {
       const route = L.polyline(demoMapStops.map(({ position }) => position), {
         color: '#155987', weight: 5, dashArray: '10 8',
@@ -280,11 +318,30 @@ function RealCommunityMap({ demo }: { demo: boolean }) {
       L.circleMarker(center, { radius: 9, color: '#FFFFFF', weight: 3, fillColor: '#168A2E', fillOpacity: 1 })
         .addTo(map).bindPopup('Centro aproximado de Villas de San Pablo')
     }
-    const resize = window.setTimeout(() => map.invalidateSize({ pan: false }), 0)
-    return () => { window.clearTimeout(resize); map.remove() }
-  }, [demo])
+    let frame = 0
+    const resize = new ResizeObserver(() => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(() => map.invalidateSize({ pan: false }))
+    })
+    resize.observe(element.current)
+    return () => {
+      disposed = true
+      window.clearTimeout(timeout)
+      window.cancelAnimationFrame(frame)
+      resize.disconnect()
+      layer?.off()
+      map.remove()
+    }
+  }, [demo, retry])
   return <div className="community-map-frame">
     <div ref={element} className="real-community-map" role="application" aria-label={demo ? 'Ruta de ejemplo con tres paradas ficticias en Villas de San Pablo' : 'Mapa de OpenStreetMap centrado en Villas de San Pablo'}/>
+    {mapStatus !== 'ready' && <div className="map-load-notice" role="status">
+      {mapStatus === 'loading' ? 'Cargando calles del mapa…' : <>
+        <span>No pudimos cargar las calles. Revisa tu conexión e inténtalo de nuevo.</span>
+        <button type="button" onClick={() => setRetry(value => value + 1)}>Reintentar mapa</button>
+        <a href="https://www.openstreetmap.org/#map=16/10.95885/-74.8631" target="_blank" rel="noopener noreferrer">Abrir mapa en otra pestaña</a>
+      </>}
+    </div>}
     {demo && <div className="demo-map-legend"><strong>Ruta de ejemplo</strong><span>3 paradas ficticias</span></div>}
   </div>
 }
