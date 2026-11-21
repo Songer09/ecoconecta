@@ -32,6 +32,12 @@ Docker publica la API en loopback. `ECO_PORT` permite cambiar el puerto. `docker
 
 ## Arquitectura y controles
 
+Para ejecutar API y panel fuera de Docker y conservar las claves personales al
+cambiar de servidor, ver [despliegue nativo](deploy/README.md). El código y las
+plantillas están en Git; los valores de acceso se configuran como secretos del
+servidor. Este módulo todavía requiere integración con el backend unificado para
+convertirse en parte de la plataforma completa.
+
 ```mermaid
 flowchart LR
   A[WhatsApp o simulador] --> B[FastAPI y verificación de webhook]

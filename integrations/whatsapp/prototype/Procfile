@@ -1,0 +1,3 @@
+web: sh deploy/start-web.sh
+worker: python -m app.worker
+release: python -m alembic upgrade head
