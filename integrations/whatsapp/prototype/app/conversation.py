@@ -303,7 +303,9 @@ def slots(db, uid, d, text, result, state):
                 candidate,
             ):
                 if not re.search(
-                    r"\b(?:pued\w*|vengan|dispongo|tengo|de cada|recoger|gracias)\b",
+                    r"\b(?:pued\w*|necesit\w*|quier\w*|solicit\w*|"
+                    r"recoj\w*|recolect\w*|retir\w*|pas\w*|avis\w*|"
+                    r"entreg\w*|vengan|dispongo|tengo|de cada|recoger|gracias)\b",
                     candidate,
                 ):
                     unresolved.setdefault("uncatalogued", candidate)

@@ -38,6 +38,26 @@ def test_resident_provides_only_location(ctx):
     assert detail(ctx, rid)["items"][0]["unit"] is None
 
 
+def test_accumulated_cardboard_can_be_reported_without_quantity(ctx):
+    reply = ctx.say("Tengo cartón acumulado y necesito que lo recojan")["reply"]
+    assert "dirección" in reply and "cantidad" not in reply and "kg" not in reply
+    assert ctx.call("GET", "requests", "admin-demo").json() == []
+
+    reply = ctx.say("Manzana 9 casa 2")["reply"]
+    assert "cartón (cantidad sin indicar)" in reply
+    assert "¿Confirmas" in reply
+    assert ctx.call("GET", "requests", "admin-demo").json() == []
+
+    (rid,) = confirm(ctx)
+    request = detail(ctx, rid)
+    (item,) = request["items"]
+    assert request["flow"] == "recyclable"
+    assert item["material"] == "cartón"
+    assert item["quantity"] is None and item["unit"] is None
+    alerts = ctx.call("GET", "alerts", "coord-reciclaje").json()
+    assert any(alert["request_id"] == rid for alert in alerts)
+
+
 @pytest.mark.parametrize(
     ("phrase", "material", "value", "unit", "description"),
     [
