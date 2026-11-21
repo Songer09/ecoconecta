@@ -117,3 +117,55 @@ Criterio final aún no alcanzado: recibir un mensaje desde un teléfono autoriza
 - No fusionar hasta aprobar proveedor/presupuesto, completar la integración con las bandejas compartidas y validar el recorrido real.
 
 La publicación del commit en la rama origen sí se completó. El PR no se pudo crear desde esta sesión: GitHub MCP devolvió 403 Resource not accessible by integration y gh CLI no tiene una sesión autenticada. No se modificó la rama destino.
+
+## 2026-11-21 — Ejecución nativa y accesos portables
+
+La persona responsable no autorizó gastos. No se contrató alojamiento ni se
+activó un servicio público. Solicitó que el panel pudiera ejecutarse fuera de
+Docker y que sus accesos se pudieran conservar al subirlo a la web.
+
+Estado: IMPLEMENTADO y comprobado localmente fuera de Docker; recorrido
+conversacional PROBADO CON MOCK. No DESPLEGADO EN STAGING.
+
+Cambios en el módulo de WhatsApp:
+
+- `deploy/build.sh`, `deploy/start-web.sh`, `Procfile` y `.python-version`:
+  construcción y ejecución nativas con Python 3.12, Node 24, puerto configurable,
+  procesos separados API/worker y migración explícita.
+- `app/access.py`: importar claves desde variables privadas del servidor,
+  conservar únicamente hashes en la tabla existente, repetición idempotente y
+  rotación explícita. No cambia roles ni reactiva cuentas deshabilitadas.
+- `deploy/.env.example` y `deploy/README.md`: configuración sin valores secretos,
+  ejecución por dominio HTTPS y conservación de cuentas. El fichero privado
+  `.env.panel-access` contiene localmente las mismas claves entregadas al
+  propietario; está ignorado por Git y tiene permisos 0600. Sus valores deben
+  cargarse en el gestor de secretos del alojamiento.
+- `.dockerignore`: excluir también `.local` del contexto de construcción.
+- `tests/test_access.py`: autenticación, rechazo de claves inválidas,
+  prohibición de escalada/reactivación, rotación, idempotencia y salida sanitizada.
+
+Pruebas realizadas el 21 de noviembre de 2026 (America/Bogota):
+
+- `npm ci --no-audit --no-fund` y `npm run build`: panel compilado correctamente.
+- Python 3.12.16 y PostgreSQL 18.7 nativos: 61 pruebas pytest aprobadas, una
+  advertencia de deprecación de Starlette/AnyIO. PostgreSQL temporal por socket
+  privado, sin publicar puertos ni modificar las bases locales existentes.
+- Ruff: todos los controles aprobados. Ambos scripts superaron `sh -n`.
+- API real por HTTP en loopback, fuera de Docker: panel y JavaScript HTTP 200;
+  las claves existentes de vecino/admin importadas en una base vacía dieron
+  acceso. Clave inválida HTTP 401 y residente en ruta administrativa HTTP 403.
+- Conversación sintética mediante proveedor mock: solicitud registrada,
+  consultable por administración y conservada tras reiniciar la API. Las mismas
+  claves siguieron autenticando tras el reinicio. Worker nativo activo durante
+  la comprobación. API/worker temporales detenidos al finalizar.
+
+Para reproducir: seguir `deploy/README.md`, utilizar PostgreSQL de pruebas,
+configurar `TEST_DATABASE_URL` y ejecutar `python -m pytest -q`; crear datos de
+demo e importar las claves con `python -m app.access` antes de comprobar el
+panel y los permisos por HTTP. El procedimiento de rollback está en esa guía.
+
+No hubo llamadas nuevas a Gemini ni Meta en esta fase. Sus bloqueos previos
+continúan. El cambio permite desplegar el prototipo en un servidor adecuado;
+no integra el frontend/backend compartidos ni autoriza aplicar estas migraciones
+sobre la PostgreSQL definitiva. El servidor/proveedor sin gasto adicional aún
+debe identificarse antes de publicar y validar HTTPS.
