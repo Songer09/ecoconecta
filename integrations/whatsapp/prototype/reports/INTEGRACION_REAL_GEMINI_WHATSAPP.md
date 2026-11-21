@@ -6,19 +6,17 @@ Actualizado: 2026-11-20. Rama objetivo: `feat/whatsapp-chatbot`.
 
 | Tramo | Código | Credenciales/servicio | Resultado real |
 |---|---|---|---|
-| Panel → Gemini | Adaptador `generateContent`, salida JSON validada y respaldo local | La clave se creó en `Default Gemini Project`; requiere rotación antes de volver a usarla. El checkout no contiene `.env`. | La autenticación contra el catálogo de modelos devolvió HTTP 200 y el catálogo incluyó `gemini-3.8-flash`. Las solicitudes de generación agotaron el tiempo de espera; no se obtuvo respuesta de Gemini. |
-| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | La cuenta de desarrollador ya está registrada, pero Meta muestra **Aún no hay apps**. No hay token, número ni cuenta de WhatsApp Business configurados. | No se ha probado con Meta ni enviado ningún mensaje real. |
+| Panel → Gemini | Adaptador `generateContent`, salida JSON validada y respaldo local | El propietario rotó la clave de `Default Gemini Project`; está en el `.env` local ignorado por Git, con permisos `0600`. | El catálogo autenticó con HTTP 200 e incluyó `gemini-3.8-flash` con `generateContent`. Una llamada sintética del panel agotó el timeout de 12 s y respondió el respaldo local. Gemini aún no entrega una respuesta validada. |
+| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | El propietario indica que existe un Business Portfolio y lo vinculará a esta cuenta. El asistente de Meta tiene seleccionado el caso WhatsApp, pero aún no muestra el portfolio; la app no se creó. | No se ha probado con Meta ni enviado ningún mensaje real. |
 | WhatsApp → Gemini → panel | La aplicación puede combinar los adaptadores al configurarse | Depende de completar Gemini y Meta | Sin validar. |
 
-El servicio de la rama usó únicamente datos sintéticos en su base aislada. No se modificó ni reinició ningún servicio de `main`. No se creó una app de Meta ni se aceptaron permisos de WhatsApp.
-
-Tras las pruebas, retiré los contenedores aislados de esta rama para que no conservaran la credencial en su configuración. El volumen de datos no se borró. El servicio se debe recrear después de rotar la clave.
+El servicio de la rama usa únicamente datos sintéticos en su base aislada, con `APP_ENV=demo`, Gemini real y WhatsApp en mock; está publicado localmente en el puerto `55074`. No se modificó ni reinició ningún servicio de `main`. No se creó una app de Meta ni se aceptaron permisos de WhatsApp.
 
 ## Gemini
 
-La clave se creó con autorización del propietario en el proyecto existente `Default Gemini Project`. Se verificó que el catálogo de Gemini responde y anuncia `generateContent` para el modelo configurado. Eso confirma que la clave autentica y que el modelo aparece disponible; no confirma que la generación esté funcionando.
+El propietario confirmó que rotó la clave en el proyecto existente `Default Gemini Project`. El valor no está en Git; el `.env` local está ignorado y tiene permisos `0600`. La contraseña local de PostgreSQL de esta instancia sintética también se rotó y no está versionada.
 
-Las solicitudes de generación probadas desde el chatbot agotaron el tiempo de espera; una solicitud directa mínima también superó 45 segundos. El chatbot devolvió el resultado local de respaldo. El adaptador ahora solicita razonamiento `low`, pero ese ajuste aún requiere una nueva llamada para verificar su efecto. Por ello, Gemini real todavía no está validado. Antes de otra llamada se debe rotar la clave desde AI Studio. El archivo `.env` no se versiona y debe permanecer fuera de Git.
+El catálogo del proveedor respondió HTTP 200 con la clave rotada; el modelo configurado aparece y anuncia `generateContent`. En el recorrido sintético del panel, Gemini agotó el límite de 12 segundos (`latency_ms≈12278`) y el asistente devolvió una respuesta local contextual. Una solicitud directa mínima de 30 segundos no produjo un resultado concluyente dentro de la ventana de ejecución. Por ello, Gemini real todavía no está validado.
 
 El adaptador ahora solicita `thinkingLevel=low` y limita cada petición a 12 segundos (5 segundos para conexión), para que un proveedor lento no bloquee el flujo conversacional durante 45 segundos. El estado de respaldo conserva códigos de error seguros y no expone secretos.
 
@@ -36,7 +34,7 @@ Usa solo texto sintético y confirma que el panel informa `status=success` y `us
 
 ## Meta y WhatsApp
 
-La cuenta terminó el registro de Meta for Developers. La página de apps confirma que aún no existe una aplicación. Falta crear/configurar la app de Meta, agregar el caso de uso de WhatsApp, vincular una cuenta de WhatsApp Business, configurar credenciales y URL HTTPS del webhook, y autorizar un destinatario de prueba.
+La cuenta terminó el registro de Meta for Developers. En el asistente se ingresó el nombre “EcoConecta Chatbot” y se seleccionó el caso de uso de WhatsApp; el propietario autorizó el correo de contacto prellenado. El siguiente paso está bloqueado porque esta cuenta de desarrollador aún no muestra el Business Portfolio existente. La app no se ha creado. Después de vincularlo faltan credenciales, URL HTTPS del webhook y un destinatario de prueba autorizado.
 
 El código actual verifica la firma del webhook y separa el entorno `pilot` del demo. La prueba con Meta debe comenzar con procesamiento local y un teléfono de prueba autorizado. Solo después de validar ese recorrido se debe habilitar Gemini para WhatsApp. No se enviaron mensajes a teléfonos reales.
 
@@ -50,10 +48,10 @@ El código actual verifica la firma del webhook y separa el entorno `pilot` del 
 
 ## Secuencia pendiente
 
-1. Rotar la clave Gemini en AI Studio y guardar la nueva clave localmente, sin incluirla en Git ni en el chat.
-2. Repetir una solicitud sintética desde el panel y confirmar una respuesta real de Gemini.
-3. Crear y configurar la app de Meta y WhatsApp Business Cloud API; asegurar webhook HTTPS y un destinatario de prueba autorizado.
-4. Probar mensajes de texto entrantes/salientes con procesamiento local; después conectar Gemini y comprobar cada tramo por separado.
+1. Diagnosticar el tiempo de generación de Gemini y obtener una respuesta válida en el panel, manteniendo un límite que no bloquee el flujo.
+2. Vincular el Business Portfolio existente a la cuenta de desarrollador y terminar la creación/configuración de la app Meta/WhatsApp.
+3. Configurar webhook HTTPS y un destinatario de prueba autorizado.
+4. Probar mensajes entrantes/salientes con procesamiento local; después conectar Gemini y comprobar cada tramo por separado.
 5. Validar notas de voz con audio sintético o expresamente autorizado.
 
 El criterio de integración completa sigue siendo un mensaje entrante desde un teléfono de prueba autorizado, respuesta contextual generada por Gemini y aviso visible en el panel. Aún no se ha alcanzado.
