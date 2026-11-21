@@ -1,60 +1,108 @@
-# Integración real de Gemini y WhatsApp
+# Estado de la integración Meta, Gemini y EcoConecta web
 
-Actualizado: 2026-11-20. Rama objetivo: `feat/whatsapp-chatbot`.
+Actualizado: 20 de noviembre de 2026, hora de Bogotá. Rama objetivo: feat/whatsapp-chatbot. HEAD remoto comprobado al iniciar: bbd414cb0f3ba506c13960bcd2200cf262fdf83f.
 
-## Estado verificado
+## Estado por evidencia
 
-| Tramo | Código | Credenciales/servicio | Resultado real |
-|---|---|---|---|
-| Panel → Gemini | Adaptador `generateContent`, salida JSON validada y respaldo local | El propietario rotó la clave de `Default Gemini Project`; está en el `.env` local ignorado por Git, con permisos `0600`. | El catálogo autenticó con HTTP 200 e incluyó `gemini-3.8-flash` con `generateContent`. Una llamada sintética del panel agotó el timeout de 12 s y respondió el respaldo local. Gemini aún no entrega una respuesta validada. |
-| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | App “EcoConecta Chatbot” vinculada al portfolio existente; caso de uso WhatsApp, número/WABA de prueba y permisos `whatsapp_business_management` + `whatsapp_business_messaging`. Token de prueba, secreto de app y verify token guardados solo en `.env` local ignorado por Git, modo `0600`. | Meta confirmó la conexión de una cuenta de WhatsApp. No se ha completado un envío: falta un destinatario de prueba autorizado y el portal de pruebas quedó en blanco tras la autorización. Una consulta GET de solo lectura a Graph API desde el entorno local terminó con `URLError`, sin respuesta HTTP. |
-| WhatsApp → Gemini → panel | La aplicación puede combinar los adaptadores al configurarse | El entorno local aún usa el token temporal de prueba de Meta; no hay webhook HTTPS público configurado | Sin validar. |
-
-El servicio de la rama usa únicamente datos sintéticos en su base aislada, con `APP_ENV=demo`, Gemini real y WhatsApp en mock; está publicado localmente en el puerto `55074`. El `.env` conserva esa selección para que el demo siga usando Gemini con WhatsApp simulado. No se modificó ni reinició ningún servicio de `main`.
+| Tramo | Estado | Evidencia actual |
+|---|---|---|
+| Adaptador WhatsApp Cloud API | IMPLEMENTADO | Código de webhook, firma, normalización, worker y adaptador Meta dentro del prototipo. La instancia que está corriendo conserva WHATSAPP_PROVIDER=mock. |
+| Credencial Meta actual | PROBADO CON API REAL | GET del número de prueba y GET de WABA/subscribed_apps devolvieron HTTP 200 desde un contenedor temporal de Compose. La respuesta mostró una app asociada, pero no incluyó subscribed_fields. |
+| Vencimiento del token Meta | PENDIENTE | La credencial actual es temporal. Los GET aceptados demuestran que estaba activa durante la prueba, pero debug_token devolvió error OAuth de Graph 190 al intentar obtener su vencimiento. No se determinó la fecha de expiración. |
+| Token temporal anterior expuesto | PENDIENTE | El propietario lo rotó. El valor anterior no está disponible para consultar si Meta lo invalidó automáticamente; debe considerarse comprometido hasta revocarlo en Meta. |
+| Destinatario autorizado | NO CONFIRMADO | No hay evidencia verificable de un destinatario de prueba registrado en Meta. |
+| Webhook HTTPS público | NO IMPLEMENTADO | No hay URL pública ni servicio de staging. El API local escucha solo en 127.0.0.1:55074. |
+| Suscripción Meta a mensajes | NO CONFIGURADO | WABA/subscribed_apps devolvió una app asociada, pero no incluyó el campo subscribed_fields. No se cambió la suscripción ni se activó un webhook. |
+| Envío o recepción real WhatsApp | NO PROBADO | No envié mensajes ni hay evidencia de un mensaje entrante real. |
+| Gemini: catálogo/modelo | PROBADO CON API REAL | El endpoint de metadatos devolvió HTTP 200 para gemini-3.8-flash y enumeró generateContent entre los métodos permitidos. |
+| Gemini: generación | BLOQUEADO POR PROVEEDOR | El adaptador agotó 12 s y luego una repetición acotada de 45 s. Una generación mínima estructurada con el texto sintético solicitado devolvió HTTP 503 UNAVAILABLE en 1,8 s. No se obtuvo interpretación generada por Gemini. |
+| Flujo del prototipo y PostgreSQL | PROBADO CON MOCK | 53 pruebas aprobaron sobre PostgreSQL temporal. No validan la entrega real de WhatsApp ni la disponibilidad de Gemini. |
+| Aplicación web completa | NO INTEGRADO | La rama WhatsApp contiene el prototipo aislado; los módulos web y de API compartida no están juntos en esta rama. |
+| Despliegue de staging | NO IMPLEMENTADO | No se creó recurso cloud, dominio, base gestionada ni servicio público. |
 
 ## Gemini
 
-El propietario confirmó que rotó la clave en el proyecto existente `Default Gemini Project`. El valor no está en Git; el `.env` local está ignorado y tiene permisos `0600`. La contraseña local de PostgreSQL de esta instancia sintética también se rotó y no está versionada.
+El servicio local en 127.0.0.1:55074 respondió health HTTP 200 con entorno demo, proveedor IA gemini y canal mock. Esto confirma la configuración del proceso, no una generación válida.
 
-El catálogo del proveedor respondió HTTP 200 con la clave rotada; el modelo configurado aparece y anuncia `generateContent`. En el recorrido sintético del panel, Gemini agotó el límite de 12 segundos (`latency_ms≈12278`) y el asistente devolvió una respuesta local contextual. Una solicitud directa mínima de 30 segundos no produjo un resultado concluyente dentro de la ventana de ejecución. Por ello, Gemini real todavía no está validado.
+Pruebas de proveedor, con texto sintético y sin datos personales:
 
-El adaptador ahora solicita `thinkingLevel=low` y limita cada petición a 12 segundos (5 segundos para conexión), para que un proveedor lento no bloquee el flujo conversacional durante 45 segundos. El estado de respaldo conserva códigos de error seguros y no expone secretos.
+- Consulta de metadatos del modelo configurado: HTTP 200; modelo models/gemini-3.8-flash; admite generateContent.
+- Solicitud del adaptador con el límite configurado: ReadTimeout alrededor de 12,5 s.
+- Misma solicitud con límite diagnóstico acotado a 45 s, sin cambiar archivos: ReadTimeout alrededor de 45,3 s.
+- Solicitud reducida con JSON estructurado y el texto “Tengo dos bolsas de cartón y un balde de cáscaras de banano”: HTTP 503 UNAVAILABLE.
 
-Para activar el panel después de rotar la clave, configura localmente `integrations/whatsapp/prototype/.env` a partir de `.env.example`, con:
+El catálogo, la clave y el modelo no explican por sí solos el fallo. La evidencia actual apunta a disponibilidad/latencia de generateContent; no permite atribuirlo a una cuota sin una respuesta 429. El respaldo local existente sigue siendo necesario. No aumenté el timeout persistente ni lo dejé ilimitado.
 
-```dotenv
-APP_ENV=demo
-AI_PROVIDER=gemini
-WHATSAPP_PROVIDER=mock
-GEMINI_API_KEY=<clave-nueva-local>
-GEMINI_MODEL=gemini-3.8-flash
-```
-
-Usa solo texto sintético y confirma que el panel informa `status=success` y `used=gemini`. `status=fallback` significa que respondió el procesador local, no Gemini.
+La generación requerida no está validada: Gemini no devolvió materiales ni cantidades en esta sesión.
 
 ## Meta y WhatsApp
 
-La app “EcoConecta Chatbot” quedó creada y vinculada al Business Portfolio existente. La app sigue en modo de desarrollo y sin publicar. Meta autorizó una sola cuenta actual de WhatsApp; no se habilitaron permisos generales de empresa, correo, eventos ni administración de otras apps. El número de prueba, WABA, token de acceso temporal, secreto de app, verify token y versión de Graph quedaron configurados solo en `integrations/whatsapp/prototype/.env`, ignorado por Git y con permisos `0600`. No se guardaron esos valores en este reporte ni se añadieron a Git.
+La configuración local de Meta permanece en integrations/whatsapp/prototype/.env, ignorada por Git y con modo 0600. No se muestran sus valores en este reporte. El contenedor persistente ecoconecta-gemini-real-api-1 no tiene esas variables META en su entorno actual. Compose sí las resuelve desde el .env actual. Para las consultas Graph se utilizó un contenedor temporal de Compose, eliminado al finalizar; no se reinició la instancia activa.
 
-El `.env` continúa con `APP_ENV=demo`, `AI_PROVIDER=gemini` y `WHATSAPP_PROVIDER=mock`. No cambié el canal a Meta porque la API local está publicada solo en loopback y Meta requiere un callback HTTPS accesible públicamente para entregar mensajes entrantes. Tampoco envié mensajes: Meta no tiene un destinatario de prueba seleccionado. No se enviaron mensajes a teléfonos reales.
+Las dos consultas Graph de lectura respondieron HTTP 200. La asociación de una app con la WABA no equivale a una suscripción a mensajes. La respuesta de esa ruta no incluyó el campo subscribed_fields. El intento de debug_token devolvió Graph OAuth error code 190, por lo que el vencimiento sigue sin conocerse. No se hicieron cambios de permisos, suscripciones, número de prueba ni webhook.
 
-La prueba de lectura del número con Graph API no obtuvo respuesta HTTP desde este entorno (`URLError`). Después de completar la autorización, el panel de pruebas de Meta quedó en blanco y no permitió comprobar el envío desde su UI. Por tanto, la presencia de credenciales y el estado de conexión de Meta no equivalen a una prueba funcional de WhatsApp.
+La autorización de Meta cubre whatsapp_business_management y whatsapp_business_messaging para una cuenta de WhatsApp, según el consentimiento completado en la UI. La app continúa en modo de desarrollo. El prototipo no puede recibir webhooks porque solo escucha en loopback. No se enviaron mensajes.
 
-## Verificación local de la rama
+## Auditoría de integración del proyecto
 
-- `pytest -q -p no:cacheprovider`: 53 pruebas aprobadas; una advertencia de obsolescencia de AnyIO en Starlette TestClient.
-- `ruff check --no-cache app migrations tests datasets`: sin hallazgos.
-- Evaluación sintética de intención mock: 41 ejemplos; accuracy, scope accuracy y macro F1 de 1.0 en el conjunto existente.
-- Benchmark UX sintético: 12 recorridos completos, cero preguntas redundantes, cero errores de ruta y cero solicitudes sin confirmación.
-- Las pruebas automatizadas del proveedor usan respuestas HTTP sintéticas. No prueban disponibilidad de generación real ni el canal de Meta.
+La inspección se hizo sobre la rama objetivo y las ramas remotas publicadas, sin modificar otras ramas:
 
-## Secuencia pendiente
+- feat/whatsapp-chatbot contiene integrations/whatsapp/prototype con FastAPI, su panel, worker y migraciones aisladas. Su compose configura una PostgreSQL propia de demo. No se debe presentar esta base como la PostgreSQL unificada.
+- El árbol de integración chore/add-project-documentation contiene apps/api, db/migrations y el módulo de visión. No contiene apps/web.
+- La API FastAPI de feat/backend-core implementa autenticación, solicitudes, coordinación, asignación, programación, recolección y migraciones Alembic sobre el modelo compartido. En ese árbol no aparece el endpoint de WhatsApp que necesita el prototipo. Su infra/compose.yaml levanta PostgreSQL local; no hay Dockerfile de despliegue ni infraestructura cloud.
+- feat/frontend sí contiene React, TypeScript y Vite. Su servicio de datos del dashboard sigue en demoService; seleccionar VITE_DATA_MODE=api lanza un error deliberado hasta acordar el adaptador. El README de esa rama también señala que los flujos operativos del dashboard no envían datos a la API. La integración pública de registro vive en feat/backend-public-registration y no forma parte del árbol web integrado.
+- El árbol de integración actual no contiene apps/web. No hay un recorrido verificable desde WhatsApp hasta una bandeja web compartida.
 
-1. Diagnosticar el tiempo de generación de Gemini y obtener una respuesta válida en el panel, manteniendo un límite que no bloquee el flujo.
-2. El propietario debe añadir un destinatario de prueba autorizado en Meta; esto comparte su número con Meta. Confirmar ese destinatario antes de enviar el mensaje de prueba.
-3. Definir y autorizar un endpoint HTTPS público para staging, suscribir el webhook a `messages` y verificar la ruta sin usar direcciones reales.
-4. Renovar un token de prueba si caduca; validar primero el envío y la recepción Meta con procesamiento local. El token temporal actual no es una credencial de despliegue.
-5. Solo después de aislar y validar Meta, cambiar la instancia de piloto a `WHATSAPP_PROVIDER=meta` y conectar Gemini. La publicación, verificación empresarial, número productivo, token de sistema y plantillas aprobadas siguen pendientes.
-6. Validar notas de voz con audio sintético o expresamente autorizado.
+El PR 13 integró una versión anterior del chatbot en chore/add-project-documentation desde el commit 35dd1d1. La rama feat/whatsapp-chatbot está ahora en bbd414c; no moví ni fusioné ramas. No existe una rama llamada main en el repositorio remoto: el default branch es chore/add-project-documentation. No se modificó ese default branch ni ninguna otra rama.
 
-El criterio de integración completa sigue siendo un mensaje entrante desde un teléfono de prueba autorizado, respuesta contextual generada por Gemini y aviso visible en el panel. Aún no se ha alcanzado.
+Para integrar solicitudes de WhatsApp sin persistencia duplicada, el paso de backend debe adaptar el evento normalizado del webhook al caso de uso de creación de solicitudes de apps/api y a users, pickup_requests, colectivos e historial existentes. No deben copiarse las tablas collection_requests del prototipo ni sus tokens de usuario.
+
+## Servicios y pruebas locales
+
+Contenedores observados:
+
+- ecoconecta-gemini-real: API, worker y PostgreSQL de demostración; PostgreSQL healthy. API expuesta solo en 127.0.0.1:55074.
+- ecoconecta-chatbot: otra instancia local en modo mock, expuesta en 127.0.0.1:8092.
+- Ninguna de estas instancias es staging ni usa la PostgreSQL compartida del backend.
+
+Verificación ejecutada en esta actualización:
+
+- pytest con PostgreSQL temporal: 53 passed, dos advertencias (deprecación de Starlette/AnyIO y caché de pytest no escribible en /srv).
+- Ruff: All checks passed usando caché temporal en /tmp.
+- La base temporal ecoconecta_codex_20261120_test y el override de Compose fueron eliminados tras las pruebas.
+- No ejecuté pruebas de apps/api o apps/web en este checkout: esos módulos no están presentes en la rama de trabajo. No ejecuté la generación sintética como prueba aprobada de Gemini; sus resultados reales se detallan arriba.
+
+## Proveedor de hosting y presupuesto
+
+No se encontró una plataforma cloud aprobada en las decisiones del proyecto. La conexión de Vercel solicitó reautenticación, así que no se pudieron consultar proyectos existentes. La cuenta conectada a AppDeploy no tenía apps; no la usé ni la considero aprobación para un proveedor nuevo.
+
+Estimación orientativa en USD, consultada el 20 de noviembre de 2026; no son cotizaciones ni autorizaciones:
+
+| Proveedor | Recursos considerados | Estimación publicada |
+|---|---|---|
+| Render | Sitio estático; API 512 MB; worker 512 MB; PostgreSQL gestionado 1 GB | Aproximadamente $33/mes antes de almacenamiento, transferencia adicional y uso de Gemini. El sitio estático no consume cómputo. |
+| DigitalOcean App Platform | Sitio estático; API basic-xxs; worker basic-xxs; base de desarrollo PostgreSQL 512 MB | Aproximadamente $17/mes antes de transferencia; la base citada es de desarrollo. |
+| Railway Hobby | Tres servicios always-on de unos 512 MB cada uno | Cerca de $15/mes de memoria a plena disponibilidad, más CPU, almacenamiento y transferencia; el total depende del uso. |
+
+Fuentes oficiales: [planes y precios Render](https://render.com/docs/compute-plans), [ejemplo de precios Render](https://render.com/articles/production-rails-hosting-guide), [precios de App Platform y base de desarrollo de DigitalOcean](https://docs.digitalocean.com/products/app-platform/details/pricing/), [precios y consumo Railway](https://railway.com/pricing).
+
+Recomendación técnica pendiente de aprobación: Render para el staging, con API, worker persistente, PostgreSQL gestionada única y frontend estático cuando el frontend consuma la API. Para dimensionar PostgreSQL en 1 GB y mantener un margen para almacenamiento/transferencia, propongo un tope de $45 USD al mes. El importe no incluye Gemini, dominio propio ni impuestos. No se creó ningún recurso. Los precios deben confirmarse antes de contratar.
+
+## Bloqueos concretos para terminar el flujo
+
+1. La rama autorizada no incluye apps/api ni apps/web integrados. La rama frontend es demo en operaciones y no está conectada a los contratos operativos; no incorporé código de otros agentes ni alteré ramas compartidas.
+2. Meta todavía no tiene campos de webhook messages suscritos ni endpoint HTTPS público.
+3. No se confirmó un destinatario de prueba autorizado.
+4. Gemini devuelve timeout/503; hasta recibir una generación válida, el recorrido con Gemini real no está probado.
+5. No hay proveedor cloud aprobado ni presupuesto de staging.
+
+No se deben enviar datos personales a Gemini ni de residentes a una nube antes de aprobar el tratamiento. No se debe publicar la app Meta para atender a toda la comunidad. No se presentó el prototipo como plataforma completa.
+
+## Próximas autorizaciones necesarias
+
+- Aprobación del proveedor y presupuesto de staging antes de crear API, worker, PostgreSQL o endpoint HTTPS público.
+- Después de aprobar el hosting y disponer del backend/frontend integrados, aprobación para configurar la URL y suscribir messages en Meta.
+- Aprobación explícita de un mensaje de prueba real y destinatario autorizado antes del primer envío.
+- Rotar el token temporal Meta por una credencial apropiada para el piloto; no reutilizarlo como secreto de producción.
+
+Criterio final aún no alcanzado: recibir un mensaje desde un teléfono autorizado, responder por WhatsApp, guardar la solicitud en la PostgreSQL compartida y verla en el panel web operativo mediante HTTPS.
