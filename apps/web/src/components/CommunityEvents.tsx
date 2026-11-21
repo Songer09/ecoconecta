@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { communityApi } from '../services/authApi'
 import type { PublishedEvent } from '../services/authApi'
 import { EmptyState } from './PanelStates'
+import { useMascotScene } from './mascot/MascotContext'
 
 const eventDay = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', day: 'numeric' })
 const eventMonth = new Intl.DateTimeFormat('es-CO', { timeZone: 'America/Bogota', month: 'short' })
@@ -11,6 +12,7 @@ export function CommunityEvents() {
   const [events, setEvents] = useState<PublishedEvent[] | null>(null)
   const [failed, setFailed] = useState(false)
   const [attempt, setAttempt] = useState(0)
+  useMascotScene(failed ? 'eventsFailed' : !events ? 'eventsLoading' : events.length ? 'eventsReady' : 'eventsEmpty')
 
   useEffect(() => {
     let current = true

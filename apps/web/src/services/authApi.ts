@@ -115,10 +115,10 @@ export class ApiRequestError extends Error {
   }
 }
 
-const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/$/, '')
+const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || (import.meta.env.DEV ? 'https://backend-production-e3cd6aec.up.railway.app/api/v1' : '/api/v1')).replace(/\/$/, '')
 let accessToken: string | null = null
 
-async function request<T>(path: string, init: RequestInit = {}, authenticated = true): Promise<T> {
+export async function request<T>(path: string, init: RequestInit = {}, authenticated = true): Promise<T> {
   const headers = new Headers(init.headers)
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   if (authenticated && accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
@@ -255,11 +255,13 @@ export const residentRequestsApi = {
     })
     return residentRequest(row)
   },
-  async list() {
+  async list(role: Role) {
+    if (role === "admin") return []
+    const path = role === "neighbor" ? "/users/me/requests" : role === "collector" ? "/collector/requests" : "/coordinator/requests"
     const rows: CollectionRequest[] = []
     const limit = 100
     while (true) {
-      const page = await request<ResidentRequestSummary[]>(`/users/me/requests?limit=${limit}&offset=${rows.length}`)
+      const page = await request<ResidentRequestSummary[]>(`${path}?limit=${limit}&offset=${rows.length}`)
       rows.push(...page.map(residentRequest))
       if (page.length < limit) return rows
     }
