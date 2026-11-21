@@ -87,7 +87,12 @@ class LanguageProvider(Protocol):
 def post(url, **kwargs):
     for attempt in range(2):
         try:
-            result = httpx.post(url, timeout=12, follow_redirects=False, **kwargs)
+            result = httpx.post(
+                url,
+                timeout=httpx.Timeout(12.0, connect=5.0),
+                follow_redirects=False,
+                **kwargs,
+            )
             if result.status_code in (429, 502, 503) and attempt == 0:
                 continue
             result.raise_for_status()
@@ -110,6 +115,7 @@ class Gemini:
                     "responseMimeType": "application/json",
                     "responseJsonSchema": schema.model_json_schema(),
                     "maxOutputTokens": 2048,
+                    "thinkingConfig": {"thinkingLevel": "low"},
                 },
             },
         )
