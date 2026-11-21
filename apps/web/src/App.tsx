@@ -1,10 +1,12 @@
+import { LiveWorkspace } from './components/LiveWorkspace'
+import { PickupOperations } from './components/PickupOperations'
 import { useEffect, useMemo, useState } from 'react'
 import type { FormEvent, ReactNode } from 'react'
 import { useRef } from 'react'
 import * as L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { CollectionRequest, MaterialPointsRuleDraft, NewRequest, PointsRuleDraft, Role } from './domain/types'
-import { service } from './services/service'
+import { demoService as service } from './services/demo/demoService'
 import { Brand } from './components/Brand'
 import { StatusPill } from './components/StatusPill'
 import { DemoTag } from './components/DemoTag'
@@ -23,7 +25,7 @@ import type { MascotMessage, MascotView } from './components/mascot/mascotMessag
 
 type View = MascotView
 type Session = Awaited<ReturnType<typeof authApi.login>>
-type Section = 'home' | 'requests' | 'history' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports' | 'team'
+type Section = 'zones' | 'home' | 'requests' | 'history' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports' | 'team'
 type NeighborProfile = { fullName: string; phone: string; stage: string; neighborhood: string; tower: string; apartment: string }
 const emptyNeighborProfile: NeighborProfile = { fullName: '', phone: '', stage: '', neighborhood: '', tower: '', apartment: '' }
 
@@ -44,7 +46,7 @@ const navByRole: Record<Role, { id: Section; label: string }[]> = {
   collector: [{ id: 'home', label: 'Mi jornada' }, { id: 'routes', label: 'Ruta' }, { id: 'requests', label: 'Historial' }, { id: 'profile', label: 'Mi perfil' }],
   vivi: [{ id: 'home', label: 'Solicitudes' }, { id: 'requests', label: 'Historial' }, { id: 'income', label: 'Cuánto he ganado' }],
   kelly: [{ id: 'home', label: 'Solicitudes' }, { id: 'history', label: 'Historial' }, { id: 'inventory', label: 'Inventario faltante' }, { id: 'redemptions', label: 'Canjes' }, { id: 'team', label: 'Directorio' }],
-  admin: [{ id: 'home', label: 'Resumen' }, { id: 'users', label: 'Usuarios y roles' }, { id: 'events', label: 'Eventos' }, { id: 'catalog', label: 'Materiales' }, { id: 'points', label: 'Configuración de puntos' }, { id: 'reports', label: 'Métricas y reportes' }],
+  admin: [{ id: 'zones', label: 'Zonas' }, { id: 'home', label: 'Resumen' }, { id: 'users', label: 'Usuarios y roles' }, { id: 'events', label: 'Eventos' }, { id: 'catalog', label: 'Materiales' }, { id: 'points', label: 'Configuración de puntos' }, { id: 'reports', label: 'Métricas y reportes' }],
 }
 
 const roleOptions: Role[] = ['neighbor', 'collector', 'vivi', 'kelly', 'admin']
@@ -124,7 +126,7 @@ function LoginScreen({ role, forEducation, onHome, onEducation, onEvents, onRegi
   const [busy, setBusy] = useState(false)
   const [mascotIssue, setMascotIssue] = useState<MascotMessage>()
   useMascotScene(busy ? 'loginLoading' : mascotIssue)
-  const canRegister = role === 'neighbor' || role === 'collector'
+  const canRegister = role === 'neighbor'
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
@@ -406,7 +408,7 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
   </section>
 }
 
-function RequestCard({ item, role, onAssign, onCollect, onVerify, onReject }: { item: CollectionRequest; role: Role; onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void; onReject: () => void }) {
+function RequestCard({ item, role, onRefresh, onAssign, onCollect, onVerify, onReject }: { onRefresh?: () => void; item: CollectionRequest; role: Role; onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void; onReject: () => void }) {
   const [assigning, setAssigning] = useState(false)
   const [scheduleDate, setScheduleDate] = useState('')
   const [scheduleTime, setScheduleTime] = useState('')
@@ -437,6 +439,7 @@ function RequestCard({ item, role, onAssign, onCollect, onVerify, onReject }: { 
         {detail.scheduledAt && <span>Programada: {new Date(detail.scheduledAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</span>}
       </> : <p role="status">{detailError || 'Consultando solicitud…'}</p>}
     </div>}
+    {showDetail && role !== 'neighbor' && <PickupOperations item={item} role={role} refresh={() => {setShowDetail(false);onRefresh?.()}}/>}
     <div className="request-bottom"><small>{item.createdAt}</small><button type="button" className="button button-small button-secondary" aria-expanded={showDetail} onClick={() => setShowDetail(!showDetail)}>{showDetail ? 'Ocultar detalle' : 'Ver detalle'}</button></div>
   </article>
   const address = `${item.stage}, ${item.neighborhood}, torre ${item.tower}, apto. ${item.apartment}`
@@ -449,7 +452,7 @@ function RouteMap({ items, demo }: { items: CollectionRequest[]; demo: boolean }
 }
 
 function CoordinatorMapLayout({ requests, role, demo, onAction }: { requests: CollectionRequest[]; demo: boolean; role: 'kelly' | 'vivi'; onAction: (item: CollectionRequest) => { onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void; onReject: () => void } }) {
-  const pendingRequests = requests.filter((item) => item.status === 'RECEIVED' || item.status === 'UNDER_REVIEW')
+  const pendingRequests = requests.filter((item) => item.status !== 'COMPLETED' && item.status !== 'CANCELLED')
   return <div className="coordinator-map-layout coordinator-map-layout-wide"><div className="coordinator-map-canvas" data-mascot-target="coordination-map"><RealCommunityMap demo={demo}/></div><aside className="coordinator-request-panel"><div className="coordinator-request-heading" data-mascot-target="coordination-requests"><div><h2>Solicitudes pendientes</h2><span>{pendingRequests.length} por revisar</span></div><span className="route-count">{pendingRequests.length}</span></div><div className="coordinator-request-list">{pendingRequests.length ? pendingRequests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>) : <EmptyState title="No hay solicitudes pendientes" detail="Las nuevas solicitudes aparecerán en este panel."/>}</div></aside></div>
 }
 
@@ -502,7 +505,7 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
   async function assign(item: CollectionRequest, scheduledAt: string) { const who = item.flow === 'ORGANIC' ? 'Huertero asignado (dato ficticio)' : 'Reciclador asignado (dato ficticio)'; await service.assignRequest(item.id, who, scheduledAt); await refresh('Solicitud programada y asignada. La persona responsable ya puede verla en su jornada.') }
   async function collect(item: CollectionRequest) { await service.registerCollection(item.id); await refresh('Recolección registrada. La coordinadora puede verificar el cierre.') }
   async function verify(item: CollectionRequest) { await service.verifyAndClose(item.id); await refresh('Recolección verificada y cerrada. El sistema de puntos podrá aplicar la regla configurada.') }
-  const requestActions = (item: CollectionRequest) => ({ onAssign: (scheduledAt: string) => void assign(item, scheduledAt), onCollect: () => void collect(item), onVerify: () => void verify(item), onReject: () => announce('La acción de rechazo se conectará con el backend.') })
+  const requestActions = (item: CollectionRequest) => ({ onRefresh: () => void refresh(), onAssign: (scheduledAt: string) => void assign(item, scheduledAt), onCollect: () => void collect(item), onVerify: () => void verify(item), onReject: () => announce('La acción de rechazo se conectará con el backend.') })
   const hello = role === 'neighbor' ? 'Hola, vecina' : role === 'collector' ? 'Hola, recolector' : `Hola, ${info.name}`
   const title = section === 'new' ? 'Pedir recolección' : section === 'points' && role === 'neighbor' ? 'Canjear mis puntos' : section === 'requests' ? role === 'kelly' ? 'Solicitudes orgánicas' : role === 'vivi' ? 'Historial de reciclaje' : role === 'neighbor' ? 'Mis solicitudes' : 'Historial' : section === 'history' ? 'Historial orgánico' : section === 'routes' ? role === 'collector' ? 'Mi ruta' : 'Rutas y equipo' : navByRole[role].find((item) => item.id === section)?.label ?? info.title
   const heading = section === 'home' && (role === 'vivi' || role === 'kelly') ? 'Solicitudes' : section === 'home' ? hello : title
@@ -526,17 +529,21 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
         </nav>
         <div className="sidebar-bottom"><button className="nav-item" onClick={onExit}>← {accountId ? 'Cerrar sesión' : 'Salir de la demostración'}</button><small>EcoConecta · {accountId ? 'Piloto' : 'Demostración'}</small></div>
       </aside>
-      <main className="app-main">{!requesting && !(section === 'home' && (role === 'vivi' || role === 'kelly')) && <div className="main-heading"><div><p className="eyebrow">{info.name.toUpperCase()} · ECOCONECTA</p><h1>{heading}</h1>{section === 'home' && <p>{role === 'neighbor' ? 'Esto es lo que pasa con tus aportes al barrio.' : info.description}</p>}</div>{role === 'collector' && <button className={`availability ${available ? 'available' : ''}`} onClick={() => { setAvailable(!available); announce(available ? 'Ahora apareces como no disponible.' : 'Ahora apareces como disponible.') }}><i/> {available ? 'Disponible' : 'No disponible'}</button>}</div>}
+      <main className="app-main">{!requesting && !(section === 'home' && (role === 'vivi' || role === 'kelly')) && <div className="main-heading"><div><p className="eyebrow">{info.name.toUpperCase()} · ECOCONECTA</p><h1>{heading}</h1>{section === 'home' && <p>{role === 'neighbor' ? 'Esto es lo que pasa con tus aportes al barrio.' : info.description}</p>}</div>{role === 'collector' && !accountId && <button className={`availability ${available ? 'available' : ''}`} onClick={() => { setAvailable(!available); announce(available ? 'Ahora apareces como no disponible.' : 'Ahora apareces como disponible.') }}><i/> {available ? 'Disponible' : 'No disponible'}</button>}</div>}
         {toast && <div className="toast" role="status">{toast}</div>}
         {notification && <div className="notice-banner" role="status">{notification}<button onClick={() => setNotification('')} aria-label="Cerrar aviso">×</button></div>}
         {!requesting && requestsError && <p role="alert">{requestsError} <button type="button" className="text-button" onClick={() => void refresh()}>Reintentar</button></p>}
-        {requesting ? <RequestForm residentPhone={liveResident ? profile.phone : undefined} onCancel={() => setSection('home'); showMoment('pickupCreated')} onCreated={(item) => {
+        {requesting ? <RequestForm residentPhone={liveResident ? profile.phone : undefined} onCancel={() => setSection('home')} onCreated={(item) => {
           setSection('home'); showMoment('pickupCreated')
           setRequests((items) => [item, ...items.filter(({ id }) => id !== item.id)])
           void refresh(item.code ? `Solicitud ${item.code} recibida.` : `Solicitud ${item.id} creada en la demostración.`)
         }}/>
           : role === 'neighbor' && section === 'points' ? <GardenRedemptions accountId={accountId}/>
           : role === 'neighbor' && section === 'events' ? <CommunityEvents/>
+          : accountId && role === 'admin' && section !== 'users' ? <LiveWorkspace key={section} section={section}/>
+          : accountId && role === 'collector' && ['profile','routes'].includes(section) ? <LiveWorkspace key={section} section={section === 'routes' ? 'routes' : 'availability'}/>
+          : accountId && role === 'neighbor' && section === 'profile' ? <LiveWorkspace section="profile"/>
+          : accountId && ['income','inventory','redemptions'].includes(section) ? <LiveWorkspace key={section} section={section}/>
           : <DashboardSection demo={import.meta.env.DEV && !accountId} role={role} profile={profile} section={section} requests={visibleRequests} allRequests={requests} showAllRequests={showAllRequests} onShowAll={() => setShowAllRequests(true)} onCloseAll={() => setShowAllRequests(false)} onNew={() => setSection('new')} onLearn={onLearn} onAction={requestActions} onSection={setSection} onNotify={setNotification}/>}
       </main>
     </div>
@@ -663,7 +670,6 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
     <div className="admin-account-tabs">
       <button className={accountType === 'resident' ? 'account-tab active' : 'account-tab'} disabled={busy || loadingPending} onClick={() => void showAccountType('resident')}>Vecino o unidad productiva</button>
       <button className={accountType === 'staff' ? 'account-tab active' : 'account-tab'} disabled={busy || loadingPending} onClick={() => void showAccountType('staff')}>Personal operativo</button>
-      <button className={activating ? 'account-tab active' : 'account-tab'} disabled={busy || loadingPending} onClick={() => void showAccountType('activation')}>Activar recolectores</button>
     </div>
     <form className="admin-account-form" onSubmit={createAccount}>
       {activating ? <label>Registro pendiente<select value={pendingCollectorId} onChange={(event) => setPendingCollectorId(event.target.value)} required>
