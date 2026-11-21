@@ -20,6 +20,8 @@ Una base vacía se inicializa desde la revisión `0001_schema`. Una base que ya 
 Swagger UI está en `/docs` y el contrato generado por FastAPI en `/openapi.json`. Los endpoints comparten el prefijo `/api/v1`. Los valores de flujo y estado se serializan en español, igual que en PostgreSQL.
 
 - `POST /auth/login` recibe `phone` con prefijo internacional y `password`. Requiere un usuario activo del piloto con contraseña Argon2id. Devuelve un bearer opaco válido por una hora. Mantener el token en memoria en la web, enviarlo en `Authorization: Bearer …` y usar HTTPS al desplegar. El límite inicial es de 20 intentos por minuto por IP de conexión. Acordar los proxies de confianza antes de desplegar.
+- `POST /auth/register` permite que un vecino cree su propia cuenta activa. Recibe `full_name`, `phone`, `password`, `stage`, `neighborhood`, `tower`, `apartment` y `data_treatment_accepted: true`. Exige contraseña de 12 caracteres como mínimo, registra el perfil de hogar y el consentimiento web `ecoconecta-resident-registration-v1` en la misma transacción, y limita a 5 intentos por minuto por IP. Responde 201 con la identidad creada; después el frontend inicia sesión por `/auth/login`.
+- El checkbox de registro confirma esta finalidad: “Se usarán para gestionar mis solicitudes, registrar los puntos que correspondan después de verificar una recolección y enviarme avisos operativos o comunitarios.” El responsable del proyecto debe revisar y aprobar la política y su versión antes de usar datos reales.
 - `GET /auth/me` devuelve identidad y rol. `POST /auth/logout` revoca la sesión.
 - `GET /zones` lista las zonas activas para el formulario.
 - `POST /requests` recibe `generator`, `flow`, `zone_id`, `contact_phone`, `address`, `preferred_time` y opcionalmente `observations`. El servidor deriva el solicitante de la sesión, enruta al colectivo correspondiente y registra el primer cambio de estado en la misma transacción. Devuelve 201 con ID, código, zona, flujo, fecha y estado `recibida`.
@@ -27,6 +29,8 @@ Swagger UI está en `/docs` y el contrato generado por FastAPI en `/openapi.json
 - `GET /coordinator/requests` admite filtros `flow`, `status`, `zone_id`, `limit` y `offset`. Devuelve resúmenes sin teléfono ni dirección. El coordinador debe pertenecer al colectivo de su rol y tener asignada la zona mediante `coordinator_zones`.
 
 Para usar el flujo con el piloto, el responsable debe configurar usuarios habilitados, zonas y colectivos. Para probarlo inmediatamente con datos sintéticos, configurar `TEST_DATABASE_URL` con la URL de propietario de una base PostgreSQL de pruebas cuyo nombre termine en `_test`, y ejecutar `uv run pytest -q` desde esta carpeta. Cada ejecución crea y retira su propio esquema aislado.
+
+La migración `0009_public_resident_registration` agrega los campos de dirección estructurada (`stage`, `tower`, `apartment`) al perfil del solicitante y la tabla temporal de límites de registro. Aplicar `uv run alembic upgrade head` antes de iniciar la API; las cuentas creadas quedan `is_active=true` y `is_pilot=true` para permitir el acceso inmediato confirmado por producto.
 
 ## Revisión, asignación y programación
 
