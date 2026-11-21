@@ -1,5 +1,11 @@
 # Estado de la integración Meta, Gemini y EcoConecta web
 
+> Seguimiento del 21 de noviembre: hay una demo Railway pública con IA y
+> mensajería simuladas, verificada por HTTPS; el token Meta local ahora es
+> rechazado. El estado actualizado y el traspaso están en
+> [ENTREGA_JEREMY_RAILWAY.md](../deploy/ENTREGA_JEREMY_RAILWAY.md).
+> Las secciones fechadas el 20 de noviembre conservan la evidencia histórica.
+
 Actualizado: 20 de noviembre de 2026, hora de Bogotá. Rama objetivo: feat/whatsapp-chatbot. HEAD remoto comprobado al iniciar: bbd414cb0f3ba506c13960bcd2200cf262fdf83f.
 
 ## Estado por evidencia

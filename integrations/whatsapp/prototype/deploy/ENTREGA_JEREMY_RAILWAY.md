@@ -1,0 +1,146 @@
+# Entrega de Jeremy para Railway
+
+Actualizado: 21 de noviembre de 2026, America/Bogota.
+Respuesta a [RAILWAY_WHATSAPP.md](RAILWAY_WHATSAPP.md). Este documento no contiene
+credenciales ni autoriza crear recursos facturables.
+
+## 1. Versión y procesos
+
+La versión funcional de entrega es **`0842ed255515986c82aa2e8caf6493b7f604ff6e`**.
+Los commits posteriores de este traspaso añaden documentación, sin cambiar esa
+implementación. El commit `93ff4c9` contiene la guía de Gerson y `136338a`
+registra la demo alojada. Desplegar API y worker desde el mismo SHA revisado,
+en `feat/whatsapp-chatbot`.
+
+La PR #14 ya está fusionada: su head fue `3e38b4c`. La propuesta posterior debe
+incluir el arranque nativo y los accesos portables de `0842ed2`, además de esta
+documentación. Destino de revisión: `chore/add-project-documentation`. No se
+fusiona ni se modifica directamente la rama destino desde este traspaso.
+
+Directorio raíz de ambos servicios: `integrations/whatsapp/prototype`.
+
+| Operación | Comando |
+| --- | --- |
+| Construcción nativa (Python 3.12, Node 24) | `sh deploy/build.sh` |
+| Migración, una vez antes de iniciar procesos | `python -m alembic upgrade head` |
+| API y panel | `sh deploy/start-web.sh` |
+| Worker | `python -m app.worker` |
+| Salud y panel | `/health` y `/panel` |
+
+Variables compartidas en la primera fase: `DATABASE_URL` de PostgreSQL de
+pruebas, `APP_ENV=demo`, `AI_PROVIDER=mock`, `WHATSAPP_PROVIDER=mock`.
+En la API: `HOST=0.0.0.0`, `PORT=8000` y `FORWARDED_ALLOW_IPS` con el proxy de
+confianza que corresponda. No confiar en todas las IP sin una red que lo limite.
+La plantilla [deploy/.env.example](.env.example) contiene solo nombres y ejemplos.
+El worker no necesita dominio público. La API necesita HTTPS en la raíz del
+dominio, con el panel y las rutas `/api/v1/` en el mismo origen.
+
+Definir `PANEL_RESIDENT_TOKEN` y `PANEL_ADMIN_TOKEN` no crea cuentas por sí solo.
+Ejecutar explícitamente los dos comandos `python -m app.access` de
+[README.md](README.md#conservar-las-mismas-claves-al-desplegar), en una sesión
+privada. Se pueden generar claves nuevas para Railway, distintas para cada rol.
+Las claves locales existentes se conservan en ficheros ignorados por Git, con
+modo 0600. No están incluidas en el repositorio ni en esta entrega pública.
+
+## 2. App de Meta y responsable
+
+La interfaz de Meta, consultada en esta entrega, muestra:
+
+- App **EcoConecta Chatbot**, sin publicar.
+- Un número emisor marcado como **número de prueba**, con Phone Number ID e
+  identificador de cuenta de WhatsApp visibles en la sesión privada del titular.
+- **Jeremy Restrepo** como administrador de la app. El negocio **Ecoconecta**
+  administra la aplicación; sus administradores gestionan roles y configuración.
+
+El 21 de noviembre a las 00:51:56 de Bogotá se repitieron dos consultas Graph de
+solo lectura usando las variables locales existentes. Tanto la consulta del
+número como `WABA/subscribed_apps` devolvieron **HTTP 401**, error OAuth **190**,
+subcódigo **463**. El token guardado no es una credencial operativa vigente.
+La comprobación anterior HTTP 200 es evidencia histórica, no el estado actual.
+No se determinó en esta comprobación una nueva fecha de vencimiento.
+
+La existencia del número/WABA en la UI está confirmada. El acceso actual por
+Graph debe volver a comprobarse con un token renovado. No se confirmó un
+destinatario autorizado, ni se configuró webhook, ni se enviaron mensajes.
+Jeremy es el responsable identificado para renovar el acceso, autorizar el
+destinatario y configurar Meta cuando esté disponible la URL HTTPS.
+
+## 3. Entrega privada de variables
+
+La demo alojada de Gerson funciona sin secretos de Meta ni Gemini.
+Para el canal real se requieren, en API y worker: `APP_ENV=pilot`,
+`AI_PROVIDER=mock`, `WHATSAPP_PROVIDER=meta`, `DATABASE_URL` de pruebas del piloto,
+`META_ACCESS_TOKEN`, `META_PHONE_NUMBER_ID`, `META_WABA_ID`, `META_APP_SECRET`,
+`META_VERIFY_TOKEN` y `META_GRAPH_VERSION`. Los nombres ya están documentados en
+la guía; los valores nunca se introducen en el PR, issues o logs de despliegue.
+
+Procedimiento propuesto, aún pendiente de autorización y de un canal privado:
+
+1. Gerson entrega la URL HTTPS del bot y los nombres de los servicios/entorno.
+2. Jeremy renueva el token con el alcance aprobado y se verifica Graph de nuevo.
+3. El titular carga las variables directamente en el gestor de secretos de
+   Railway, o autoriza un traspaso privado específico a Gerson. Los secretos
+   locales no se han compartido con terceros durante esta entrega.
+4. Jeremy configura callback `/api/v1/integrations/whatsapp/webhook`, el mismo
+   verify token y la suscripción `messages` de la app/WABA correspondiente.
+5. El participante autorizado realiza la prueba de WhatsApp. Registrar resultados
+   redactados, sin teléfonos ni encabezados Authorization.
+
+No se transfiere el token que acaba de ser rechazado. La renovación conviene
+hacerla cuando el alojamiento esté listo, por la duración limitada del token.
+
+## 4. Guion y evidencia
+
+Primera fase: demo pública disponible en
+[Railway](https://whatsapp-web-production-c49ad447.up.railway.app/panel).
+Se comprobó directamente por HTTPS, desde este entorno y sin sesión:
+
+| Recurso | Resultado real |
+| --- | --- |
+| `/health` | HTTP 200, `status=ok`, `channel=mock`, `ai=mock`, `environment=demo` |
+| `/panel` | HTTP 200, HTML |
+| `/panel/panel.js` | HTTP 200, JavaScript |
+| `/panel/panel.css` | HTTP 200, CSS |
+| `/api/v1/me` sin clave | HTTP 401 |
+
+La guía de Gerson informa además accesos de vecino/administrador, una respuesta
+simulada y servicios web/worker/PostgreSQL alojados con volumen persistente.
+Esa parte se registra como evidencia reportada por Gerson: no se inició sesión
+en el panel cloud ni se inspeccionó Railway desde esta sesión. Las claves nuevas
+del panel de Railway no son las locales. Faltan por comprobar aquí la conversación
+autenticada y la persistencia tras reiniciar los servicios cloud. Esta URL es la
+demo; no se utilizará como callback Meta antes de preparar el piloto separado.
+
+Canal Meta: comenzar con «¿Cómo separo el cartón para reciclar?», sin datos
+personales. Cargar los artículos y un residente de prueba autorizado como indica
+la guía, y comprobar entrada firmada, worker y respuesta recibida en el teléfono.
+Para probar después «Tengo cartón para recoger», también hacen falta materiales
+aceptados y responsables/coordinadores configurados. `app.seed demo` solo sirve
+en `demo/mock`, no en `pilot/meta`. La prueba educativa no demuestra el registro
+de avisos ni la integración con la bandeja principal.
+
+Evidencia local ya ejecutada para `0842ed2`: compilación del panel correcta,
+**61 pruebas pytest aprobadas** con PostgreSQL nativo y una advertencia de
+deprecación Starlette/AnyIO; Ruff aprobado; API/panel HTTP 200; ambas claves
+aceptadas; permisos negativos HTTP 401/403; solicitud sintética conservada tras
+reiniciar API. El worker nativo estuvo activo durante la comprobación. El
+proveedor conversacional fue mock. No se repitió esa batería al añadir solo esta
+documentación. Los detalles y reproducción están en el
+[informe de integración](../reports/INTEGRACION_REAL_GEMINI_WHATSAPP.md).
+
+## 5. Revisión pendiente del responsable
+
+La guía declara que la API principal usa Supabase. `AGENTS.md` prohíbe Supabase
+como persistencia operacional y exige una PostgreSQL compartida. Se registra el
+conflicto sin adoptar una excepción ni cambiar arquitectura. El responsable
+humano debe confirmar qué instrucción prevalece antes de conectar el prototipo
+a la base principal. La base aislada descrita aquí es exclusivamente para
+pruebas; no se presenta como una segunda base operacional del producto.
+
+Las migraciones del prototipo no se aplican sobre la base principal. El contrato
+autenticado con FastAPI, su deduplicación y la visualización de avisos en la web
+siguen pendientes de integración y revisión del equipo de backend.
+
+El propietario no autorizó gastos. Railway y sus bases/servicios quedan a cargo
+de Gerson según la guía. No se crearon recursos ni se activaron servicios públicos;
+tampoco se ampliaron permisos externos ni se enviaron mensajes reales en esta entrega.
