@@ -1,12 +1,18 @@
 # Noticias de EcoConecta
 
-En `feat/backend-core`, la carga de fotos admite hasta 24 megapíxeles y 5 MiB.
-Se probó una foto sintética de 3120 × 4160 con rotación EXIF. La API la envió
-normalizada, con lado mayor de 1600 píxeles y sin metadatos. Pasaron las 17
-pruebas en PostgreSQL.
+En `feat/fullstack-integration` se reunió el sitio de la copia de entrega con
+el alta pública de vecinos y el Dockerfile de la API. El formulario web envía
+los identificadores de materiales seleccionados; la API valida el flujo, los
+guarda en `request_items` y los devuelve en el detalle de la solicitud.
 
-En el Mac de visión, el equipo verificó el flujo real con la versión anterior
-del adaptador y una foto reducida. EcoConecta recibió HTTP 200, clase
-`banana_peel` y versión `0.3.0-bdwaste-individual-experimental`. Queda repetir
-el caso con la foto original y conectar el formulario web. El piloto necesita
-una instancia de Compost-AI con los pesos instalados.
+Las cuentas autenticadas usan los endpoints de solicitudes, operaciones,
+reconocimiento, educación, eventos, puntos y administración disponibles. Se
+añadió cancelación con motivo para solicitudes recibidas/en revisión y el
+registro de varios materiales por recolección. La demostración sin sesión
+continúa separada.
+
+Verificado: `npm run build` y construcción de `apps/api/Dockerfile` desde la
+raíz del repositorio. No se ejecutaron pruebas automatizadas ni se publicó esta
+rama. WhatsApp sigue siendo una integración independiente, pendiente de
+configuración del número piloto y del webhook en Meta/Railway. Los informes
+administrativos y el directorio operativo aún tienen alcance informativo.

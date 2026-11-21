@@ -55,6 +55,13 @@ Otros endpoints propuestos del catálogo:
 - POST `/requests/{id}/schedule`
 - POST `/requests/{id}/cancel`
 
+El formulario web envía los identificadores de materiales seleccionados en
+`waste_type_ids`. La API comprueba que estén activos y correspondan al flujo de
+la solicitud y los guarda en `request_items` dentro de la misma transacción.
+El detalle autorizado devuelve esos materiales con nombre y unidad. El campo
+se mantiene opcional temporalmente para compatibilidad con clientes anteriores;
+la interfaz actual exige seleccionar al menos uno.
+
 ### Recolecciones
 - POST `/requests/{id}/collection`
 - POST `/collections/{id}/items`

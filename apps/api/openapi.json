@@ -134,21 +134,75 @@
               }
             }
           },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
+          },
           "409": {
             "description": "Conflict",
-            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "422": {
             "description": "Unprocessable Entity",
-            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "429": {
             "description": "Too Many Requests",
-            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           },
           "503": {
             "description": "Service Unavailable",
-            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/ApiError"}}}
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiError"
+                }
+              }
+            }
           }
         }
       }
@@ -9550,6 +9604,15 @@
             "format": "uuid",
             "title": "Zone Id"
           },
+          "waste_type_ids": {
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "type": "array",
+            "maxItems": 100,
+            "title": "Waste Type Ids"
+          },
           "contact_phone": {
             "type": "string",
             "pattern": "^\\+[1-9][0-9]{6,14}$",
@@ -9740,6 +9803,13 @@
             "type": "string",
             "title": "Address"
           },
+          "materials": {
+            "items": {
+              "$ref": "#/components/schemas/RequestedMaterial"
+            },
+            "type": "array",
+            "title": "Materials"
+          },
           "history": {
             "items": {
               "$ref": "#/components/schemas/History"
@@ -9765,6 +9835,7 @@
           "preferred_time",
           "contact_phone",
           "address",
+          "materials",
           "history"
         ],
         "title": "Detail"
@@ -10392,34 +10463,6 @@
           "updated_at"
         ],
         "title": "LastPosition"
-      },
-      "PublicResidentRegistration": {
-        "properties": {
-          "full_name": {"type": "string", "maxLength": 200, "minLength": 1, "title": "Full Name"},
-          "phone": {"type": "string", "pattern": "^\\+[1-9][0-9]{6,14}$", "title": "Phone"},
-          "password": {"type": "string", "maxLength": 256, "minLength": 12, "format": "password", "title": "Password", "writeOnly": true},
-          "stage": {"type": "string", "maxLength": 80, "minLength": 1, "title": "Stage"},
-          "neighborhood": {"type": "string", "maxLength": 120, "minLength": 1, "title": "Neighborhood"},
-          "tower": {"type": "string", "maxLength": 30, "minLength": 1, "title": "Tower"},
-          "apartment": {"type": "string", "maxLength": 30, "minLength": 1, "title": "Apartment"},
-          "data_treatment_accepted": {"type": "boolean", "const": true, "title": "Data Treatment Accepted"}
-        },
-        "additionalProperties": false,
-        "type": "object",
-        "required": ["full_name", "phone", "password", "stage", "neighborhood", "tower", "apartment", "data_treatment_accepted"],
-        "title": "PublicResidentRegistration"
-      },
-      "RegisteredResident": {
-        "properties": {
-          "id": {"type": "string", "format": "uuid", "title": "Id"},
-          "full_name": {"type": "string", "title": "Full Name"},
-          "role": {"type": "string", "title": "Role"},
-          "is_active": {"type": "boolean", "title": "Is Active"},
-          "is_pilot": {"type": "boolean", "title": "Is Pilot"}
-        },
-        "type": "object",
-        "required": ["id", "full_name", "role", "is_active", "is_pilot"],
-        "title": "RegisteredResident"
       },
       "Login": {
         "properties": {
@@ -11122,6 +11165,71 @@
         ],
         "title": "Progress"
       },
+      "PublicResidentRegistration": {
+        "properties": {
+          "full_name": {
+            "type": "string",
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Full Name"
+          },
+          "phone": {
+            "type": "string",
+            "pattern": "^\\+[1-9][0-9]{6,14}$",
+            "title": "Phone"
+          },
+          "password": {
+            "type": "string",
+            "maxLength": 256,
+            "minLength": 12,
+            "format": "password",
+            "title": "Password",
+            "writeOnly": true
+          },
+          "stage": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Stage"
+          },
+          "neighborhood": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Neighborhood"
+          },
+          "tower": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Tower"
+          },
+          "apartment": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 1,
+            "title": "Apartment"
+          },
+          "data_treatment_accepted": {
+            "type": "boolean",
+            "const": true,
+            "title": "Data Treatment Accepted"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "full_name",
+          "phone",
+          "password",
+          "stage",
+          "neighborhood",
+          "tower",
+          "apartment",
+          "data_treatment_accepted"
+        ],
+        "title": "PublicResidentRegistration"
+      },
       "PublishedSlot": {
         "properties": {
           "weekday": {
@@ -11354,6 +11462,40 @@
         ],
         "title": "Redemption"
       },
+      "RegisteredResident": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "is_pilot": {
+            "type": "boolean",
+            "title": "Is Pilot"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "full_name",
+          "role",
+          "is_active",
+          "is_pilot"
+        ],
+        "title": "RegisteredResident"
+      },
       "RequestCount": {
         "properties": {
           "flow": {
@@ -11376,6 +11518,42 @@
           "requests"
         ],
         "title": "RequestCount"
+      },
+      "RequestedMaterial": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          },
+          "estimated_qty": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Estimated Qty"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "unit",
+          "estimated_qty"
+        ],
+        "title": "RequestedMaterial"
       },
       "ResidentInput": {
         "properties": {

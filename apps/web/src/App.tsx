@@ -6,13 +6,13 @@ import { useRef } from 'react'
 import * as L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import type { CollectionRequest, MaterialPointsRuleDraft, NewRequest, PointsRuleDraft, Role } from './domain/types'
-import { demoService as service } from './services/demo/demoService'
+import { service } from './services/service'
 import { Brand } from './components/Brand'
 import { StatusPill } from './components/StatusPill'
 import { DemoTag } from './components/DemoTag'
 import { EmptyState, InfoSection, OperationPanel } from './components/PanelStates'
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
-import { ApiRequestError, authApi, residentRequestsApi, visionApi } from './services/authApi'
+import { ApiRequestError, authApi, communityApi, request, residentRequestsApi, visionApi } from './services/authApi'
 import type { ActiveZone } from './services/authApi'
 import { CoordinatorDirectory } from './components/CoordinatorDirectory'
 import { CommunityFooter, VillasStorySection } from './components/LandingSections'
@@ -305,7 +305,7 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
   const [photoFeedback, setPhotoFeedback] = useState('')
   const [suggestedFlow, setSuggestedFlow] = useState<NewRequest['flow'] | null>(null)
   const [error, setError] = useState('')
-  const [catalog, setCatalog] = useState<{ flow: NewRequest['flow']; names: string[]; error?: string } | null>(null)
+  const [catalog, setCatalog] = useState<{ flow: NewRequest['flow']; materials: { id: string; name: string }[]; error?: string } | null>(null)
   const [zones, setZones] = useState<ActiveZone[]>([])
   const [zonesFeedback, setZonesFeedback] = useState('')
   const [zoneId, setZoneId] = useState('')
@@ -313,7 +313,7 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
   const [submitting, setSubmitting] = useState(false)
   const demoOptions = flow === 'RECYCLABLE' ? ['Cartón', 'Papel', 'Botellas PET', 'Latas', 'Vidrio'] : ['Restos de frutas', 'Cáscaras de verduras', 'Hojas secas', 'Restos de poda']
   const activeCatalog = catalog?.flow === flow ? catalog : null
-  const options = live ? activeCatalog?.names ?? [] : demoOptions
+  const options = live ? activeCatalog?.materials ?? [] : demoOptions.map((name) => ({ id: name, name }))
   useEffect(() => {
     if (!live) return
     let cancelled = false
@@ -332,9 +332,9 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
     const controller = new AbortController()
     setCatalog(null)
     void residentRequestsApi.listMaterials(flow, controller.signal).then((rows) => {
-      if (!controller.signal.aborted) setCatalog({ flow, names: rows.map((row) => row.name) })
+      if (!controller.signal.aborted) setCatalog({ flow, materials: rows })
     }).catch(() => {
-      if (!controller.signal.aborted) setCatalog({ flow, names: [], error: 'No pudimos cargar el catálogo.' })
+      if (!controller.signal.aborted) setCatalog({ flow, materials: [], error: 'No pudimos cargar el catálogo.' })
     })
     return () => controller.abort()
   }, [flow, live])
@@ -371,16 +371,17 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
     setPhoto(file)
     setPhotoPreview(URL.createObjectURL(file))
   }
-  function selectMaterial(name: string) { setMaterials((items) => items.includes(name) ? items.filter((item) => item !== name) : [...items, name]) }
+  function selectMaterial(id: string) { setMaterials((items) => items.includes(id) ? items.filter((item) => item !== id) : [...items, id]) }
   async function submit() {
     if (submitting) return
     if (!materials.length) { setStep(2); setError('Elige al menos un material.'); return }
     if (!neighborhood.trim() || !tower.trim() || !apartment.trim()) { setError('Completa conjunto, torre y apartamento para que puedan encontrarte.'); return }
     if (live && (!zoneId || !residentPhone)) { setError('Selecciona una zona activa y verifica el teléfono de tu cuenta.'); return }
-    const input = { flow, stage, neighborhood: neighborhood.trim(), tower: tower.trim(), apartment: apartment.trim(), materials, availability, note: note.trim() }
+    const selectedMaterials = options.filter((item) => materials.includes(item.id))
+    const input = { flow, stage, neighborhood: neighborhood.trim(), tower: tower.trim(), apartment: apartment.trim(), materials: selectedMaterials.map((item) => item.name), availability, note: note.trim() }
     setSubmitting(true)
     try {
-      const created = live ? await residentRequestsApi.create(input, zoneId, residentPhone, generator) : await service.createRequest(input)
+      const created = live ? await residentRequestsApi.create(input, zoneId, residentPhone, generator, materials) : await service.createRequest(input)
       if (!live && photo) attachDemoRequestPhoto(created.id, photo)
       onCreated(created)
     } catch (reason) {
@@ -391,7 +392,7 @@ function RequestForm({ onCreated, onCancel, residentPhone }: { onCreated: (item:
   }
   return <section className="form-card resident-request-form"><div className="form-heading"><div><p className="eyebrow">VILLAS DE SAN PABLO</p><h1>{step === 1 ? 'Pedir recolección' : step === 2 ? '¿Qué vas a entregar?' : '¿Dónde podemos recogerlo?'}</h1></div><button className="icon-button" onClick={onCancel} aria-label="Cerrar formulario">×</button></div>
     <div className="resident-request-progress" data-mascot-target="pickup-progress"><span>Paso {step} de 3</span><span>{step === 1 ? 'Fotos' : step === 2 ? 'Materiales' : 'Dirección'}</span><i><b style={{ width: `${step / 3 * 100}%` }}/></i></div>
-    {step === 1 ? <label className="photo-dropzone" data-mascot-target="pickup-photo"><span className="photo-camera-icon" aria-hidden="true">◎</span>{photoPreview ? <img className="request-photo-preview" src={photoPreview} alt="Vista previa de tus residuos"/> : <><strong>Muéstranos tus residuos</strong><span>Toma una foto clara. Así podremos enviarlos al lugar correcto.</span></>}<input type="file" accept="image/jpeg,image/png" capture="environment" onChange={(event) => selectPhoto(event.target.files?.[0] ?? null)}/><b className="button button-primary">◎ {photo ? 'Cambiar foto' : 'Tomar foto'}</b></label> : step === 2 ? <><div className="flow-choice"><button className={flow === 'RECYCLABLE' ? 'flow-option selected' : 'flow-option'} onClick={() => { setFlow('RECYCLABLE'); setMaterials([]) }}><strong>Reciclables</strong><small>Papel, cartón, envases y más</small></button><button className={flow === 'ORGANIC' ? 'flow-option selected flow-organic' : 'flow-option'} onClick={() => { setFlow('ORGANIC'); setMaterials([]) }}><strong>Orgánicos</strong><small>Aportes para la huerta comunitaria</small></button></div><fieldset className="material-fieldset"><legend>¿Qué vas a entregar?</legend><div className="material-options">{options.map((item) => <button type="button" key={item} className={materials.includes(item) ? 'material-chip chosen' : 'material-chip'} onClick={() => selectMaterial(item)} aria-pressed={materials.includes(item)}>{materials.includes(item) ? '✓ ' : '+ '}{item}</button>)}</div></fieldset></> : <><p className="form-hint">La dirección se comparte con el equipo que atiende tu solicitud.</p><div className="address-grid"><label>Etapa<select value={stage} onChange={(event) => setStage(event.target.value)}><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label><label className="wide-field">Conjunto<input value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Nombre del conjunto" autoComplete="address-line1" required/></label><label>Torre<input value={tower} onChange={(event) => setTower(event.target.value)} placeholder="Ej. 2" required/></label><label>Apartamento<input value={apartment} onChange={(event) => setApartment(event.target.value)} placeholder="Ej. 304" required/></label><label className="wide-field">¿Cuándo estás disponible?<select value={availability} onChange={(event) => setAvailability(event.target.value)}><option>Hoy en la tarde</option><option>Mañana en la mañana</option><option>Mañana en la tarde</option><option>Coordinar por teléfono</option></select></label><label className="wide-field">Nota para el equipo <span className="optional">(opcional)</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Algo que debamos saber" rows={2}/></label></div></>}
+    {step === 1 ? <label className="photo-dropzone" data-mascot-target="pickup-photo"><span className="photo-camera-icon" aria-hidden="true">◎</span>{photoPreview ? <img className="request-photo-preview" src={photoPreview} alt="Vista previa de tus residuos"/> : <><strong>Muéstranos tus residuos</strong><span>Toma una foto clara. Así podremos enviarlos al lugar correcto.</span></>}<input type="file" accept="image/jpeg,image/png" capture="environment" onChange={(event) => selectPhoto(event.target.files?.[0] ?? null)}/><b className="button button-primary">◎ {photo ? 'Cambiar foto' : 'Tomar foto'}</b></label> : step === 2 ? <><div className="flow-choice"><button className={flow === 'RECYCLABLE' ? 'flow-option selected' : 'flow-option'} onClick={() => { setFlow('RECYCLABLE'); setMaterials([]) }}><strong>Reciclables</strong><small>Papel, cartón, envases y más</small></button><button className={flow === 'ORGANIC' ? 'flow-option selected flow-organic' : 'flow-option'} onClick={() => { setFlow('ORGANIC'); setMaterials([]) }}><strong>Orgánicos</strong><small>Aportes para la huerta comunitaria</small></button></div><fieldset className="material-fieldset"><legend>¿Qué vas a entregar?</legend><div className="material-options">{options.map((item) => <button type="button" key={item.id} className={materials.includes(item.id) ? 'material-chip chosen' : 'material-chip'} onClick={() => selectMaterial(item.id)} aria-pressed={materials.includes(item.id)}>{materials.includes(item.id) ? '✓ ' : '+ '}{item.name}</button>)}</div></fieldset></> : <><p className="form-hint">La dirección se comparte con el equipo que atiende tu solicitud.</p><div className="address-grid"><label>Etapa<select value={stage} onChange={(event) => setStage(event.target.value)}><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label><label className="wide-field">Conjunto<input value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Nombre del conjunto" autoComplete="address-line1" required/></label><label>Torre<input value={tower} onChange={(event) => setTower(event.target.value)} placeholder="Ej. 2" required/></label><label>Apartamento<input value={apartment} onChange={(event) => setApartment(event.target.value)} placeholder="Ej. 304" required/></label><label className="wide-field">¿Cuándo estás disponible?<select value={availability} onChange={(event) => setAvailability(event.target.value)}><option>Hoy en la tarde</option><option>Mañana en la mañana</option><option>Mañana en la tarde</option><option>Coordinar por teléfono</option></select></label><label className="wide-field">Nota para el equipo <span className="optional">(opcional)</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Algo que debamos saber" rows={2}/></label></div></>}
     {step === 1 && <><p role="status">{photoFeedback}</p>{suggestedFlow && <button type="button" className="button button-secondary" onClick={() => {
       if (flow !== suggestedFlow) setMaterials([])
       setFlow(suggestedFlow)
@@ -415,6 +416,10 @@ function RequestCard({ item, role, onRefresh, onAssign, onCollect, onVerify, onR
   const [showDetail, setShowDetail] = useState(false)
   const [detail, setDetail] = useState<CollectionRequest | null>(null)
   const [detailError, setDetailError] = useState('')
+  const [showCancel, setShowCancel] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelError, setCancelError] = useState('')
+  const [cancelling, setCancelling] = useState(false)
   useEffect(() => {
     if (!showDetail || !item.code) return
     const controller = new AbortController()
@@ -426,20 +431,44 @@ function RequestCard({ item, role, onRefresh, onAssign, onCollect, onVerify, onR
       if (!controller.signal.aborted) setDetailError('No pudimos consultar el detalle. Cierra y vuelve a abrirlo.')
     })
     return () => controller.abort()
-  }, [item.code, item.id, showDetail])
+  }, [item.code, item.id, item.status, showDetail])
   const flowName = item.flow === 'ORGANIC' ? 'Orgánicos · Huerta' : 'Reciclables · Centro de acopio'
   if (item.code) return <article className="request-card">
     <div className="request-top"><div><span className={item.flow === 'ORGANIC' ? 'flow-label flow-label-green' : 'flow-label'}>{flowName}</span><h3>{item.code}</h3></div><StatusPill status={detail?.status ?? item.status}/></div>
     {showDetail && <div className="request-detail">
       {detail ? <>
         <span>{detail.address}</span>
+        {detail.materials.length > 0 && <span><strong>Materiales informados:</strong> {detail.materials.join(' · ')}</span>}
         {detail.availability && <span>Disponible: {detail.availability}</span>}
         {detail.note && <p>{detail.note}</p>}
         {detail.assignedTo && <span>Recolector: {detail.assignedTo}</span>}
         {detail.scheduledAt && <span>Programada: {new Date(detail.scheduledAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</span>}
       </> : <p role="status">{detailError || 'Consultando solicitud…'}</p>}
     </div>}
-    {showDetail && role !== 'neighbor' && <PickupOperations item={item} role={role} refresh={() => {setShowDetail(false);onRefresh?.()}}/>}
+    {showDetail && role !== 'neighbor' && <PickupOperations item={item} role={role} refresh={() => onRefresh?.()} onDone={() => setShowDetail(false)}/>}
+    {showDetail && (role === 'neighbor' || role === 'vivi' || role === 'kelly') && ['RECEIVED', 'UNDER_REVIEW'].includes(item.status) && <div className="request-cancel-section">
+      {!showCancel ? <button type="button" className="text-button" onClick={() => { setShowCancel(true); setCancelError('') }}>Cancelar solicitud</button> : <form className="admin-inline-form" onSubmit={async (event) => {
+        event.preventDefault()
+        if (cancelling) return
+        setCancelling(true)
+        setCancelError('')
+        try {
+          await request(`/requests/${encodeURIComponent(item.id)}/cancel`, { method: 'POST', body: JSON.stringify({ reason: cancelReason.trim() }) })
+          setShowCancel(false)
+          setCancelReason('')
+          setDetail(null)
+          onRefresh?.()
+        } catch (error) {
+          setCancelError(error instanceof Error ? error.message : 'No pudimos cancelar la solicitud.')
+        } finally {
+          setCancelling(false)
+        }
+      }}>
+        <label>Motivo de cancelación<textarea required maxLength={250} value={cancelReason} onChange={(event) => setCancelReason(event.target.value)} rows={2}/></label>
+        {cancelError && <p role="alert">{cancelError}</p>}
+        <div className="request-actions"><button type="button" className="button button-small button-secondary" disabled={cancelling} onClick={() => setShowCancel(false)}>Volver</button><button type="submit" className="button button-small button-primary" disabled={cancelling || !cancelReason.trim()}>{cancelling ? 'Cancelando…' : 'Confirmar cancelación'}</button></div>
+      </form>}
+    </div>}
     <div className="request-bottom"><small>{item.createdAt}</small><button type="button" className="button button-small button-secondary" aria-expanded={showDetail} onClick={() => setShowDetail(!showDetail)}>{showDetail ? 'Ocultar detalle' : 'Ver detalle'}</button></div>
   </article>
   const address = `${item.stage}, ${item.neighborhood}, torre ${item.tower}, apto. ${item.apartment}`
@@ -475,8 +504,8 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
     const loading = accountId ? residentRequestsApi.list(role) : service.listRequests()
     void loading.then((rows) => {
       if (!cancelled) setRequests(rows)
-    }).catch(() => {
-      if (!cancelled) setRequestsError('No pudimos cargar las solicitudes.')
+    }).catch((error: unknown) => {
+      if (!cancelled) setRequestsError(error instanceof Error ? error.message : 'No pudimos cargar las solicitudes.')
     })
     return () => { cancelled = true }
   }, [role, accountId])
@@ -487,8 +516,8 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
       const rows = await (accountId ? residentRequestsApi.list(role) : service.listRequests())
       setRequests(rows)
       setRequestsError('')
-    } catch {
-      setRequestsError('No pudimos actualizar las solicitudes.')
+    } catch (error) {
+      setRequestsError(error instanceof Error ? error.message : 'No pudimos actualizar las solicitudes.')
     }
     if (message) announce(message)
   }
@@ -551,15 +580,24 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
 }
 
 function DashboardSection({ demo, role, profile, section, requests, allRequests, showAllRequests, onShowAll, onCloseAll, onNew, onLearn, onAction, onSection, onNotify }: { demo: boolean; role: Role; profile: NeighborProfile; section: Section; requests: CollectionRequest[]; allRequests: CollectionRequest[]; showAllRequests: boolean; onShowAll: () => void; onCloseAll: () => void; onNew: () => void; onLearn: () => void; onAction: (item: CollectionRequest) => { onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void; onReject: () => void }; onSection: (section: Section) => void; onNotify: (message: string) => void }) {
+  const [pointsBalance, setPointsBalance] = useState<string | null>(null)
+  const [pointsError, setPointsError] = useState(false)
+  useEffect(() => {
+    if (role !== 'neighbor' || demo) { setPointsBalance(null); setPointsError(false); return }
+    let current = true
+    communityApi.getPoints().then(({ balance }) => { if (current) setPointsBalance(balance) })
+      .catch(() => { if (current) setPointsError(true) })
+    return () => { current = false }
+  }, [demo, role])
   const pending = requests.filter((item) => item.status === 'RECEIVED').length
   const active = requests.filter((item) => item.status !== 'COMPLETED' && item.status !== 'CANCELLED').length
   if (role === 'neighbor' && section === 'home') return <>
     <div className="neighbor-welcome-banner"><div><p className="eyebrow">TU APORTE CUENTA</p><h2>Un barrio más limpio empieza con una acción.</h2><p>Comparte qué vas a entregar y el equipo comunitario te ayudará a coordinarlo.</p></div><button className="button button-primary" onClick={onNew}>＋ Solicitar recolección</button></div>
-    <div className="neighbor-summary"><div className="summary-card summary-orange"><span>Recolecciones pendientes</span><strong>{active}</strong><small>En revisión o coordinación</small></div><div className="summary-card"><span>Puntos disponibles</span><strong>—</strong><small>Saldo por consultar al backend</small></div><button className="new-request-cta" onClick={onNew}><span aria-hidden="true">▧</span><strong>Adjunta una imagen</strong><small>Al crear tu solicitud</small></button></div>
+    <div className="neighbor-summary"><div className="summary-card summary-orange"><span>Recolecciones pendientes</span><strong>{active}</strong><small>En revisión o coordinación</small></div><div className="summary-card"><span>Puntos disponibles</span><strong>{demo ? '—' : pointsBalance === null ? '…' : new Intl.NumberFormat('es-CO').format(Number(pointsBalance))}</strong><small>{demo ? 'Solo para la demostración' : pointsError ? 'No se pudo consultar el saldo' : 'Saldo actualizado desde EcoConecta'}</small></div><button className="new-request-cta" onClick={onNew}><span aria-hidden="true">▧</span><strong>Adjunta una imagen</strong><small>Al crear tu solicitud</small></button></div>
     <div className="section-header"><div><h2>Mis recolecciones</h2><p>Consulta el estado de tus solicitudes recientes.</p></div>{requests.length > 2 && <button className="text-button" onClick={onShowAll}>Ver todas ({requests.length})</button>}</div>
     {requests.length ? <div className="request-list">{requests.slice(0, 2).map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>)}</div> : <EmptyState title="Todavía no tienes solicitudes" detail="Crea una solicitud y podrás seguir aquí su estado." action="Solicitar recolección" onClick={onNew}/>}
     <button className="learning-callout" onClick={onLearn}><span className="learning-callout-icon">+</span><span><strong>Educación ambiental</strong><small>Aprende sobre separación, reciclables y huerta.</small></span><b>→</b></button>
-    {showAllRequests && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCloseAll() }}><section className="requests-modal" role="dialog" aria-modal="true" aria-labelledby="requests-modal-title"><div className="section-header"><div><p className="eyebrow">VECINO · DEMOSTRACIÓN</p><h2 id="requests-modal-title">Todas mis solicitudes</h2></div><button className="icon-button" onClick={onCloseAll} aria-label="Cerrar">×</button></div><div className="request-list">{requests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>)}</div></section></div>}
+    {showAllRequests && <div className="modal-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) onCloseAll() }}><section className="requests-modal" role="dialog" aria-modal="true" aria-labelledby="requests-modal-title"><div className="section-header"><div><p className="eyebrow">{demo ? 'VECINO · DEMOSTRACIÓN' : 'VECINO · ECOCONECTA'}</p><h2 id="requests-modal-title">Todas mis solicitudes</h2></div><button className="icon-button" onClick={onCloseAll} aria-label="Cerrar">×</button></div><div className="request-list">{requests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>)}</div></section></div>}
   </>
   if (role === 'neighbor' && section === 'profile') return <section className="neighbor-profile"><div className="profile-avatar"><RoleIcon role="neighbor"/></div><div className="neighbor-profile-identity"><p className="eyebrow">MI PERFIL</p><h2>{profile.fullName || 'Mi cuenta de vecino'}</h2><p>{profile.neighborhood || 'Villas de San Pablo'}</p></div><div className="neighbor-profile-details"><article><span>Celular</span><strong>{profile.phone || 'Disponible al iniciar sesión'}</strong></article><article><span>Etapa</span><strong>{profile.stage || 'Pendiente de cargar'}</strong></article><article><span>Conjunto</span><strong>{profile.neighborhood || 'Villas de San Pablo'}</strong></article><article><span>Torre · apartamento</span><strong>{profile.tower || profile.apartment ? `${profile.tower || '—'} · ${profile.apartment || '—'}` : 'Pendiente de cargar'}</strong></article></div><div className="profile-points"><span>Puntos acumulados</span><strong>—</strong><small>Saldo actualizado al consultar tu cuenta.</small></div></section>
   if (role === 'collector' && section === 'home') return <>
@@ -590,7 +628,7 @@ function DashboardSection({ demo, role, profile, section, requests, allRequests,
 function AdminSection({ section, requests, onNotify }: { section: Section; requests: CollectionRequest[]; onNotify: (message: string) => void }) {
   if (section === 'home') return <div className="admin-grid"><div className="metric-card"><span>Solicitudes de demostración</span><strong>{requests.length}</strong><small>Datos temporales en este navegador</small></div><div className="metric-card"><span>Flujo orgánico</span><strong>{requests.filter((item) => item.flow === 'ORGANIC').length}</strong><small>Coordinación de huerta</small></div><div className="metric-card"><span>Flujo reciclable</span><strong>{requests.filter((item) => item.flow === 'RECYCLABLE').length}</strong><small>Coordinación de reciclaje</small></div><div className="admin-shortcuts"><h2>Herramientas de administración</h2><p>Gestiona cada módulo desde la navegación.</p><span>Usuarios · eventos · materiales · puntos · reportes</span></div></div>
   if (section === 'points') return <PointsConfiguration onNotify={onNotify}/>
-  if (section === 'users') return <AdminUsersDemo onNotify={onNotify}/>
+  if (section === 'users') return <AdminUsersWorkspace onNotify={onNotify}/>
   if (section === 'events') return <AdminEventsDemo onNotify={onNotify}/>
   if (section === 'catalog') return <AdminMaterialsDemo onNotify={onNotify}/>
   if (section === 'reports') return <AdminReportsDemo requests={requests}/>
@@ -608,7 +646,7 @@ function RecyclerEarnings() {
   </section>
 }
 
-function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
+function AdminUsersWorkspace({ onNotify }: { onNotify: (message: string) => void }) {
   const [users, setUsers] = useState<Awaited<ReturnType<typeof authApi.listPilotUsers>>>([])
   const [zones, setZones] = useState<Awaited<ReturnType<typeof authApi.listZones>>>([])
   const [accountType, setAccountType] = useState<'resident' | 'staff' | 'activation'>('resident')

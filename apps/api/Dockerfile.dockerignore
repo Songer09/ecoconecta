@@ -1,0 +1,13 @@
+**
+!apps/
+!apps/api/
+!apps/api/pyproject.toml
+!apps/api/uv.lock
+!apps/api/alembic.ini
+!apps/api/ecoconecta/
+!apps/api/ecoconecta/**
+!db/
+!db/schema.sql
+!db/migrations/
+!db/migrations/**
+**/__pycache__/

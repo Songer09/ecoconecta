@@ -1,4 +1,5 @@
 from datetime import datetime
+from decimal import Decimal
 from typing import Annotated, Literal
 from uuid import UUID, uuid4
 
@@ -20,6 +21,7 @@ class CreateRequest(BaseModel):
     generator: Literal["hogar", "unidad_productiva"]
     flow: Flow
     zone_id: UUID
+    waste_type_ids: list[UUID] = Field(default_factory=list, max_length=100)
     contact_phone: str = Field(pattern=r"^\+[1-9][0-9]{6,14}$")
     address: str = Field(min_length=1, max_length=250)
     preferred_time: str = Field(min_length=1, max_length=150)
@@ -31,6 +33,8 @@ class CreateRequest(BaseModel):
     def coordinate_pair(self):
         if (self.latitude is None) != (self.longitude is None):
             raise ValueError("Se requieren ambas coordenadas.")
+        if len(set(self.waste_type_ids)) != len(self.waste_type_ids):
+            raise ValueError("No se puede repetir un material.")
         return self
 
 
@@ -49,6 +53,13 @@ class History(BaseModel):
     changed_at: datetime
 
 
+class RequestedMaterial(BaseModel):
+    id: UUID
+    name: str
+    unit: str
+    estimated_qty: Decimal | None
+
+
 class Detail(Summary):
     collector_id: UUID | None
     collector_name: str | None
@@ -59,6 +70,7 @@ class Detail(Summary):
     preferred_time: str | None
     contact_phone: str
     address: str
+    materials: list[RequestedMaterial]
     history: list[History]
 
 
@@ -94,6 +106,13 @@ def create_request(body: CreateRequest, actor: Actor):
         collective = conn.scalar(text("SELECT id FROM collectives WHERE flow=:flow"), {"flow": body.flow})
         if not collective:
             raise HTTPException(409, "flow_unconfigured")
+        if body.waste_type_ids:
+            valid_materials = conn.execute(text("""
+                SELECT id FROM waste_types
+                WHERE id=ANY(:ids) AND flow=:flow AND is_active
+            """), {"ids": body.waste_type_ids, "flow": body.flow}).scalars().all()
+            if len(valid_materials) != len(body.waste_type_ids):
+                raise HTTPException(422, "invalid_material")
         row = conn.execute(text("""
             INSERT INTO pickup_requests AS r
                 (code,requester_id,collective_id,flow,zone_id,generator,contact_phone,address,
@@ -108,6 +127,14 @@ def create_request(body: CreateRequest, actor: Actor):
             INSERT INTO request_status_history(request_id,to_status,changed_by)
             VALUES (:id,'recibida',:actor)
         """), {"id": row["id"], "actor": actor.id})
+        if body.waste_type_ids:
+            conn.execute(text("""
+                INSERT INTO request_items(request_id,waste_type_id)
+                VALUES (:request_id,:waste_type_id)
+            """), [
+                {"request_id": row["id"], "waste_type_id": material_id}
+                for material_id in body.waste_type_ids
+            ])
         return row
 
 
@@ -164,4 +191,9 @@ def detail(request_id: UUID, actor: Actor):
             SELECT to_status,changed_at,reason FROM request_status_history
             WHERE request_id=:id ORDER BY changed_at,id
         """), {"id": request_id}).mappings().all()
-        return {**row, "history": history}
+        materials = conn.execute(text("""
+            SELECT w.id,w.name,w.unit,ri.estimated_qty
+            FROM request_items ri JOIN waste_types w ON w.id=ri.waste_type_id
+            WHERE ri.request_id=:id ORDER BY w.name,w.id
+        """), {"id": request_id}).mappings().all()
+        return {**row, "materials": materials, "history": history}

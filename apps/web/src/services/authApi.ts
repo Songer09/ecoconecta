@@ -222,6 +222,7 @@ interface ResidentRequestDetail extends ResidentRequestSummary {
   preferred_time: string | null
   collector_name: string | null
   scheduled_start: string | null
+  materials?: { id: string; name: string; unit: string; estimated_qty: string | null }[]
 }
 
 function residentRequest(row: ResidentRequestSummary): CollectionRequest {
@@ -238,15 +239,16 @@ export const residentRequestsApi = {
   listMaterials(flow: NewRequest['flow'], signal: AbortSignal) {
     return request<{ id: string; name: string }[]>(`/public/materials?flow=${requestFlows[flow]}`, { signal }, false)
   },
-  async create(input: NewRequest, zoneId: string, phone: string, generator: 'hogar' | 'unidad_productiva') {
-    const observations = [`Materiales informados: ${input.materials.join(', ')}`, input.note].filter(Boolean).join('\n')
-    if (observations.length > 1000) throw new Error('Reduce la nota o la selección de materiales para poder enviar la solicitud.')
+  async create(input: NewRequest, zoneId: string, phone: string, generator: 'hogar' | 'unidad_productiva', materialIds: string[]) {
+    const observations = input.note.trim()
+    if (observations.length > 1000) throw new Error('Reduce la nota para poder enviar la solicitud.')
     const row = await request<ResidentRequestSummary>('/requests', {
       method: 'POST',
       body: JSON.stringify({
         generator,
         flow: requestFlows[input.flow],
         zone_id: zoneId,
+        waste_type_ids: materialIds,
         contact_phone: phone,
         address: `${input.stage}, ${input.neighborhood}, torre ${input.tower}, apto. ${input.apartment}`,
         preferred_time: input.availability,
@@ -275,6 +277,7 @@ export const residentRequestsApi = {
       availability: row.preferred_time ?? '',
       assignedTo: row.collector_name ?? undefined,
       scheduledAt: row.scheduled_start ?? undefined,
+      materials: row.materials?.map((material) => material.name) ?? [],
     }
   },
 }
