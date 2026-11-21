@@ -10,18 +10,25 @@ import { StatusPill } from './components/StatusPill'
 import { DemoTag } from './components/DemoTag'
 import { EmptyState, InfoSection, OperationPanel } from './components/PanelStates'
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
-import { authApi } from './services/authApi'
+import { ApiRequestError, authApi } from './services/authApi'
 import { CoordinatorDirectory } from './components/CoordinatorDirectory'
 import { CommunityFooter, VillasStorySection } from './components/LandingSections'
 import { EducationContent } from './components/EducationContent'
 import { GardenRedemptions } from './components/GardenRedemptions'
 import { CommunityEvents } from './components/CommunityEvents'
+import { MascotProvider, useMascotActions, useMascotHidden, useMascotReminderBlock, useMascotScene } from './components/mascot/MascotContext'
+import { MascotDock } from './components/mascot/MascotDock'
+import type { MascotMessage, MascotView } from './components/mascot/mascotMessages'
 
-type View = 'welcome' | 'login' | 'register' | 'learning' | 'dashboard' | 'demo-roles' | 'events'
+type View = MascotView
 type Session = Awaited<ReturnType<typeof authApi.login>>
 type Section = 'home' | 'requests' | 'history' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports' | 'team'
 type NeighborProfile = { fullName: string; phone: string; stage: string; neighborhood: string; tower: string; apartment: string }
 const emptyNeighborProfile: NeighborProfile = { fullName: '', phone: '', stage: '', neighborhood: '', tower: '', apartment: '' }
+
+function scrollScreenToTop() {
+  document.querySelector('.mascot-screen')?.scrollTo(0, 0)
+}
 
 const roleInfo: Record<Role, { name: string; title: string; description: string }> = {
   neighbor: { name: 'Vecino', title: 'Tu hogar también transforma', description: 'Solicita una recolección, aprende y sigue tus aportes.' },
@@ -59,8 +66,8 @@ function SiteHeader({ onHome, onEducation, onEvents, active, tools }: { onHome: 
     <button className="site-brand-button" onClick={onHome} aria-label="Volver al inicio"><Brand/></button>
     <nav className="site-header-nav" aria-label="Navegación del sitio">
       <button className="site-home-button" onClick={onHome} aria-label="Inicio" title="Inicio"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1h-5v-7H9v7H4a1 1 0 0 1-1-1V10Z"/></svg></button>
-      <button className={active === 'education' ? 'site-nav-active' : ''} onClick={onEducation}>Educación</button>
-      <button className={active === 'events' ? 'site-nav-active' : ''} onClick={onEvents}>Eventos</button>
+      <button className={active === 'education' ? 'site-nav-active' : ''} data-mascot-target="education" onClick={onEducation}>Educación</button>
+      <button className={active === 'events' ? 'site-nav-active' : ''} data-mascot-target="events" onClick={onEvents}>Eventos</button>
     </nav>
     <div className="site-header-actions">
       {whatsappUrl ? <a className="site-whatsapp" href={whatsappUrl} target="_blank" rel="noopener noreferrer">{whatsappLabel}</a>
@@ -81,7 +88,7 @@ function Welcome({ onHome, onRole, onDemo, onLearn, onEvents, onPanel }: { onHom
         <section className="role-picker" id="roles">
           <div className="role-picker-heading"><div><p className="eyebrow">ACCESO A ECOCONECTA</p><h2>Elige tu rol</h2></div></div>
           <div className="role-grid">
-            {roleOptions.map((role) => <button key={role} className="role-card" onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}><RoleIcon role={role}/></span><span className="role-copy"><strong>{roleInfo[role].name}</strong></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
+            {roleOptions.map((role) => <button key={role} className="role-card" data-mascot-target={role === 'neighbor' ? 'welcome-role' : undefined} onClick={() => onRole(role)}><span className={`role-avatar avatar-${role}`}><RoleIcon role={role}/></span><span className="role-copy"><strong>{roleInfo[role].name}</strong></span><span className="role-arrow" aria-hidden="true">↗</span></button>)}
           </div>
           {onDemo && <div className="welcome-actions"><button className="button button-secondary welcome-demo-button" onClick={onDemo}>Ver demostración</button></div>}
         </section>
@@ -114,20 +121,26 @@ function LoginScreen({ role, forEducation, onHome, onEducation, onEvents, onRegi
   const [password, setPassword] = useState('')
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
+  const [mascotIssue, setMascotIssue] = useState<MascotMessage>()
+  useMascotScene(busy ? 'loginLoading' : mascotIssue)
   const canRegister = role === 'neighbor' || role === 'collector'
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
+    setMascotIssue(undefined)
     setBusy(true)
     try {
       const session = await authApi.login({ phone: phone.trim(), password })
       if (!forEducation && session.role !== role) {
         await authApi.logout()
-        throw new Error(`Esta cuenta pertenece al perfil “${roleInfo[session.role].name}”. Elige ese perfil para continuar.`)
+        setMessage(`Esta cuenta pertenece al perfil “${roleInfo[session.role].name}”. Elige ese perfil para continuar.`)
+        setMascotIssue('loginInvalid')
+        return
       }
       onSuccess(session, phone.trim())
     } catch (error) {
       setMessage(error instanceof Error ? error.message : 'No se pudo iniciar sesión.')
+      setMascotIssue(error instanceof ApiRequestError && error.status >= 400 && error.status < 500 ? 'loginInvalid' : 'loginFailed')
     } finally {
       setBusy(false)
     }
@@ -139,7 +152,7 @@ function LoginScreen({ role, forEducation, onHome, onEducation, onEvents, onRegi
       <p className="eyebrow">INICIO DE SESIÓN</p>
       <h1>{forEducation ? 'Ingresa a Educación' : roleInfo[role].name}</h1>
       {forEducation && <p className="login-description">Inicia sesión para guardar los temas que completes y continuar desde donde quedaste.</p>}
-      <form className="login-form" onSubmit={submit}>
+      <form className="login-form" onSubmit={submit} onInvalid={() => setMascotIssue('loginInvalid')} onInput={() => setMascotIssue(undefined)}>
         <label>Teléfono con indicativo internacional<input type="tel" name="phone" autoComplete="username" inputMode="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
         <label>Contraseña<input type="password" name="password" autoComplete="current-password" placeholder="Ingresa tu contraseña" value={password} onChange={(event) => setPassword(event.target.value)} required/></label>
         <div className={canRegister ? 'login-actions login-actions-split' : 'login-actions'}>
@@ -167,12 +180,16 @@ function RegistrationScreen({ collector, onHome, onEducation, onEvents, onLogin,
   const [message, setMessage] = useState('')
   const [busy, setBusy] = useState(false)
   const [accountCreated, setAccountCreated] = useState(false)
+  const [mascotIssue, setMascotIssue] = useState<MascotMessage>()
+  const { showMoment } = useMascotActions()
+  useMascotScene(accountCreated ? (collector ? 'collectorRegistered' : 'registerCreated') : busy ? 'registerLoading' : mascotIssue)
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
     setMessage('')
-    if (password !== confirmPassword) { setMessage('Las contraseñas no coinciden.'); return }
-    if (!dataTreatmentAccepted) { setMessage('Debes autorizar el tratamiento de datos para crear tu cuenta.'); return }
+    setMascotIssue(undefined)
+    if (password !== confirmPassword) { setMessage('Las contraseñas no coinciden.'); setMascotIssue('registerInvalid'); return }
+    if (!dataTreatmentAccepted) { setMessage('Debes autorizar el tratamiento de datos para crear tu cuenta.'); setMascotIssue('registerInvalid'); return }
     setBusy(true)
     let created = false
     try {
@@ -180,6 +197,7 @@ function RegistrationScreen({ collector, onHome, onEducation, onEvents, onLogin,
         await authApi.registerCollector({ full_name: fullName.trim(), phone: phone.trim(), password, data_treatment_accepted: true })
         setAccountCreated(true)
         setMessage('Recibimos tu registro. Podrás iniciar sesión cuando administración active tu cuenta.')
+        showMoment('collectorRegistered')
         return
       }
       await authApi.registerResident({
@@ -192,7 +210,10 @@ function RegistrationScreen({ collector, onHome, onEducation, onEvents, onLogin,
       const session = await authApi.login({ phone: phone.trim(), password })
       if (session.role !== 'neighbor') throw new Error('La cuenta se creó, pero no tiene el perfil de vecino esperado.')
       onSuccess(session, { fullName: fullName.trim(), phone: phone.trim(), stage: stage.trim(), neighborhood: neighborhood.trim(), tower: tower.trim(), apartment: apartment.trim() })
+      showMoment('registerCreated')
     } catch (error) {
+      if (created) showMoment('registerCreated')
+      else setMascotIssue(error instanceof ApiRequestError && error.status >= 400 && error.status < 500 ? 'registerInvalid' : 'registerFailed')
       setMessage(created
         ? 'Tu cuenta quedó creada y activa. Inicia sesión con el teléfono y la contraseña que registraste.'
         : error instanceof Error ? error.message : 'No se pudo completar el registro.')
@@ -204,7 +225,7 @@ function RegistrationScreen({ collector, onHome, onEducation, onEvents, onLogin,
     <section className="register-card">
       <h1>Registro de {collector ? 'recolector' : 'vecino'}</h1>
       <p className="register-description">{collector ? 'Crea tu cuenta. Administración revisará el registro y asignará tus zonas de recolección.' : 'Crea tu cuenta para solicitar recolecciones y participar en tu comunidad.'}</p>
-      {accountCreated ? <><p className="register-success" role="status">{message}</p><button type="button" className="button button-primary" onClick={collector ? onHome : onLogin}>{collector ? 'Volver al inicio' : 'Ir a iniciar sesión'}</button></> : <form className="register-form" onSubmit={submit}>
+      {accountCreated ? <><p className="register-success" role="status">{message}</p><button type="button" className="button button-primary" onClick={collector ? onHome : onLogin}>{collector ? 'Volver al inicio' : 'Ir a iniciar sesión'}</button></> : <form className="register-form" onSubmit={submit} onInvalid={() => setMascotIssue('registerInvalid')} onInput={() => setMascotIssue(undefined)}>
         <label>Nombre completo<input autoComplete="name" maxLength={200} value={fullName} onChange={(event) => setFullName(event.target.value)} required/></label>
         <label>Celular con indicativo internacional<input type="tel" inputMode="tel" autoComplete="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
         {!collector && <div className="address-grid resident-address-grid">
@@ -242,7 +263,7 @@ function RealCommunityMap({ demo }: { demo: boolean }) {
       const route = L.polyline(demoMapStops.map(({ position }) => position), {
         color: '#155987', weight: 5, dashArray: '10 8',
       }).addTo(map)
-      map.fitBounds(route.getBounds(), { padding: [52, 52], maxZoom: 17 })
+      map.fitBounds(route.getBounds(), { padding: [52, 52], maxZoom: 17, animate: false })
       demoMapStops.forEach(({ position, area }, index) => {
         const label = `Parada ficticia ${index + 1}: ${area}`
         const marker = L.divIcon({
@@ -278,6 +299,8 @@ function RequestForm({ onCreated, onCancel }: { onCreated: (item: CollectionRequ
   const [photo, setPhoto] = useState<File | null>(null)
   const [photoPreview, setPhotoPreview] = useState('')
   const [error, setError] = useState('')
+  useMascotScene(step === 1 ? 'pickupPhoto' : step === 2 ? 'pickupMaterials' : 'pickupAddress')
+  useMascotReminderBlock(Boolean(error))
   const options = flow === 'RECYCLABLE' ? ['Cartón', 'Papel', 'Botellas PET', 'Latas', 'Vidrio'] : ['Restos de frutas', 'Cáscaras de verduras', 'Hojas secas', 'Restos de poda']
   useEffect(() => () => { if (photoPreview) URL.revokeObjectURL(photoPreview) }, [photoPreview])
   function selectPhoto(file: File | null) {
@@ -300,10 +323,10 @@ function RequestForm({ onCreated, onCancel }: { onCreated: (item: CollectionRequ
     onCreated(created)
   }
   return <section className="form-card resident-request-form"><div className="form-heading"><div><p className="eyebrow">VILLAS DE SAN PABLO</p><h1>{step === 1 ? 'Pedir recolección' : step === 2 ? '¿Qué vas a entregar?' : '¿Dónde podemos recogerlo?'}</h1></div><button className="icon-button" onClick={onCancel} aria-label="Cerrar formulario">×</button></div>
-    <div className="resident-request-progress"><span>Paso {step} de 3</span><span>{step === 1 ? 'Fotos' : step === 2 ? 'Materiales' : 'Dirección'}</span><i><b style={{ width: `${step / 3 * 100}%` }}/></i></div>
-    {step === 1 ? <label className="photo-dropzone"><span className="photo-camera-icon" aria-hidden="true">◎</span>{photoPreview ? <img className="request-photo-preview" src={photoPreview} alt="Vista previa de tus residuos"/> : <><strong>Muéstranos tus residuos</strong><span>Toma una foto clara. Así podremos enviarlos al lugar correcto.</span></>}<input type="file" accept="image/jpeg,image/png" capture="environment" onChange={(event) => selectPhoto(event.target.files?.[0] ?? null)}/><b className="button button-primary">◎ {photo ? 'Cambiar foto' : 'Tomar foto'}</b></label> : step === 2 ? <><div className="flow-choice"><button className={flow === 'RECYCLABLE' ? 'flow-option selected' : 'flow-option'} onClick={() => { setFlow('RECYCLABLE'); setMaterials([]) }}><strong>Reciclables</strong><small>Papel, cartón, envases y más</small></button><button className={flow === 'ORGANIC' ? 'flow-option selected flow-organic' : 'flow-option'} onClick={() => { setFlow('ORGANIC'); setMaterials([]) }}><strong>Orgánicos</strong><small>Aportes para la huerta comunitaria</small></button></div><fieldset className="material-fieldset"><legend>¿Qué vas a entregar?</legend><div className="material-options">{options.map((item) => <button type="button" key={item} className={materials.includes(item) ? 'material-chip chosen' : 'material-chip'} onClick={() => selectMaterial(item)} aria-pressed={materials.includes(item)}>{materials.includes(item) ? '✓ ' : '+ '}{item}</button>)}</div></fieldset></> : <><p className="form-hint">La dirección se comparte con el equipo que atiende tu solicitud.</p><div className="address-grid"><label>Etapa<select value={stage} onChange={(event) => setStage(event.target.value)}><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label><label className="wide-field">Conjunto<input value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Nombre del conjunto" autoComplete="address-line1" required/></label><label>Torre<input value={tower} onChange={(event) => setTower(event.target.value)} placeholder="Ej. 2" required/></label><label>Apartamento<input value={apartment} onChange={(event) => setApartment(event.target.value)} placeholder="Ej. 304" required/></label><label className="wide-field">¿Cuándo estás disponible?<select value={availability} onChange={(event) => setAvailability(event.target.value)}><option>Hoy en la tarde</option><option>Mañana en la mañana</option><option>Mañana en la tarde</option><option>Coordinar por teléfono</option></select></label><label className="wide-field">Nota para el equipo <span className="optional">(opcional)</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Algo que debamos saber" rows={2}/></label></div></>}
+    <div className="resident-request-progress" data-mascot-target="pickup-progress"><span>Paso {step} de 3</span><span>{step === 1 ? 'Fotos' : step === 2 ? 'Materiales' : 'Dirección'}</span><i><b style={{ width: `${step / 3 * 100}%` }}/></i></div>
+    {step === 1 ? <label className="photo-dropzone" data-mascot-target="pickup-photo"><span className="photo-camera-icon" aria-hidden="true">◎</span>{photoPreview ? <img className="request-photo-preview" src={photoPreview} alt="Vista previa de tus residuos"/> : <><strong>Muéstranos tus residuos</strong><span>Toma una foto clara. Así podremos enviarlos al lugar correcto.</span></>}<input type="file" accept="image/jpeg,image/png" capture="environment" onChange={(event) => selectPhoto(event.target.files?.[0] ?? null)}/><b className="button button-primary">◎ {photo ? 'Cambiar foto' : 'Tomar foto'}</b></label> : step === 2 ? <><div className="flow-choice"><button className={flow === 'RECYCLABLE' ? 'flow-option selected' : 'flow-option'} onClick={() => { setFlow('RECYCLABLE'); setMaterials([]) }}><strong>Reciclables</strong><small>Papel, cartón, envases y más</small></button><button className={flow === 'ORGANIC' ? 'flow-option selected flow-organic' : 'flow-option'} onClick={() => { setFlow('ORGANIC'); setMaterials([]) }}><strong>Orgánicos</strong><small>Aportes para la huerta comunitaria</small></button></div><fieldset className="material-fieldset"><legend>¿Qué vas a entregar?</legend><div className="material-options">{options.map((item) => <button type="button" key={item} className={materials.includes(item) ? 'material-chip chosen' : 'material-chip'} onClick={() => selectMaterial(item)} aria-pressed={materials.includes(item)}>{materials.includes(item) ? '✓ ' : '+ '}{item}</button>)}</div></fieldset></> : <><p className="form-hint">La dirección se comparte con el equipo que atiende tu solicitud.</p><div className="address-grid"><label>Etapa<select value={stage} onChange={(event) => setStage(event.target.value)}><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label><label className="wide-field">Conjunto<input value={neighborhood} onChange={(event) => setNeighborhood(event.target.value)} placeholder="Nombre del conjunto" autoComplete="address-line1" required/></label><label>Torre<input value={tower} onChange={(event) => setTower(event.target.value)} placeholder="Ej. 2" required/></label><label>Apartamento<input value={apartment} onChange={(event) => setApartment(event.target.value)} placeholder="Ej. 304" required/></label><label className="wide-field">¿Cuándo estás disponible?<select value={availability} onChange={(event) => setAvailability(event.target.value)}><option>Hoy en la tarde</option><option>Mañana en la mañana</option><option>Mañana en la tarde</option><option>Coordinar por teléfono</option></select></label><label className="wide-field">Nota para el equipo <span className="optional">(opcional)</span><textarea value={note} onChange={(event) => setNote(event.target.value)} placeholder="Algo que debamos saber" rows={2}/></label></div></>}
     {error && <p className="form-error" role="alert">{error}</p>}
-    <div className="form-actions"><button className="button button-secondary" onClick={step === 1 ? onCancel : () => { setStep(step - 1); setError('') }}>{step === 1 ? 'Cancelar' : 'Atrás'}</button><button className="button button-primary" onClick={() => { setError(''); if (step === 1) photo ? setStep(2) : setError('Agrega una foto para continuar.'); else if (step === 2) materials.length ? setStep(3) : setError('Elige al menos un material.'); else void submit() }}>{step < 3 ? 'Continuar' : 'Enviar solicitud'}</button></div>
+    <div className="form-actions"><button className="button button-secondary" onClick={step === 1 ? onCancel : () => { setStep(step - 1); setError('') }}>{step === 1 ? 'Cancelar' : 'Atrás'}</button><button className="button button-primary" data-mascot-target={step === 1 ? 'pickup-next' : undefined} onClick={() => { setError(''); if (step === 1) photo ? setStep(2) : setError('Agrega una foto para continuar.'); else if (step === 2) materials.length ? setStep(3) : setError('Elige al menos un material.'); else void submit() }}>{step < 3 ? 'Continuar' : 'Enviar solicitud'}</button></div>
   </section>
 }
 
@@ -323,7 +346,7 @@ function RouteMap({ items, demo }: { items: CollectionRequest[]; demo: boolean }
 
 function CoordinatorMapLayout({ requests, role, demo, onAction }: { requests: CollectionRequest[]; demo: boolean; role: 'kelly' | 'vivi'; onAction: (item: CollectionRequest) => { onAssign: (scheduledAt: string) => void; onCollect: () => void; onVerify: () => void; onReject: () => void } }) {
   const pendingRequests = requests.filter((item) => item.status === 'RECEIVED' || item.status === 'UNDER_REVIEW')
-  return <div className="coordinator-map-layout coordinator-map-layout-wide"><div className="coordinator-map-canvas"><RealCommunityMap demo={demo}/></div><aside className="coordinator-request-panel"><div className="coordinator-request-heading"><div><h2>Solicitudes pendientes</h2><span>{pendingRequests.length} por revisar</span></div><span className="route-count">{pendingRequests.length}</span></div><div className="coordinator-request-list">{pendingRequests.length ? pendingRequests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>) : <EmptyState title="No hay solicitudes pendientes" detail="Las nuevas solicitudes aparecerán en este panel."/>}</div></aside></div>
+  return <div className="coordinator-map-layout coordinator-map-layout-wide"><div className="coordinator-map-canvas" data-mascot-target="coordination-map"><RealCommunityMap demo={demo}/></div><aside className="coordinator-request-panel"><div className="coordinator-request-heading" data-mascot-target="coordination-requests"><div><h2>Solicitudes pendientes</h2><span>{pendingRequests.length} por revisar</span></div><span className="route-count">{pendingRequests.length}</span></div><div className="coordinator-request-list">{pendingRequests.length ? pendingRequests.map((item) => <RequestCard key={item.id} item={item} role={role} {...onAction(item)}/>) : <EmptyState title="No hay solicitudes pendientes" detail="Las nuevas solicitudes aparecerán en este panel."/>}</div></aside></div>
 }
 
 function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents }: { role: Role; profile: NeighborProfile; accountId?: string; onHome: () => void; onExit: () => void; onLearn: () => void; onEvents: () => void }) {
@@ -334,8 +357,12 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
   const [toast, setToast] = useState('')
   const [available, setAvailable] = useState(true)
   const [notification, setNotification] = useState('')
+  const { showMoment } = useMascotActions()
+  useMascotHidden(showAllRequests)
+  // Canjear handles loading and errors internally. Keep reminders quiet while the catalog is open.
+  useMascotReminderBlock(role === 'neighbor' && section === 'points')
   useEffect(() => { void service.listRequests().then(setRequests) }, [])
-  useEffect(() => { window.scrollTo(0, 0) }, [section])
+  useEffect(scrollScreenToTop, [section])
   function announce(message: string) { setToast(message); window.setTimeout(() => setToast(''), 3800) }
   async function refresh(message?: string) { const rows = await service.listRequests(); setRequests(rows); if (message) announce(message) }
   const visibleRequests = useMemo(() => {
@@ -345,6 +372,9 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
     if (role === 'kelly') return requests.filter((item) => item.flow === 'ORGANIC')
     return requests
   }, [requests, role])
+  const emptyQueue = section === 'home' && (role === 'vivi' || role === 'kelly')
+    && !visibleRequests.some(({ status }) => status === 'RECEIVED' || status === 'UNDER_REVIEW')
+  useMascotScene(emptyQueue ? 'noCoordinationRequests' : undefined)
   async function assign(item: CollectionRequest, scheduledAt: string) { const who = item.flow === 'ORGANIC' ? 'Huertero asignado (dato ficticio)' : 'Reciclador asignado (dato ficticio)'; await service.assignRequest(item.id, who, scheduledAt); await refresh('Solicitud programada y asignada. La persona responsable ya puede verla en su jornada.') }
   async function collect(item: CollectionRequest) { await service.registerCollection(item.id); await refresh('Recolección registrada. La coordinadora puede verificar el cierre.') }
   async function verify(item: CollectionRequest) { await service.verifyAndClose(item.id); await refresh('Recolección verificada y cerrada. El sistema de puntos podrá aplicar la regla configurada.') }
@@ -363,8 +393,8 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
           <span className={`sidebar-profile-icon avatar-${role}`}><RoleIcon role={role}/></span>
           <div><strong>{info.name}</strong><small>{subtitleByRole[role]}</small></div>
         </div>
-        <nav aria-label="Navegación principal">
-          {navByRole[role].map((item) => <button key={item.id} className={`nav-item ${section === item.id ? 'nav-active' : ''}`} aria-current={section === item.id ? 'page' : undefined} onClick={() => {
+        <nav aria-label="Navegación principal" data-mascot-target={role === 'vivi' || role === 'kelly' ? 'coordination-nav' : undefined}>
+          {navByRole[role].map((item) => <button key={item.id} className={`nav-item ${section === item.id ? 'nav-active' : ''}`} aria-current={section === item.id ? 'page' : undefined} data-mascot-target={role === 'kelly' && item.id === 'inventory' ? 'garden-inventory' : undefined} onClick={() => {
             if (item.id === 'learning') { onLearn(); return }
             setSection(item.id)
             setShowAllRequests(false)
@@ -375,7 +405,7 @@ function Dashboard({ role, profile, accountId, onHome, onExit, onLearn, onEvents
       <main className="app-main">{!requesting && !(section === 'home' && (role === 'vivi' || role === 'kelly')) && <div className="main-heading"><div><p className="eyebrow">{info.name.toUpperCase()} · ECOCONECTA</p><h1>{heading}</h1>{section === 'home' && <p>{role === 'neighbor' ? 'Esto es lo que pasa con tus aportes al barrio.' : info.description}</p>}</div>{role === 'collector' && <button className={`availability ${available ? 'available' : ''}`} onClick={() => { setAvailable(!available); announce(available ? 'Ahora apareces como no disponible.' : 'Ahora apareces como disponible.') }}><i/> {available ? 'Disponible' : 'No disponible'}</button>}</div>}
         {toast && <div className="toast" role="status">{toast}</div>}
         {notification && <div className="notice-banner" role="status">{notification}<button onClick={() => setNotification('')} aria-label="Cerrar aviso">×</button></div>}
-        {requesting ? <RequestForm onCancel={() => setSection('home')} onCreated={(item) => { setSection('home'); void refresh(`Solicitud ${item.id} creada y enviada a ${item.flow === 'ORGANIC' ? 'la coordinación de huerta' : 'la coordinación de reciclaje'}.`) }}/>
+        {requesting ? <RequestForm onCancel={() => setSection('home')} onCreated={(item) => { setSection('home'); showMoment('pickupCreated'); void refresh(`Solicitud ${item.id} creada y enviada a ${item.flow === 'ORGANIC' ? 'la coordinación de huerta' : 'la coordinación de reciclaje'}.`) }}/>
           : role === 'neighbor' && section === 'points' ? <GardenRedemptions accountId={accountId}/>
           : role === 'neighbor' && section === 'events' ? <CommunityEvents/>
           : <DashboardSection demo={import.meta.env.DEV && !accountId} role={role} profile={profile} section={section} requests={visibleRequests} allRequests={requests} showAllRequests={showAllRequests} onShowAll={() => setShowAllRequests(true)} onCloseAll={() => setShowAllRequests(false)} onNew={() => setSection('new')} onLearn={onLearn} onAction={requestActions} onSection={setSection} onNotify={setNotification}/>}
@@ -458,11 +488,13 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
   const [validFrom, setValidFrom] = useState(() => new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Bogota', year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date()))
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [loadingAccounts, setLoadingAccounts] = useState(true)
+  useMascotReminderBlock(loadingAccounts || loadingPending || busy || Boolean(error))
   async function reload() {
     const [loadedUsers, loadedZones] = await Promise.all([authApi.listPilotUsers(), authApi.listZones()])
     setUsers(loadedUsers); setZones(loadedZones)
   }
-  useEffect(() => { void reload().catch((reason) => setError(reason instanceof Error ? reason.message : 'No se pudieron cargar las cuentas.')) }, [])
+  useEffect(() => { void reload().catch((reason) => setError(reason instanceof Error ? reason.message : 'No se pudieron cargar las cuentas.')).finally(() => setLoadingAccounts(false)) }, [])
   async function showAccountType(type: typeof accountType) {
     setAccountType(type)
     setError('')
@@ -561,16 +593,22 @@ function PointsConfiguration({ onNotify }: { onNotify: (message: string) => void
 }
 
 export default function App() {
+  return <MascotProvider><EcoConectaApp/></MascotProvider>
+}
+
+function EcoConectaApp() {
   const [view, setView] = useState<View>('welcome')
   const [role, setRole] = useState<Role>('neighbor')
   const [session, setSession] = useState<Session | null>(null)
   const [residentProfile, setResidentProfile] = useState<NeighborProfile>(emptyNeighborProfile)
   const [loginForEducation, setLoginForEducation] = useState(false)
+  const screenRef = useRef<HTMLDivElement>(null)
+  const { showMoment } = useMascotActions()
 
-  useEffect(() => { window.scrollTo(0, 0) }, [view])
+  useEffect(scrollScreenToTop, [view])
 
   function home() {
-    window.scrollTo(0, 0)
+    scrollScreenToTop()
     setView('welcome')
   }
   function openEducationLogin() {
@@ -605,29 +643,37 @@ export default function App() {
     setResidentProfile(emptyNeighborProfile)
     void authApi.logout().catch(() => {})
     home()
+    showMoment('farewell', 5000)
   }
   const openEvents = () => setView('events')
   const showPanel = () => setView('dashboard')
   const panelButton = session && <button className="button button-secondary" onClick={showPanel}>Mi panel</button>
   const siteNavigation = { onHome: home, onEducation: openEducation, onEvents: openEvents }
 
-  if (view === 'events') return <main className="education-page">
-    <SiteHeader {...siteNavigation} active="events" tools={panelButton}/>
-    <div className="education-wrap education-account-wrap"><h1>Eventos</h1><CommunityEvents/></div>
-  </main>
-  if (view === 'learning' && session) return <main className="education-page">
-    <SiteHeader {...siteNavigation} active="education" tools={panelButton}/>
-    <div className="education-wrap education-account-wrap">
-      <header className="education-intro"><h1>Aprender</h1><p>Consejos cortos para separar mejor y cuidar nuestra comunidad.</p></header>
-      <EducationContent key={session.identity.id} onSignIn={openEducationLogin}/>
-    </div>
-  </main>
-  if (view === 'register') return <RegistrationScreen {...siteNavigation} collector={role === 'collector'} onLogin={() => setView('login')} onSuccess={finishSignIn}/>
-  if (view === 'login') return <LoginScreen key={loginForEducation ? 'education' : role} {...siteNavigation} role={role} forEducation={loginForEducation} onRegister={() => setView('register')} onSuccess={(signedIn, phone) => {
-    const identity = signedIn.identity
-    finishSignIn(signedIn, signedIn.role === 'neighbor' ? { fullName: identity.full_name || '', phone: identity.phone || phone, stage: identity.stage || '', neighborhood: identity.neighborhood || '', tower: identity.tower || '', apartment: identity.apartment || '' } : emptyNeighborProfile)
-  }}/>
-  if (view === 'dashboard') return <Dashboard key={session?.identity.id ?? role} role={session?.role ?? role} profile={residentProfile} accountId={session?.identity.id} onHome={home} onExit={exit} onLearn={openEducation} onEvents={openEvents}/>
-  if (view === 'demo-roles' && import.meta.env.DEV) return <DemoRolePicker onBack={home} onEducation={openEducation} onEvents={openEvents} onChoose={(selected) => { setRole(selected); showPanel() }}/>
-  return <Welcome onHome={home} onRole={openRole} onDemo={import.meta.env.DEV && !session ? () => setView('demo-roles') : undefined} onLearn={openEducation} onEvents={openEvents} onPanel={session ? showPanel : undefined}/>
+  function renderScreen() {
+    if (view === 'events') return <main className="education-page">
+      <SiteHeader {...siteNavigation} active="events" tools={panelButton}/>
+      <div className="education-wrap education-account-wrap"><h1>Eventos</h1><CommunityEvents/></div>
+    </main>
+    if (view === 'learning' && session) return <main className="education-page">
+      <SiteHeader {...siteNavigation} active="education" tools={panelButton}/>
+      <div className="education-wrap education-account-wrap">
+        <header className="education-intro"><h1>Aprender</h1><p>Consejos cortos para separar mejor y cuidar nuestra comunidad.</p></header>
+        <EducationContent key={session.identity.id} onSignIn={openEducationLogin}/>
+      </div>
+    </main>
+    if (view === 'register') return <RegistrationScreen {...siteNavigation} collector={role === 'collector'} onLogin={() => setView('login')} onSuccess={finishSignIn}/>
+    if (view === 'login') return <LoginScreen key={loginForEducation ? 'education' : role} {...siteNavigation} role={role} forEducation={loginForEducation} onRegister={() => setView('register')} onSuccess={(signedIn, phone) => {
+      const identity = signedIn.identity
+      finishSignIn(signedIn, signedIn.role === 'neighbor' ? { fullName: identity.full_name || '', phone: identity.phone || phone, stage: identity.stage || '', neighborhood: identity.neighborhood || '', tower: identity.tower || '', apartment: identity.apartment || '' } : emptyNeighborProfile)
+    }}/>
+    if (view === 'dashboard') return <Dashboard key={session?.identity.id ?? role} role={session?.role ?? role} profile={residentProfile} accountId={session?.identity.id} onHome={home} onExit={exit} onLearn={openEducation} onEvents={openEvents}/>
+    if (view === 'demo-roles' && import.meta.env.DEV) return <DemoRolePicker onBack={home} onEducation={openEducation} onEvents={openEvents} onChoose={(selected) => { setRole(selected); showPanel() }}/>
+    return <Welcome onHome={home} onRole={openRole} onDemo={import.meta.env.DEV && !session ? () => setView('demo-roles') : undefined} onLearn={openEducation} onEvents={openEvents} onPanel={session ? showPanel : undefined}/>
+  }
+
+  return <>
+    <div ref={screenRef} className="mascot-screen" data-mascot-screen={view}>{renderScreen()}</div>
+    <MascotDock view={view} role={session?.role ?? role} screenRef={screenRef}/>
+  </>
 }

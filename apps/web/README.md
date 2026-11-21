@@ -51,3 +51,14 @@ Los registros de demostración no contienen coordenadas de solicitudes ni de rec
 - El módulo no configura precios, puntos, materiales oficiales, cobertura ni disponibilidad real.
 - El cierre muestra el momento en que correspondería aplicar una regla aprobada; no inventa ni acredita cantidades de puntos.
 - El selector abre formularios de acceso por rol. El contrato API propone `POST /auth/login`, pero Backend aún no publica esquema ni servicio; por ahora el formulario informa que no se enviaron las credenciales y no concede una sesión.
+
+## Mascota
+
+Cris es una guía de la interfaz. Toca la oruga para ver la ayuda de la pantalla actual. El globo ofrece recorridos opcionales en Inicio, en el primer paso de Pedir recolección y en los dos paneles de coordinación. La tarjeta cambia de lado cuando el objetivo está cerca del borde inferior. La ayuda se pausa al interactuar con el globo y se oculta mientras escribes o tienes un modal abierto.
+
+- Las siete imágenes transparentes están en `public/images/mascota/`. Para cambiar una pose, ajusta la ruta, el tamaño original y `face` en `src/components/mascot/mascotConfig.ts`. Los valores `x` e `y` indican el centro de la cara en porcentaje y `scale` amplía la imagen dentro del círculo de 64 a 84 px. La expresión `feliz` comparte la imagen de bienvenida.
+- Edita los mensajes y los recorridos en `src/components/mascot/mascotMessages.ts`. Una pantalla puede informar de su escena mediante `useMascotScene`, y de un evento breve mediante `showMoment`. Los objetivos de los recorridos se identifican por `data-mascot-target`.
+- Para revisar una pose sin sesión, usa el servidor de desarrollo y agrega `?mascota=triste&postura=mini&globo=1` a la URL. Acepta los nombres de expresión del archivo de configuración y las posturas `mini` y `completa`. `globo=1` abre un mensaje largo de prueba. En ventanas de menos de 560 px de alto se usa la postura mini. `?mascota=reset` borra únicamente los datos guardados por Cris. Usa `?mascota=recordatorio` para ver de inmediato el mensaje ocasional.
+- La guía no hace peticiones a la API. Los eventos y el avance real de Educación siguen dependiendo del servicio existente.
+
+- Los recordatorios respetan el tiempo en primer plano, las interacciones recientes y los estados de carga o error. El proveedor conserva el límite de tres por sesión de pestaña.

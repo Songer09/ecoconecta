@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react'
 import { ApiRequestError, educationApi } from '../services/authApi'
 import type { EducationModule, EducationModuleSummary, LearningProgress } from '../services/authApi'
 import { EmptyState } from './PanelStates'
+import { useMascotActions, useMascotScene } from './mascot/MascotContext'
+import { learningProgressText } from './mascot/mascotMessages'
 
 const lessonIcons = ['◇', '♻', '✓', '○', '✳', '▤']
 
@@ -21,6 +23,14 @@ export function EducationContent({ onSignIn }: { onSignIn: () => void }) {
   const [saving, setSaving] = useState(false)
   const [catalogAttempt, setCatalogAttempt] = useState(0)
   const [lessonAttempt, setLessonAttempt] = useState(0)
+  const { showMoment } = useMascotActions()
+  const mascotScene = expired ? 'educationExpired' : saveError ? 'educationSaveFailed'
+    : loadError || lessonError ? 'educationFailed' : saving ? 'educationSaving'
+    : !progress ? 'educationLoading' : !modules.length ? 'educationEmpty'
+    : selected ? lesson ? 'educationReading' : 'educationLoading'
+    : progress.total > 0 && progress.completed >= progress.total ? 'educationComplete'
+    : progress.completed > 0 ? 'educationProgress' : 'educationList'
+  useMascotScene(mascotScene, mascotScene === 'educationProgress' && progress ? learningProgressText(progress.completed, progress.total) : undefined)
 
   useEffect(() => {
     let current = true
@@ -57,6 +67,7 @@ export function EducationContent({ onSignIn }: { onSignIn: () => void }) {
       const completion = await educationApi.complete(lesson.id)
       const count = progress.completed + 1
       setProgress({ ...progress, completed: count, percentage: progress.total ? Math.round(count * 100 / progress.total) : 0, completions: [...progress.completions, completion] })
+      showMoment(count >= progress.total ? 'educationComplete' : 'educationSaved')
     } catch (error) {
       if (error instanceof ApiRequestError && error.status === 401) setExpired(true)
       else setSaveError(messageFrom(error))
