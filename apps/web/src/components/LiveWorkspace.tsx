@@ -14,6 +14,73 @@ function displayValue(field: string, value: Row[string] | null | undefined) {
   return decimals ? `${whole},${decimals}` : whole
 }
 
+const ruleDateFormat = new Intl.DateTimeFormat('es-CO', {
+  dateStyle: 'medium', timeStyle: 'short', timeZone: 'America/Bogota',
+})
+
+function ruleDate(value: Row[string]) {
+  return ruleDateFormat.format(new Date(String(value)))
+}
+
+function PointsRules({ materials, rules }: { materials: Row[]; rules: Row[] }) {
+  const now = Date.now()
+  const byMaterial = new Map<string, Row[]>()
+  // The API orders each material's rules by effective date and version, newest first.
+  for (const rule of rules) {
+    const id = String(rule.waste_type_id)
+    const entries = byMaterial.get(id) ?? []
+    entries.push(rule)
+    byMaterial.set(id, entries)
+  }
+  const groups = [
+    { title: 'Orgánicos', materials: materials.filter(row => row.flow === 'organico' && row.unit === 'kg') },
+    { title: 'Reciclables', materials: materials.filter(row => row.flow === 'reciclable' && row.unit === 'kg') },
+  ]
+  const activeIds = new Set(groups.flatMap(group => group.materials.map(row => String(row.id))))
+  const archived = [...byMaterial.keys()].filter(id => !activeIds.has(id))
+  if (archived.length) {
+    groups.push({ title: 'Fuera del catálogo por kg', materials: archived.map(id => ({ id, name: 'Material ' + id })) })
+  }
+  if (!groups.some(group => group.materials.length)) return <p>No hay materiales por kilogramo en el catálogo.</p>
+
+  return <div className="points-rule-groups">
+    {groups.filter(group => group.materials.length).map(group => <section key={group.title}>
+      <h3>{group.title}</h3>
+      <div className="points-rule-list">
+        {group.materials.map(material => {
+          const id = String(material.id)
+          const entries = byMaterial.get(id) ?? []
+          const current = activeIds.has(id) ? entries.find(rule =>
+            Date.parse(String(rule.valid_from)) <= now &&
+            (!rule.valid_to || now < Date.parse(String(rule.valid_to))),
+          ) : undefined
+          const otherRules = entries.filter(rule => rule !== current)
+          return <article key={id} className="points-rule-card">
+            <div className="points-rule-summary">
+              <div>
+                <h4>{material.name}</h4>
+                {current && <small>Vigente desde {ruleDate(current.valid_from)}</small>}
+              </div>
+              <strong>{current ? `${displayValue('points_per_kg', current.points_per_kg)} puntos/kg` : 'Sin tarifa vigente'}</strong>
+            </div>
+            {otherRules.length > 0 && <details>
+              <summary>Otras versiones ({otherRules.length})</summary>
+              <ul>
+                {otherRules.map(rule => <li key={String(rule.id)}>
+                  <strong>{displayValue('points_per_kg', rule.points_per_kg)} puntos/kg</strong>
+                  <span>Versión {rule.version} · {Date.parse(String(rule.valid_from)) > now ? 'Programada desde' : 'Desde'} {ruleDate(rule.valid_from)}
+                    {rule.valid_to && <> · Hasta {ruleDate(rule.valid_to)}</>}
+                  </span>
+                </li>)}
+              </ul>
+            </details>}
+          </article>
+        })}
+      </div>
+    </section>)}
+  </div>
+}
+
 export function LiveWorkspace({section}: {section:string}) {
   const [rows,setRows]=useState<Row[]>([])
   const [materials,setMaterials]=useState<Row[]>([])
@@ -29,7 +96,7 @@ export function LiveWorkspace({section}: {section:string}) {
       const paths:Record<string,string>={zones:'/zones',routes:'/collector/route?day='+new Intl.DateTimeFormat('en-CA',{timeZone:'America/Bogota'}).format(end),events:'/admin/events',points:'/points/rules',inventory:'/garden/needs',redemptions:'/rewards',availability:'/collector/availability',income:'/coordinator/reports/purchase-value?'+new URLSearchParams({start:start.toISOString(),end:end.toISOString()}),profile:'/users/me/profile',team:'/public/community',home:'/admin/users',reports:'/admin/users'}
       if(section==='catalog'||section==='points'){
         const groups=await Promise.all(['organico','reciclable'].map(f=>request<Row[]>('/public/materials?flow='+f,init)))
-        setMaterials(groups[1])
+        setMaterials(groups.flat())
         if(section==='catalog'){setRows(groups.flat());return}
       }
       if(section==='home'||section==='reports'){
@@ -73,15 +140,31 @@ export function LiveWorkspace({section}: {section:string}) {
     if(section==='events')ok=await save('/admin/events','POST',{...data,starts_at:data.starts_at+':00-05:00',ends_at:data.ends_at+':00-05:00'})
     if(ok)form.reset()
   }
+  const pointsSection = section === 'points'
+  const hasOrganicMaterials = materials.some(material => material.flow === 'organico' && material.unit === 'kg')
+  const recyclableMaterials = materials.filter(material => material.flow === 'reciclable' && material.unit === 'kg')
   return <section className="admin-workspace">
+    {pointsSection && <div className="admin-panel-intro">
+      <h2>Tarifas de puntos por material</h2>
+      <p>Al confirmar el pesaje, se multiplican los kilos verificados por la tarifa que regía al recoger el material. Por ejemplo, 3 kg con una tarifa de 2 puntos/kg dan 6 puntos.</p>
+    </div>}
     {['zones','catalog','events','points'].includes(section)&&<form className="admin-inline-form" onSubmit={submit}>
       {section==='zones'&&<><label>Código de zona<input name="code" required/></label><label>Nombre<input name="name" required/></label></>}
       {section==='catalog'&&<><label>Material<input name="name" required/></label><label>Flujo<select name="flow"><option value="reciclable">Reciclable</option><option value="organico">Orgánico</option></select></label></>}
       {section==='events'&&['title','organizer','location','description','starts_at','ends_at'].map(k=><label key={k}>{labels[k]}<input name={k} type={k.endsWith('_at')?'datetime-local':'text'} required/></label>)}
-      {section==='points'&&<><label>Regla<select name="material"><option value="organic">Orgánicos</option>{materials.map(r=><option key={String(r.id)} value={String(r.id)}>{r.name}</option>)}</select></label><label>Puntos por kilogramo<input name="rate" type="number" min="0.000001" step="0.000001" required/></label></>}
-      <button className="button button-primary" disabled={busy}>{section==='events'?'Guardar borrador':'Guardar'}</button>
+      {pointsSection && <>
+        <label>Aplicar a<select name="material" required defaultValue="">
+          <option value="" disabled>Selecciona un material</option>
+          {hasOrganicMaterials && <option value="organic">Todos los orgánicos</option>}
+          {recyclableMaterials.length > 0 && <optgroup label="Reciclables">
+            {recyclableMaterials.map(material => <option key={String(material.id)} value={String(material.id)}>{material.name}</option>)}
+          </optgroup>}
+        </select></label>
+        <label>Puntos por kilogramo<input name="rate" type="number" min="0.000001" step="0.000001" required/></label>
+      </>}
+      <button className="button button-primary" disabled={busy || (pointsSection && (loading || (!hasOrganicMaterials && !recyclableMaterials.length)))}>{pointsSection ? 'Publicar tarifa' : section==='events'?'Guardar borrador':'Guardar'}</button>
     </form>}
-    {loading?<p role="status">Cargando…</p>:error?<p role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Actualizar</button></p>:!rows.length?<p>Aún no hay registros.</p>:<div className="admin-record-list">{rows.map((r,i)=><article key={String(r.id??r.collective_id??i)}><div>{Object.entries(r).filter(([k])=>labels[k]).map(([k,v])=><p key={k}><strong>{labels[k]}</strong> {displayValue(k, v)}</p>)}</div>
+    {loading?<p role="status">Cargando…</p>:error?<p role="alert">{error} <button onClick={()=>setRevision(v=>v+1)}>Actualizar</button></p>:pointsSection?<PointsRules materials={materials} rules={rows}/>:!rows.length?<p>Aún no hay registros.</p>:<div className="admin-record-list">{rows.map((r,i)=><article key={String(r.id??r.collective_id??i)}><div>{Object.entries(r).filter(([k])=>labels[k]).map(([k,v])=><p key={k}><strong>{labels[k]}</strong> {displayValue(k, v)}</p>)}</div>
       {section==='availability'&&<button disabled={busy} onClick={()=>void save('/collector/availability/'+r.collective_id,'PUT',{is_available:!r.is_available})}>Cambiar disponibilidad</button>}
       {section==='events'&&<button disabled={busy} onClick={()=>void save('/admin/events/'+r.id,'PUT',{title:r.title,description:r.description,organizer:r.organizer,location:r.location,starts_at:r.starts_at,ends_at:r.ends_at,is_published:!r.is_published,expected_updated_at:r.updated_at})}>{r.is_published?'Retirar publicación':'Publicar'}</button>}
     </article>)}</div>}

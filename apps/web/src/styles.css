@@ -422,6 +422,18 @@ p { line-height: 1.55; }
 .admin-record-list article > div > strong, .admin-record-list article > div > small { display: block; }
 .admin-record-list article > div > strong { font-size: .78rem; }
 .admin-record-list article > div > small { margin-top: 4px; color: var(--text-secondary); font-size: .68rem; }
+.points-rule-groups { display: grid; gap: 20px; margin-top: 22px; }
+.points-rule-groups h3 { margin: 0 0 8px; font-size: .95rem; }
+.points-rule-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr)); gap: 10px; align-items: start; }
+.points-rule-card { padding: 12px 14px; border: 1px solid var(--border-subtle); border-radius: 10px; }
+.points-rule-summary { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 6px 12px; }
+.points-rule-summary h4 { margin: 0; font-size: .9rem; overflow-wrap: anywhere; }
+.points-rule-summary > strong { font-size: .85rem; white-space: nowrap; }
+.points-rule-card small, .points-rule-card li span { color: var(--text-secondary); font-size: .75rem; }
+.points-rule-card details { margin-top: 10px; border-top: 1px solid var(--border-subtle); padding-top: 8px; font-size: .8rem; }
+.points-rule-card summary { cursor: pointer; }
+.points-rule-card ul { display: grid; gap: 8px; margin: 8px 0 0; padding-left: 20px; }
+.points-rule-card li span { display: block; }
 .event-date { display: grid; min-width: 49px; min-height: 48px; align-content: center; justify-items: center; border-radius: 8px; color: var(--orange-soft); background: var(--orange-soft); }
 .event-date strong { font-size: 1.05rem; line-height: 1; }
 .event-date span { margin-top: 3px; font-size: .64rem; text-transform: capitalize; }
