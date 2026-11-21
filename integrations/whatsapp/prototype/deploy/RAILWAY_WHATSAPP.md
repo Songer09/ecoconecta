@@ -26,6 +26,22 @@ Gerson y su Codex ejecutan todas las tareas de Railway y PostgreSQL descritas
 abajo. El administrador de Meta configura el canal y un participante
 autorizado envía el mensaje de prueba desde su teléfono.
 
+## Demo ya alojada
+
+En el proyecto Railway de EcoConecta están en línea `whatsapp-web`,
+`whatsapp-worker` y `whatsapp-postgres`. La base de demo tiene un volumen
+persistente y se accede a ella por la red privada. Se verificaron el panel y
+sus recursos por HTTPS, los accesos de vecino y administrador y una respuesta
+simulada con el procesador local. Los tokens nuevos del panel se generaron
+para este despliegue y están configurados como secretos de Railway.
+
+Para Jeremy queda confirmar los recursos de prueba de Meta y quién puede
+administrarlos. Gerson compartirá la URL del webhook del entorno piloto cuando
+se configure ese entorno con sus credenciales y su base aislada. El panel
+alojado actualmente sigue en modo demo.
+
+[Panel de demostración](https://whatsapp-web-production-c49ad447.up.railway.app/panel) · [Estado de la API](https://whatsapp-web-production-c49ad447.up.railway.app/health)
+
 ## Punto de partida
 
 La PR #14 fusionó las mejoras anteriores. El commit `0842ed2` en
