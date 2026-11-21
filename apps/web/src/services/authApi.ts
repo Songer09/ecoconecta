@@ -14,6 +14,12 @@ interface LoginToken {
 export interface AuthenticatedIdentity {
   id: string
   role: 'solicitante' | 'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores' | 'administrador'
+  full_name?: string
+  phone?: string
+  stage?: string
+  neighborhood?: string
+  tower?: string
+  apartment?: string
 }
 
 export interface ApiErrorBody {
@@ -34,12 +40,16 @@ export interface ResidentRegistration {
 }
 
 export type AdminResidentRegistration = Pick<ResidentRegistration, 'full_name' | 'phone' | 'password'>
+export type CollectorRegistration = Pick<ResidentRegistration, 'full_name' | 'phone' | 'password' | 'data_treatment_accepted'>
 
-export interface StaffRegistration extends Pick<ResidentRegistration, 'full_name' | 'phone' | 'password'> {
-  role: 'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'
+export interface StaffCoverage {
   flow: 'organico' | 'reciclable'
   zone_ids: string[]
   valid_from: string
+}
+
+export interface StaffRegistration extends AdminResidentRegistration, StaffCoverage {
+  role: 'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'
 }
 
 export interface PilotAccount {
@@ -53,6 +63,49 @@ export interface PilotAccount {
 export interface ActiveZone {
   id: string
   name: string
+}
+
+export interface EducationModuleSummary {
+  id: string
+  title: string
+  category: string
+}
+
+export interface EducationModule extends EducationModuleSummary {
+  body: string
+}
+
+export interface LearningCompletion {
+  module_id: string
+  completed_at: string
+}
+
+export interface LearningProgress {
+  completed: number
+  total: number
+  percentage: number
+  completions: LearningCompletion[]
+}
+
+export interface GardenReward {
+  id: string
+  name: string
+  price: number
+  stock: number
+}
+
+export interface PublishedEvent {
+  id: string
+  title: string
+  location: string
+  starts_at: string
+  description: string
+}
+
+export class ApiRequestError extends Error {
+  constructor(message: string, public readonly status: number) {
+    super(message)
+  }
 }
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api/v1').replace(/\/$/, '')
@@ -74,9 +127,14 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
       : body?.code === 'phone_in_use' ? 'Ya existe una cuenta con este teléfono.'
       : body?.code === 'login_rate_limit' ? 'Hay muchos intentos. Espera un minuto e inténtalo de nuevo.'
       : body?.code === 'registration_rate_limit' ? 'Se alcanzó el límite de registros desde esta conexión. Espera un minuto e inténtalo de nuevo.'
+      : body?.code === 'collector_registration_not_pending' ? 'Esta cuenta ya no está pendiente. Actualiza el listado.'
+      : body?.code === 'flow_unconfigured' ? 'Este flujo de recolección todavía no está configurado.'
+      : body?.code === 'inactive_zone' ? 'Una de las zonas seleccionadas dejó de estar activa.'
+      : body?.code === 'stock_unavailable' ? 'El producto se agotó.'
+      : body?.code === 'insufficient_points' ? 'Tu saldo ya no alcanza para este canje.'
       : body?.code === 'forbidden' ? 'Tu sesión no tiene permiso para esta acción.'
       : body?.message || 'No se pudo completar la solicitud.'
-    throw new Error(friendlyMessage)
+    throw new ApiRequestError(friendlyMessage, response.status)
   }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
@@ -110,5 +168,60 @@ export const authApi = {
   listPilotUsers: () => request<PilotAccount[]>('/admin/users'),
   createResident: (input: AdminResidentRegistration) => request<PilotAccount>('/admin/users', { method: 'POST', body: JSON.stringify(input) }),
   registerResident: (input: ResidentRegistration) => request<PilotAccount>('/auth/register', { method: 'POST', body: JSON.stringify(input) }, false),
+  registerCollector: (input: CollectorRegistration) => request<PilotAccount>('/auth/register/collector', { method: 'POST', body: JSON.stringify(input) }, false),
+  async listPendingCollectors() {
+    const users: PilotAccount[] = []
+    const limit = 100
+    while (true) {
+      const page = await request<PilotAccount[]>(`/admin/collector-registrations?limit=${limit}&offset=${users.length}`)
+      users.push(...page)
+      if (page.length < limit) return users
+    }
+  },
+  activateCollector: (id: string, input: StaffCoverage) => request<unknown>(`/admin/collector-registrations/${encodeURIComponent(id)}/activate`, { method: 'POST', body: JSON.stringify(input) }),
   createStaff: (input: StaffRegistration) => request<unknown>('/admin/staff', { method: 'POST', body: JSON.stringify(input) }),
+}
+
+export const educationApi = {
+  async listModules() {
+    const modules: EducationModuleSummary[] = []
+    const limit = 100
+    while (true) {
+      const page = await request<EducationModuleSummary[]>(`/public/education?limit=${limit}&offset=${modules.length}`, {}, false)
+      modules.push(...page)
+      if (page.length < limit) return modules
+    }
+  },
+  readModule: (id: string) => request<EducationModule>(`/public/education/${encodeURIComponent(id)}`, {}, false),
+  async getProgress() {
+    const limit = 100
+    const progress = await request<LearningProgress>(`/users/me/learning-progress?limit=${limit}`)
+    while (progress.completions.length < progress.completed) {
+      const page = await request<LearningProgress>(`/users/me/learning-progress?limit=${limit}&offset=${progress.completions.length}`)
+      if (!page.completions.length) break
+      progress.completions.push(...page.completions)
+    }
+    return progress
+  },
+  complete: (id: string) => request<LearningCompletion>(`/users/me/learning-progress/${encodeURIComponent(id)}`, { method: 'PUT' }),
+}
+
+export const communityApi = {
+  listEvents: () => request<PublishedEvent[]>('/public/events', {}, false),
+  async getRewards() {
+    const limit = 100
+    const rewards: GardenReward[] = []
+    while (true) {
+      const page = await request<GardenReward[]>(`/rewards?limit=${limit}&offset=${rewards.length}`)
+      rewards.push(...page)
+      if (page.length < limit) return rewards
+    }
+  },
+  getPoints: () => request<{ balance: string }>('/users/me/points'),
+  async redeemReward(rewardId: string, idempotencyKey: string) {
+    await request<unknown>('/users/me/redemptions', {
+      method: 'POST',
+      body: JSON.stringify({ reward_id: rewardId, quantity: 1, idempotency_key: idempotencyKey }),
+    })
+  },
 }

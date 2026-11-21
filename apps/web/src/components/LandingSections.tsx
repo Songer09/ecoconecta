@@ -1,9 +1,11 @@
+const villasWebsite = 'https://villasdesanpablo.com/'
+
 export function VillasStorySection() {
   return <>
     <section className="villas-story" aria-labelledby="villas-story-title">
       <a
         className="villas-story-media"
-        href="https://villasdesanpablo.com/quiero-vivienda-propia/"
+        href={villasWebsite}
         target="_blank"
         rel="noreferrer"
         aria-label="Ver el sitio de Villas de San Pablo"
@@ -11,17 +13,17 @@ export function VillasStorySection() {
         <span className="villas-story-logo-plate">
           <img src="/images/logo-villas-san-pablo.png" alt="Villas de San Pablo, Barranquilla" />
         </span>
-        <span className="villas-story-play" aria-hidden="true">▶</span>
+        <span className="villas-story-play" aria-hidden="true">↗</span>
       </a>
       <div className="villas-story-copy">
         <h2 id="villas-story-title">
-          <strong>Puedes tener tu casa propia</strong>
-          <span>en el lugar que lo tiene todo</span>
+          <strong>Visita nuestro sitio web</strong>
+          <span>y conoce más sobre nosotros</span>
         </h2>
-        <p><strong>Villas de San Pablo</strong>, un lugar único donde las oportunidades son infinitas para hacer realidad <b>tu sueño de tener vivienda propia</b>, y además desarrollar tu proyecto de vida.</p>
+        <p>Descubre las <strong>iniciativas y espacios de la comunidad</strong> de Villas de San Pablo y lee las últimas noticias del barrio.</p>
+        <a className="villas-website-link" href={villasWebsite} target="_blank" rel="noopener noreferrer">Visitar Villas de San Pablo <span aria-hidden="true">↗</span></a>
       </div>
     </section>
-    <p className="villas-megabarrio-callout">Vive en el primer <strong>MEGABARRIO de Barranquilla</strong><br/>y ábrele la puerta a una vida llena de oportunidades.</p>
   </>
 }
 
@@ -29,9 +31,9 @@ export function CommunityFooter() {
   return <footer className="community-footer">
     <div className="community-footer-grid">
       <div className="footer-brand-stack" aria-label="Villas de San Pablo con el apoyo de Fundación Santo Domingo">
-        <img className="footer-villas-logo" src="/images/logo-villas-san-pablo.png" alt="Villas de San Pablo" />
+        <img className="footer-villas-logo" src="/images/footer-villas-san-pablo.png" alt="Villas de San Pablo" />
         <span>Con el apoyo de</span>
-        <img className="footer-foundation-logo" src="/images/logo-fundacion-santo-domingo.png" alt="Fundación Santo Domingo" />
+        <img className="footer-foundation-logo" src="/images/footer-fundacion-santo-domingo.png" alt="Fundación Santo Domingo" />
       </div>
 
       <section className="footer-column" aria-labelledby="footer-sales-title">
