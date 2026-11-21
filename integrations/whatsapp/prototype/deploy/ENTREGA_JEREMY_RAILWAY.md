@@ -12,8 +12,9 @@ implementación. El commit `93ff4c9` contiene la guía de Gerson y `136338a`
 registra la demo alojada. Desplegar API y worker desde el mismo SHA revisado,
 en `feat/whatsapp-chatbot`.
 
-La PR #14 ya está fusionada: su head fue `3e38b4c`. La propuesta posterior debe
-incluir el arranque nativo y los accesos portables de `0842ed2`, además de esta
+La PR #14 ya está fusionada: su head fue `3e38b4c`. La
+[PR #15](https://github.com/Songer09/ecoconecta/pull/15) está abierta en borrador
+con el arranque nativo y los accesos portables de `0842ed2`, además de esta
 documentación. Destino de revisión: `chore/add-project-documentation`. No se
 fusiona ni se modifica directamente la rama destino desde este traspaso.
 
@@ -74,13 +75,21 @@ Para el canal real se requieren, en API y worker: `APP_ENV=pilot`,
 `META_VERIFY_TOKEN` y `META_GRAPH_VERSION`. Los nombres ya están documentados en
 la guía; los valores nunca se introducen en el PR, issues o logs de despliegue.
 
-Procedimiento propuesto, aún pendiente de autorización y de un canal privado:
+El 21 de noviembre de 2026 Jeremy autorizó usar su app **EcoConecta Chatbot**
+para el piloto y entregar privadamente a Gerson un token renovado, el secreto de
+la app y las variables de verificación para cargarlos en Railway. La autorización
+no acredita que el token haya sido renovado o que los secretos se hayan enviado.
+Después precisó que **él mismo cargará las variables directamente en Railway**.
+Se preparará un fichero privado local para el titular; no se enviarán los valores
+a Gerson ni se usarán Git, PR, issues o logs para compartirlos.
+
+Procedimiento autorizado, con la entrega pendiente de ejecución:
 
 1. Gerson entrega la URL HTTPS del bot y los nombres de los servicios/entorno.
 2. Jeremy renueva el token con el alcance aprobado y se verifica Graph de nuevo.
-3. El titular carga las variables directamente en el gestor de secretos de
-   Railway, o autoriza un traspaso privado específico a Gerson. Los secretos
-   locales no se han compartido con terceros durante esta entrega.
+3. Jeremy carga las variables desde el fichero privado local en el gestor de
+   secretos de los servicios del piloto en Railway. Los secretos locales no se
+   han compartido con terceros durante esta entrega documental.
 4. Jeremy configura callback `/api/v1/integrations/whatsapp/webhook`, el mismo
    verify token y la suscripción `messages` de la app/WABA correspondiente.
 5. El participante autorizado realiza la prueba de WhatsApp. Registrar resultados
@@ -128,14 +137,19 @@ proveedor conversacional fue mock. No se repitió esa batería al añadir solo e
 documentación. Los detalles y reproducción están en el
 [informe de integración](../reports/INTEGRACION_REAL_GEMINI_WHATSAPP.md).
 
-## 5. Revisión pendiente del responsable
+## 5. Decisión humana sobre la base principal
 
-La guía declara que la API principal usa Supabase. `AGENTS.md` prohíbe Supabase
-como persistencia operacional y exige una PostgreSQL compartida. Se registra el
-conflicto sin adoptar una excepción ni cambiar arquitectura. El responsable
-humano debe confirmar qué instrucción prevalece antes de conectar el prototipo
-a la base principal. La base aislada descrita aquí es exclusivamente para
-pruebas; no se presenta como una segunda base operacional del producto.
+El 21 de noviembre de 2026 Jeremy confirmó que **Supabase está aprobado para la
+base principal**. Esta decisión humana explícita más reciente sustituye la
+prohibición específica de Supabase en `AGENTS.md`, conforme al orden de autoridad
+del repositorio. Se conserva el requisito de **una sola PostgreSQL operacional**
+como fuente de verdad del producto.
+
+La aprobación no autoriza una segunda persistencia operacional ni crea recursos
+facturables. La base aislada descrita aquí es exclusivamente para pruebas. La
+actualización coordinada de los documentos compartidos queda a cargo del
+responsable de Backend/Integración; esta entrega solo registra la decisión en el
+ámbito de WhatsApp.
 
 Las migraciones del prototipo no se aplican sobre la base principal. El contrato
 autenticado con FastAPI, su deduplicación y la visualización de avisos en la web
