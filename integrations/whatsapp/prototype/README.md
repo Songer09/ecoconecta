@@ -64,6 +64,16 @@ El esquema Alembic incluye identidad y permisos, consentimiento de voz, conversa
 
 El proveedor se especializa mediante instrucciones, ejemplos sintéticos y recuperación de contenido. No se modificaron pesos. Las etapas de voz y NLU externas tienen espera acotada y un intento adicional para fallas transitorias seleccionadas. Ante fallas de texto se usa el clasificador local. Ante voz incierta se pide repetir por escrito.
 
+### Fase A: Gemini en el panel con WhatsApp simulado
+
+1. En el `.env` local de este prototipo, deja `APP_ENV=demo` y `WHATSAPP_PROVIDER=mock`; cambia `AI_PROVIDER=gemini`, define `GEMINI_API_KEY` y conserva `GEMINI_MODEL=gemini-3.6-flash`.
+2. Reconstruye y reinicia únicamente este prototipo con `docker compose up -d --build --wait`.
+3. Entra al panel como `hogar-demo` y envía un ejemplo sintético, por ejemplo «Tengo dos bolsas de cartón».
+4. Cada turno muestra si se llamó al modelo configurado, si se usó el clasificador local por privacidad, o si Gemini falló y se respondió con el respaldo local. Un indicador «Gemini real» aparece solo después de una respuesta válida del proveedor; incluye modelo y latencia.
+5. Mantén el `.env` local fuera de Git. Si falta `GEMINI_API_KEY`, el servicio falla al iniciar con una indicación de configuración incompleta. No uses mensajes ni direcciones reales en estas pruebas.
+
+La clave no se almacena en el panel ni se envía al navegador. El servidor la lee desde el entorno. El canal del panel sigue marcado como simulado y no envía mensajes de WhatsApp.
+
 Para conectar Meta en una instancia de piloto:
 
 1. Configura `META_ACCESS_TOKEN`, `META_PHONE_NUMBER_ID`, `META_WABA_ID`, `META_VERIFY_TOKEN`, `META_APP_SECRET` y `META_GRAPH_VERSION`.

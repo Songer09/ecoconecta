@@ -18,6 +18,7 @@ from app.config import settings
 from app.db import engine, query, one, rows, audit
 from app import schemas as S
 from app.channel import signed, receive
+from app.providers import reset_turn_result, turn_result
 from app.operations import visible, transition, declared_items
 from app.analytics import record, report
 from app.worker import process
@@ -134,12 +135,13 @@ def demo_message(m: S.Message, u=Depends(actor), db=Depends(session)):
         raise HTTPException(404)
     if u["role"] != "resident":
         raise HTTPException(403)
+    reset_turn_result()
     key = f"demo:{u['id']}:{m.message_id or uuid4()}"
     row = receive(db, u["id"], key, m.kind, m.text, datetime.now(timezone.utc))
     if not row:
-        return {"duplicate": True}
+        return {"duplicate": True, "ai": None}
     answer = process(db, one(db, "SELECT * FROM messages WHERE id=:id", id=row["id"]))
-    return {"reply": answer, "simulation": True}
+    return {"reply": answer, "simulation": True, "ai": turn_result()}
 
 
 HOOK = "/api/v1/integrations/whatsapp/webhook"

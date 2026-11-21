@@ -143,11 +143,88 @@ def test_gemini_structured_result_cannot_publish_unreviewed_text(
         )
 
     monkeypatch.setattr(providers.httpx, "post", gemini)
-    assert (
-        "Café"
-        in ctx.say("¿Puedo usar lo que queda después de colar el tinto?")["reply"]
-    )
+    response = ctx.call(
+        "POST",
+        "demo/messages",
+        json={"text": "¿Puedo usar lo que queda después de colar el tinto?"},
+    ).json()
+    assert "Café" in response["reply"]
+    assert response["ai"]["status"] == "success"
+    assert response["ai"]["selected"] == "gemini"
+    assert response["ai"]["used"] == "gemini"
+    assert response["ai"]["model"] == "gemini-3.6-flash"
     output["arbitrary_answer"] = "Enviaremos un recolector hoy"
-    reply = ctx.say("¿Puedo usar lo que queda después de colar el tinto?")["reply"]
-    assert output["arbitrary_answer"] not in reply
+    response = ctx.call(
+        "POST",
+        "demo/messages",
+        json={"text": "¿Puedo usar lo que queda después de colar el tinto?"},
+    ).json()
+    assert output["arbitrary_answer"] not in response["reply"]
+    assert response["ai"]["status"] == "fallback"
+    assert response["ai"]["error_code"] == "invalid_response"
     assert ctx.call("GET", "requests", "admin-demo").json() == []
+
+
+def test_gemini_failure_reports_local_fallback(ctx, testdb, monkeypatch):
+    from app import providers
+
+    cfg = replace(testdb[-1], model="gemini-3.6-flash", key="synthetic")
+    monkeypatch.setattr(providers, "settings", lambda: cfg)
+
+    def timeout(*args, **kwargs):
+        raise httpx.ReadTimeout("synthetic timeout")
+
+    monkeypatch.setattr(providers.httpx, "post", timeout)
+    response = ctx.call(
+        "POST", "demo/messages", json={"text": "Tengo dos bolsas de cartón"}
+    ).json()
+
+    assert "dirección" in response["reply"]
+    assert response["ai"] == {
+        "selected": "gemini",
+        "used": "local",
+        "status": "fallback",
+        "model": "gemini-3.6-flash",
+        "error_code": "timeout",
+        "latency_ms": response["ai"]["latency_ms"],
+    }
+
+
+@pytest.mark.parametrize(
+    ("status_code", "expected"),
+    [
+        (401, "authentication_rejected"),
+        (403, "authentication_rejected"),
+        (404, "model_not_found"),
+        (429, "quota_exceeded"),
+        (503, "service_unavailable"),
+    ],
+)
+def test_gemini_error_codes_are_sanitized(status_code, expected):
+    from app.providers import error_code
+
+    request = httpx.Request("POST", "https://generativelanguage.googleapis.com")
+    response = httpx.Response(status_code, request=request)
+    error = httpx.HTTPStatusError("synthetic provider error", request=request, response=response)
+
+    assert error_code(error) == expected
+
+
+def test_private_turn_is_labeled_local_without_calling_gemini(monkeypatch, testdb):
+    from app import providers
+
+    cfg = replace(testdb[-1], model="gemini-3.6-flash", key="synthetic")
+    monkeypatch.setattr(providers, "settings", lambda: cfg)
+
+    def unexpected(*args, **kwargs):
+        raise AssertionError("private text must not be sent to Gemini")
+
+    monkeypatch.setattr(providers.httpx, "post", unexpected)
+    providers.reset_turn_result()
+    providers.understand("Manzana 12, casa 8")
+
+    assert providers.turn_result() == {
+        "selected": "gemini",
+        "used": "local",
+        "status": "local_only",
+    }

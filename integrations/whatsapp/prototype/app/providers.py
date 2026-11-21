@@ -1,4 +1,5 @@
 import base64
+from contextvars import ContextVar
 import json
 import os
 from time import perf_counter
@@ -38,6 +39,37 @@ Ejemplos sintéticos independientes de evaluación:
 '¿Sirve como abono la borra?' -> IN_SCOPE, compost, topic: café posos compost.
 'Redáctame un discurso político' -> OUT_OF_SCOPE, offtopic.
 'Lo de ayer' -> UNCERTAIN, ambiguous."""
+
+_turn_result = ContextVar("ecoconecta_ai_turn_result", default=None)
+
+
+def reset_turn_result():
+    _turn_result.set(None)
+
+
+def turn_result():
+    result = _turn_result.get()
+    return dict(result) if result else None
+
+
+def error_code(exc):
+    if isinstance(exc, httpx.TimeoutException):
+        return "timeout"
+    if isinstance(exc, httpx.ConnectError):
+        return "service_unavailable"
+    if isinstance(exc, httpx.HTTPStatusError):
+        return {
+            401: "authentication_rejected",
+            403: "authentication_rejected",
+            404: "model_not_found",
+            429: "quota_exceeded",
+        }.get(
+            exc.response.status_code,
+            "service_unavailable"
+            if exc.response.status_code >= 500
+            else "provider_rejected",
+        )
+    return "invalid_response"
 
 
 class Transcript(BaseModel):
@@ -163,12 +195,20 @@ def provider():
 
 def understand(message, *, context=None, local_only=False, observe=None):
     local = classify_turn(message)
+    cfg = settings()
     if (
         local_only
         or private_text(message)
         or re.search(UNSAFE + "|" + OTHER, norm(message))
-        or settings().ai == "mock"
+        or cfg.ai == "mock"
     ):
+        _turn_result.set(
+            {
+                "selected": cfg.ai,
+                "used": "local",
+                "status": "simulated" if cfg.ai == "mock" else "local_only",
+            }
+        )
         return local
     start = perf_counter()
     try:
@@ -178,19 +218,42 @@ def understand(message, *, context=None, local_only=False, observe=None):
             if context
             else adapter.interpret(message)
         )
-    except (ValueError, KeyError, IndexError, TypeError, httpx.HTTPError):
+    except (ValueError, KeyError, IndexError, TypeError, httpx.HTTPError) as exc:
+        code = error_code(exc)
+        latency = (perf_counter() - start) * 1000
+        _turn_result.set(
+            {
+                "selected": cfg.ai,
+                "used": "local",
+                "status": "fallback",
+                "model": cfg.model,
+                "error_code": code,
+                "latency_ms": round(latency, 1),
+            }
+        )
         if observe:
             observe(
                 "ai_error",
-                provider=settings().ai,
-                latency_ms=(perf_counter() - start) * 1000,
+                provider=cfg.ai,
+                latency_ms=latency,
+                reason=code,
             )
         return local
+    latency = (perf_counter() - start) * 1000
+    _turn_result.set(
+        {
+            "selected": cfg.ai,
+            "used": cfg.ai,
+            "status": "success",
+            "model": cfg.model,
+            "latency_ms": round(latency, 1),
+        }
+    )
     if observe:
         observe(
             "ai_success",
-            provider=settings().ai,
-            latency_ms=(perf_counter() - start) * 1000,
+            provider=cfg.ai,
+            latency_ms=latency,
         )
     # Only quoted clauses may add needs. An educational clause cannot authorize a collection.
     if result.primary_text and result.primary_text not in message:
