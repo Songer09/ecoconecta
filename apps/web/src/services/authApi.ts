@@ -26,9 +26,14 @@ export interface ResidentRegistration {
   full_name: string
   phone: string
   password: string
+  stage: string
+  neighborhood: string
+  tower: string
+  apartment: string
+  data_treatment_accepted: true
 }
 
-export interface StaffRegistration extends ResidentRegistration {
+export interface StaffRegistration extends Pick<ResidentRegistration, 'full_name' | 'phone' | 'password'> {
   role: 'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'
   flow: 'organico' | 'reciclable'
   zone_ids: string[]

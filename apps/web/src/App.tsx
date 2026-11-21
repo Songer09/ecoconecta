@@ -11,23 +11,25 @@ import { DemoTag } from './components/DemoTag'
 import { EmptyState, InfoSection, OperationPanel } from './components/PanelStates'
 import { attachDemoRequestPhoto, getDemoRequestPhoto } from './services/demo/requestAttachments'
 import { authApi } from './services/authApi'
+import { CoordinatorDirectory } from './components/CoordinatorDirectory'
+import { InstitutionalSection } from './components/InstitutionalSection'
 
 type View = 'welcome' | 'login' | 'learning' | 'dashboard'
-type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports'
+type Section = 'home' | 'requests' | 'new' | 'points' | 'learning' | 'events' | 'profile' | 'routes' | 'materials' | 'income' | 'needs' | 'inventory' | 'redemptions' | 'users' | 'catalog' | 'reports' | 'team'
 
 const roleInfo: Record<Role, { name: string; title: string; description: string }> = {
   neighbor: { name: 'Vecino', title: 'Tu hogar también transforma', description: 'Solicita una recolección, aprende y sigue tus aportes.' },
   collector: { name: 'Recolector', title: 'Tu jornada, más clara', description: 'Consulta tus asignaciones y registra cada recolección.' },
-  vivi: { name: 'Coordinación de reciclaje', title: 'Coordinación de reciclaje', description: 'Organiza solicitudes, personas y materiales reciclables.' },
-  kelly: { name: 'Coordinación de huerta', title: 'Coordinación de huerta', description: 'Conecta los aportes orgánicos con las necesidades del huerto.' },
+  vivi: { name: 'Vivi', title: 'Coordinación de reciclaje', description: 'Coordinadora de reciclaje. Organiza solicitudes y materiales reciclables.' },
+  kelly: { name: 'Kelly', title: 'Coordinación de huerta', description: 'Coordinadora de huerteros. Conecta aportes orgánicos con el huerto.' },
   admin: { name: 'Administrador', title: 'Gestión de EcoConecta', description: 'Administra las herramientas comunitarias del sistema.' },
 }
 
 const navByRole: Record<Role, { id: Section; label: string }[]> = {
   neighbor: [{ id: 'home', label: 'Inicio' }, { id: 'points', label: 'Puntos y canjes' }, { id: 'learning', label: 'Educación' }, { id: 'events', label: 'Eventos' }, { id: 'profile', label: 'Perfil' }],
   collector: [{ id: 'home', label: 'Mi jornada' }, { id: 'routes', label: 'Ruta' }, { id: 'requests', label: 'Historial' }, { id: 'profile', label: 'Mi perfil' }],
-  vivi: [{ id: 'home', label: 'Mapa' }, { id: 'requests', label: 'Historial' }, { id: 'income', label: 'Cuánto he ganado' }],
-  kelly: [{ id: 'home', label: 'Resumen' }, { id: 'requests', label: 'Solicitudes orgánicas' }, { id: 'needs', label: 'Necesidades del huerto' }, { id: 'inventory', label: 'Inventario' }, { id: 'redemptions', label: 'Canjes' }],
+  vivi: [{ id: 'home', label: 'Mapa' }, { id: 'requests', label: 'Historial' }, { id: 'income', label: 'Cuánto he ganado' }, { id: 'team', label: 'Directorio' }],
+  kelly: [{ id: 'home', label: 'Resumen' }, { id: 'requests', label: 'Solicitudes orgánicas' }, { id: 'needs', label: 'Necesidades del huerto' }, { id: 'inventory', label: 'Inventario' }, { id: 'redemptions', label: 'Canjes' }, { id: 'team', label: 'Directorio' }],
   admin: [{ id: 'home', label: 'Resumen' }, { id: 'users', label: 'Usuarios y roles' }, { id: 'events', label: 'Eventos' }, { id: 'catalog', label: 'Materiales' }, { id: 'points', label: 'Configuración de puntos' }, { id: 'reports', label: 'Métricas y reportes' }],
 }
 
@@ -46,7 +48,7 @@ function RoleIcon({ role }: { role: Role }) {
 
 function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; onLearn: () => void; onEvents: () => void }) {
   return <main className="welcome-page">
-    <header className="welcome-header"><Brand/></header>
+    <header className="welcome-header"><Brand/><nav className="welcome-nav" aria-label="Información del proyecto"><a href="#conocenos">Conócenos</a></nav></header>
     <div className="welcome-grid">
       <section className="welcome-copy">
         <p className="eyebrow">BIENVENIDO</p>
@@ -65,6 +67,7 @@ function Welcome({ onRole, onLearn, onEvents }: { onRole: (role: Role) => void; 
         <button className="welcome-resource-card events-resource" onClick={onEvents}><img src="/images/community-events.jpg" alt="Actividad comunitaria en Villas de San Pablo"/><span className="resource-action"><span><small>AGENDA COMUNITARIA</small><strong>Eventos</strong></span><b aria-hidden="true">→</b></span></button>
       </aside>
     </div>
+    <InstitutionalSection/>
   </main>
 }
 
@@ -291,6 +294,7 @@ function DashboardSection({ role, section, requests, allRequests, showAllRequest
   if (role === 'kelly' && section === 'needs') return <OperationPanel title="Necesidades del huerto" subtitle="Ejemplos de insumos mencionados por la Fundación; la necesidad y las cantidades reales deben confirmarse con el equipo." items={['Baldes reutilizables · prioridad por confirmar', 'Abono orgánico · cantidad por registrar', 'Manguera · cantidad por registrar']} action="Registrar una necesidad" onAction={() => onNotify('Formulario de necesidades pendiente de acordar con el equipo del huerto.')}/>
   if (role === 'kelly' && section === 'inventory') return <OperationPanel title="Inventario de aportes" subtitle="Aportes recibidos y pendientes de clasificar." items={['Los aportes se reflejan desde las solicitudes orgánicas.', 'Las cantidades se confirman al recibir cada material.']} action="Revisar solicitudes orgánicas" onAction={() => onSection('requests')}/>
   if (role === 'kelly' && section === 'redemptions') return <InfoSection title="Canjes del huerto" description="Los productos, existencias y equivalencias de canje se mostrarán cuando la Fundación configure el catálogo y la regla de puntos." badge="Catálogo pendiente"/>
+  if ((role === 'vivi' || role === 'kelly') && section === 'team') return <CoordinatorDirectory/>
   if (role === 'admin') return <AdminSection section={section} requests={allRequests} onNotify={onNotify}/>
   return <InfoSection title={roleInfo[role].title} description="Este módulo se habilitará cuando el equipo confirme sus datos y el backend publique el contrato correspondiente." badge="En preparación" />
 }
@@ -316,6 +320,11 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
   const [fullName, setFullName] = useState('')
   const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
+  const [residentStage, setResidentStage] = useState('Etapa 4')
+  const [residentNeighborhood, setResidentNeighborhood] = useState('')
+  const [residentTower, setResidentTower] = useState('')
+  const [residentApartment, setResidentApartment] = useState('')
+  const [dataTreatmentAccepted, setDataTreatmentAccepted] = useState(false)
   const [staffRole, setStaffRole] = useState<'recolector' | 'coordinador_huerteros' | 'coordinador_recicladores'>('recolector')
   const [collectorFlow, setCollectorFlow] = useState<'organico' | 'reciclable'>('reciclable')
   const [zoneIds, setZoneIds] = useState<string[]>([])
@@ -330,12 +339,16 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
   async function createAccount(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); setError(''); setBusy(true)
     try {
-      if (accountType === 'resident') await authApi.createResident({ full_name: fullName.trim(), phone: phone.trim(), password })
+      if (accountType === 'resident') await authApi.createResident({
+        full_name: fullName.trim(), phone: phone.trim(), password,
+        stage: residentStage, neighborhood: residentNeighborhood.trim(), tower: residentTower.trim(), apartment: residentApartment.trim(),
+        data_treatment_accepted: true,
+      })
       else {
         const flow = staffRole === 'coordinador_huerteros' ? 'organico' : staffRole === 'coordinador_recicladores' ? 'reciclable' : collectorFlow
         await authApi.createStaff({ full_name: fullName.trim(), phone: phone.trim(), password, role: staffRole, flow, zone_ids: zoneIds, valid_from: validFrom })
       }
-      setFullName(''); setPhone(''); setPassword(''); setZoneIds([])
+      setFullName(''); setPhone(''); setPassword(''); setZoneIds([]); setResidentStage('Etapa 4'); setResidentNeighborhood(''); setResidentTower(''); setResidentApartment(''); setDataTreatmentAccepted(false)
       await reload()
       onNotify('Cuenta piloto creada. Entrega el teléfono y la contraseña al titular de forma segura.')
     } catch (reason) { setError(reason instanceof Error ? reason.message : 'No se pudo crear la cuenta.') }
@@ -347,6 +360,16 @@ function AdminUsersDemo({ onNotify }: { onNotify: (message: string) => void }) {
       <label>Nombre completo<input value={fullName} onChange={(event) => setFullName(event.target.value)} minLength={1} maxLength={200} required/></label>
       <label>Teléfono con indicativo<input type="tel" inputMode="tel" pattern="\+[1-9][0-9]{6,14}" placeholder="+573001234567" value={phone} onChange={(event) => setPhone(event.target.value)} required/></label>
       <label>Contraseña inicial<input type="password" minLength={12} maxLength={256} autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} required/><small>Mínimo 12 caracteres. Entrégala al titular de forma segura.</small></label>
+      {accountType === 'resident' && <>
+        <div className="address-grid resident-address-grid">
+          <label>Etapa<select value={residentStage} onChange={(event) => setResidentStage(event.target.value)} required><option>Etapa 4</option><option>Etapa 5</option><option>Etapa 6</option><option>Etapa 7</option></select></label>
+          <label className="wide-field">Conjunto<input value={residentNeighborhood} onChange={(event) => setResidentNeighborhood(event.target.value)} maxLength={120} autoComplete="address-line1" required/></label>
+          <label>Torre<input value={residentTower} onChange={(event) => setResidentTower(event.target.value)} maxLength={30} required/></label>
+          <label>Apartamento<input value={residentApartment} onChange={(event) => setResidentApartment(event.target.value)} maxLength={30} required/></label>
+        </div>
+        <label className="privacy-consent"><input type="checkbox" checked={dataTreatmentAccepted} onChange={(event) => setDataTreatmentAccepted(event.target.checked)} required/><span><strong>Autorización para el uso de datos.</strong> La persona titular acepta que sus datos se usen para gestionar solicitudes, acreditar puntos después de verificar la recolección y enviar avisos operativos o comunitarios.</span></label>
+        <small className="privacy-consent-note">Completa esta casilla con la persona titular. La dirección se comparte con el equipo que atiende la solicitud.</small>
+      </>}
       {accountType === 'staff' && <>
         <label>Rol operativo<select value={staffRole} onChange={(event) => setStaffRole(event.target.value as typeof staffRole)}><option value="recolector">Recolector</option><option value="coordinador_huerteros">Coordinación de huerta</option><option value="coordinador_recicladores">Coordinación de reciclaje</option></select></label>
         {staffRole === 'recolector' && <label>Flujo de recolección<select value={collectorFlow} onChange={(event) => setCollectorFlow(event.target.value as typeof collectorFlow)}><option value="reciclable">Reciclable</option><option value="organico">Orgánico</option></select></label>}
