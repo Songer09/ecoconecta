@@ -7,10 +7,10 @@ Actualizado: 2026-11-20. Rama objetivo: `feat/whatsapp-chatbot`.
 | Tramo | Código | Credenciales/servicio | Resultado real |
 |---|---|---|---|
 | Panel → Gemini | Adaptador `generateContent`, salida JSON validada y respaldo local | El propietario rotó la clave de `Default Gemini Project`; está en el `.env` local ignorado por Git, con permisos `0600`. | El catálogo autenticó con HTTP 200 e incluyó `gemini-3.8-flash` con `generateContent`. Una llamada sintética del panel agotó el timeout de 12 s y respondió el respaldo local. Gemini aún no entrega una respuesta validada. |
-| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | El propietario indica que existe un Business Portfolio y lo vinculará a esta cuenta. El asistente de Meta tiene seleccionado el caso WhatsApp, pero aún no muestra el portfolio; la app no se creó. | No se ha probado con Meta ni enviado ningún mensaje real. |
-| WhatsApp → Gemini → panel | La aplicación puede combinar los adaptadores al configurarse | Depende de completar Gemini y Meta | Sin validar. |
+| WhatsApp → procesamiento local | Webhook Meta, validación de firma y adaptador presentes | App “EcoConecta Chatbot” vinculada al portfolio existente; caso de uso WhatsApp, número/WABA de prueba y permisos `whatsapp_business_management` + `whatsapp_business_messaging`. Token de prueba, secreto de app y verify token guardados solo en `.env` local ignorado por Git, modo `0600`. | Meta confirmó la conexión de una cuenta de WhatsApp. No se ha completado un envío: falta un destinatario de prueba autorizado y el portal de pruebas quedó en blanco tras la autorización. Una consulta GET de solo lectura a Graph API desde el entorno local terminó con `URLError`, sin respuesta HTTP. |
+| WhatsApp → Gemini → panel | La aplicación puede combinar los adaptadores al configurarse | El entorno local aún usa el token temporal de prueba de Meta; no hay webhook HTTPS público configurado | Sin validar. |
 
-El servicio de la rama usa únicamente datos sintéticos en su base aislada, con `APP_ENV=demo`, Gemini real y WhatsApp en mock; está publicado localmente en el puerto `55074`. No se modificó ni reinició ningún servicio de `main`. No se creó una app de Meta ni se aceptaron permisos de WhatsApp.
+El servicio de la rama usa únicamente datos sintéticos en su base aislada, con `APP_ENV=demo`, Gemini real y WhatsApp en mock; está publicado localmente en el puerto `55074`. El `.env` conserva esa selección para que el demo siga usando Gemini con WhatsApp simulado. No se modificó ni reinició ningún servicio de `main`.
 
 ## Gemini
 
@@ -34,9 +34,11 @@ Usa solo texto sintético y confirma que el panel informa `status=success` y `us
 
 ## Meta y WhatsApp
 
-La cuenta terminó el registro de Meta for Developers. En el asistente se ingresó el nombre “EcoConecta Chatbot” y se seleccionó el caso de uso de WhatsApp; el propietario autorizó el correo de contacto prellenado. El siguiente paso está bloqueado porque esta cuenta de desarrollador aún no muestra el Business Portfolio existente. La app no se ha creado. Después de vincularlo faltan credenciales, URL HTTPS del webhook y un destinatario de prueba autorizado.
+La app “EcoConecta Chatbot” quedó creada y vinculada al Business Portfolio existente. La app sigue en modo de desarrollo y sin publicar. Meta autorizó una sola cuenta actual de WhatsApp; no se habilitaron permisos generales de empresa, correo, eventos ni administración de otras apps. El número de prueba, WABA, token de acceso temporal, secreto de app, verify token y versión de Graph quedaron configurados solo en `integrations/whatsapp/prototype/.env`, ignorado por Git y con permisos `0600`. No se guardaron esos valores en este reporte ni se añadieron a Git.
 
-El código actual verifica la firma del webhook y separa el entorno `pilot` del demo. La prueba con Meta debe comenzar con procesamiento local y un teléfono de prueba autorizado. Solo después de validar ese recorrido se debe habilitar Gemini para WhatsApp. No se enviaron mensajes a teléfonos reales.
+El `.env` continúa con `APP_ENV=demo`, `AI_PROVIDER=gemini` y `WHATSAPP_PROVIDER=mock`. No cambié el canal a Meta porque la API local está publicada solo en loopback y Meta requiere un callback HTTPS accesible públicamente para entregar mensajes entrantes. Tampoco envié mensajes: Meta no tiene un destinatario de prueba seleccionado. No se enviaron mensajes a teléfonos reales.
+
+La prueba de lectura del número con Graph API no obtuvo respuesta HTTP desde este entorno (`URLError`). Después de completar la autorización, el panel de pruebas de Meta quedó en blanco y no permitió comprobar el envío desde su UI. Por tanto, la presencia de credenciales y el estado de conexión de Meta no equivalen a una prueba funcional de WhatsApp.
 
 ## Verificación local de la rama
 
@@ -49,9 +51,10 @@ El código actual verifica la firma del webhook y separa el entorno `pilot` del 
 ## Secuencia pendiente
 
 1. Diagnosticar el tiempo de generación de Gemini y obtener una respuesta válida en el panel, manteniendo un límite que no bloquee el flujo.
-2. Vincular el Business Portfolio existente a la cuenta de desarrollador y terminar la creación/configuración de la app Meta/WhatsApp.
-3. Configurar webhook HTTPS y un destinatario de prueba autorizado.
-4. Probar mensajes entrantes/salientes con procesamiento local; después conectar Gemini y comprobar cada tramo por separado.
-5. Validar notas de voz con audio sintético o expresamente autorizado.
+2. El propietario debe añadir un destinatario de prueba autorizado en Meta; esto comparte su número con Meta. Confirmar ese destinatario antes de enviar el mensaje de prueba.
+3. Definir y autorizar un endpoint HTTPS público para staging, suscribir el webhook a `messages` y verificar la ruta sin usar direcciones reales.
+4. Renovar un token de prueba si caduca; validar primero el envío y la recepción Meta con procesamiento local. El token temporal actual no es una credencial de despliegue.
+5. Solo después de aislar y validar Meta, cambiar la instancia de piloto a `WHATSAPP_PROVIDER=meta` y conectar Gemini. La publicación, verificación empresarial, número productivo, token de sistema y plantillas aprobadas siguen pendientes.
+6. Validar notas de voz con audio sintético o expresamente autorizado.
 
 El criterio de integración completa sigue siendo un mensaje entrante desde un teléfono de prueba autorizado, respuesta contextual generada por Gemini y aviso visible en el panel. Aún no se ha alcanzado.
