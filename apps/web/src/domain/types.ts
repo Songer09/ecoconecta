@@ -4,6 +4,8 @@ export type RequestStatus = 'RECEIVED' | 'UNDER_REVIEW' | 'ASSIGNED' | 'SCHEDULE
 
 export interface CollectionRequest {
   id: string
+  code?: string
+  address?: string
   flow: RequestFlow
   status: RequestStatus
   createdAt: string

@@ -1,4 +1,4 @@
-import type { Role } from '../domain/types'
+import type { CollectionRequest, NewRequest, RequestStatus, Role } from '../domain/types'
 
 export interface LoginCredentials {
   phone: string
@@ -26,6 +26,13 @@ export interface ApiErrorBody {
   code: string
   message: string
   correlation_id: string
+}
+
+export interface PhotoSuggestion {
+  status: 'recognized' | 'review_required' | 'unknown'
+  material: string | null
+  waste_category: 'organic' | 'inorganic' | null
+  manual_review_required: boolean
 }
 
 export interface ResidentRegistration {
@@ -113,7 +120,7 @@ let accessToken: string | null = null
 
 async function request<T>(path: string, init: RequestInit = {}, authenticated = true): Promise<T> {
   const headers = new Headers(init.headers)
-  headers.set('Content-Type', 'application/json')
+  if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   if (authenticated && accessToken) headers.set('Authorization', `Bearer ${accessToken}`)
   let response: Response
   try {
@@ -180,6 +187,94 @@ export const authApi = {
   },
   activateCollector: (id: string, input: StaffCoverage) => request<unknown>(`/admin/collector-registrations/${encodeURIComponent(id)}/activate`, { method: 'POST', body: JSON.stringify(input) }),
   createStaff: (input: StaffRegistration) => request<unknown>('/admin/staff', { method: 'POST', body: JSON.stringify(input) }),
+}
+
+export const visionApi = {
+  recognize: (file: File, signal: AbortSignal) => request<PhotoSuggestion>('/users/me/photo-recognition', {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+    signal,
+  }),
+}
+
+const requestFlows = { ORGANIC: 'organico', RECYCLABLE: 'reciclable' } as const
+const requestStatuses = {
+  recibida: 'RECEIVED',
+  en_revision: 'UNDER_REVIEW',
+  asignada: 'ASSIGNED',
+  programada: 'SCHEDULED',
+  recolectada: 'COMPLETED',
+  cancelada: 'CANCELLED',
+} as const satisfies Record<string, RequestStatus>
+
+interface ResidentRequestSummary {
+  id: string
+  code: string
+  flow: 'organico' | 'reciclable'
+  status: keyof typeof requestStatuses
+  created_at: string
+}
+
+interface ResidentRequestDetail extends ResidentRequestSummary {
+  address: string
+  observations: string | null
+  preferred_time: string | null
+  collector_name: string | null
+  scheduled_start: string | null
+}
+
+function residentRequest(row: ResidentRequestSummary): CollectionRequest {
+  return {
+    id: row.id, code: row.code,
+    flow: row.flow === 'organico' ? 'ORGANIC' : 'RECYCLABLE',
+    status: requestStatuses[row.status],
+    createdAt: new Date(row.created_at).toLocaleString('es-CO', { timeZone: 'America/Bogota' }),
+    stage: '', neighborhood: '', tower: '', apartment: '', materials: [], note: '', availability: '',
+  }
+}
+
+export const residentRequestsApi = {
+  listMaterials(flow: NewRequest['flow'], signal: AbortSignal) {
+    return request<{ id: string; name: string }[]>(`/public/materials?flow=${requestFlows[flow]}`, { signal }, false)
+  },
+  async create(input: NewRequest, zoneId: string, phone: string, generator: 'hogar' | 'unidad_productiva') {
+    const observations = [`Materiales informados: ${input.materials.join(', ')}`, input.note].filter(Boolean).join('\n')
+    if (observations.length > 1000) throw new Error('Reduce la nota o la selección de materiales para poder enviar la solicitud.')
+    const row = await request<ResidentRequestSummary>('/requests', {
+      method: 'POST',
+      body: JSON.stringify({
+        generator,
+        flow: requestFlows[input.flow],
+        zone_id: zoneId,
+        contact_phone: phone,
+        address: `${input.stage}, ${input.neighborhood}, torre ${input.tower}, apto. ${input.apartment}`,
+        preferred_time: input.availability,
+        observations,
+      }),
+    })
+    return residentRequest(row)
+  },
+  async list() {
+    const rows: CollectionRequest[] = []
+    const limit = 100
+    while (true) {
+      const page = await request<ResidentRequestSummary[]>(`/users/me/requests?limit=${limit}&offset=${rows.length}`)
+      rows.push(...page.map(residentRequest))
+      if (page.length < limit) return rows
+    }
+  },
+  async detail(id: string, signal: AbortSignal) {
+    const row = await request<ResidentRequestDetail>(`/requests/${encodeURIComponent(id)}`, { signal })
+    return {
+      ...residentRequest(row),
+      address: row.address,
+      note: row.observations ?? '',
+      availability: row.preferred_time ?? '',
+      assignedTo: row.collector_name ?? undefined,
+      scheduledAt: row.scheduled_start ?? undefined,
+    }
+  },
 }
 
 export const educationApi = {
