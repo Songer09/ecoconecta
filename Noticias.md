@@ -1,18 +1,14 @@
-# Noticias de EcoConecta
+# EcoConecta · Punto de retoma del 21 de noviembre de 2026
 
-En `feat/fullstack-integration` se reunió el sitio de la copia de entrega con
-el alta pública de vecinos y el Dockerfile de la API. El formulario web envía
-los identificadores de materiales seleccionados; la API valida el flujo, los
-guarda en `request_items` y los devuelve en el detalle de la solicitud.
+Continúa en `feat/fullstack-integration`. El código desplegado corresponde al commit `0b0f86a`. La rama predeterminada de GitHub todavía apunta a una versión anterior. [Abrir EcoConecta](https://ecoconectadk.netlify.app).
 
-Las cuentas autenticadas usan los endpoints de solicitudes, operaciones,
-reconocimiento, educación, eventos, puntos y administración disponibles. Se
-añadió cancelación con motivo para solicitudes recibidas/en revisión y el
-registro de varios materiales por recolección. La demostración sin sesión
-continúa separada.
+**Estado de la web.** Netlify sirve el frontend y dirige las llamadas de la aplicación al backend de Railway, que usa PostgreSQL en Supabase. Tras el despliegue se comprobó que el catálogo respondió HTTP 200 desde el dominio público y que el perfil sin sesión respondió HTTP 401.
 
-Verificado: `npm run build` y construcción de `apps/api/Dockerfile` desde la
-raíz del repositorio. No se ejecutaron pruebas automatizadas ni se publicó esta
-rama. WhatsApp sigue siendo una integración independiente, pendiente de
-configuración del número piloto y del webhook en Meta/Railway. Los informes
-administrativos y el directorio operativo aún tienen alcance informativo.
+## Pendientes, en orden
+
+1. **Probar la web con cuentas piloto.** Registrar un vecino de prueba, crear una solicitud con materiales y foto, revisar la sugerencia de Compost-AI y confirmar el material. Desde coordinación, asignar y programar la recogida. Desde la cuenta recolectora, registrar el peso. Volver a coordinación para confirmar y comprobar el estado y el saldo del vecino. Para este recorrido hacen falta una zona con cobertura, un recolector disponible y una regla de puntos aprobada.
+2. **Elegir el número emisor del piloto.** Jeremy recibió el mensaje enviado por el número de prueba de Meta. El equipo aún debe elegir un número de negocio bajo su control y verificarlo en Meta, en **Conectar en WhatsApp → Configuración básica → Paso 2: Configuración de producción**.
+3. **Conectar ese emisor a Railway.** En la API y el worker del piloto de WhatsApp, configurar `META_PHONE_NUMBER_ID` con el identificador del emisor que entrega Meta. Confirmar que `META_WABA_ID` y `META_ACCESS_TOKEN` corresponden a esa cuenta y tienen acceso al número. Los valores privados se guardan como secretos en Railway.
+4. **Probar WhatsApp de extremo a extremo.** El equipo comunicó que Meta aceptó la configuración. Confirmar la suscripción del webhook al evento `messages` para la cuenta elegida. Desde otro teléfono, escribir al número piloto, comprobar la respuesta del bot y confirmar que una solicitud completada aparece una sola vez en EcoConecta. El envío de prueba a Jeremy solo comprobó la salida de mensajes.
+
+El directorio operativo y los informes administrativos siguen teniendo alcance limitado. El piloto de WhatsApp se preparó con `AI_PROVIDER=mock`; la prueba con Gemini sigue pendiente si el equipo decide habilitarlo.
