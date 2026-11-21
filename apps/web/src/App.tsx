@@ -494,11 +494,11 @@ function RequestCard({ item, role, onRefresh, onAssign, onCollect, onVerify, onR
     <div className="request-top"><div><span className={item.flow === 'ORGANIC' ? 'flow-label flow-label-green' : 'flow-label'}>{flowName}</span><h3>{item.code}</h3></div><StatusPill status={detail?.status ?? item.status}/></div>
     {showDetail && <div className="request-detail">
       {detail ? <>
-        <span>{detail.address}</span>
+        <span>{detail.address?.replace(/^DEMO · /, '').replace('Vivienda ficticia', 'Vivienda de ejemplo').replace(', Villas de San Pablo', '')}</span>
         {detail.materials.length > 0 && <span><strong>Materiales informados:</strong> {detail.materials.join(' · ')}</span>}
-        {detail.availability && <span>Disponible: {detail.availability}</span>}
-        {detail.note && <p>{detail.note}</p>}
-        {detail.assignedTo && <span>Recolector: {detail.assignedTo}</span>}
+        {detail.availability && <span>Disponible: {detail.availability.replace('Ejemplo: jornada de ', '').replace(', confirmar antes de recoger', '')}</span>}
+        {detail.note && <details><summary>Observaciones</summary><p>{detail.note}</p></details>}
+        {detail.assignedTo && <span>Recolector: {detail.assignedTo.replace('Demo Gerson · ', '')}</span>}
         {detail.scheduledAt && <span>Programada: {new Date(detail.scheduledAt).toLocaleString('es-CO', { timeZone: 'America/Bogota' })}</span>}
       </> : <p role="status">{detailError || 'Consultando solicitud…'}</p>}
     </div>}

@@ -15,8 +15,8 @@
 
 .mascot-screen {
   --mascot-bottom-space: calc(var(--mascot-occupied-space, 0px) + var(--bottom-nav-height) + env(safe-area-inset-bottom));
-  height: calc(100dvh - var(--mascot-bottom-space));
-  padding-bottom: 12px;
+  height: 100dvh;
+  padding-bottom: calc(var(--bottom-nav-height) + 12px + env(safe-area-inset-bottom));
   overflow-x: hidden;
   overflow-y: auto;
   scrollbar-width: thin;
@@ -26,7 +26,7 @@
 .mascot-screen .app-shell { min-height: 100%; }
 @media (min-width: 761px) {
   .mascot-screen .app-sidebar {
-    max-height: calc(100dvh - var(--mascot-bottom-space, 0px) - var(--site-header-height));
+    max-height: calc(100dvh - var(--site-header-height));
   }
 }
 
