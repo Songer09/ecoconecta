@@ -106,3 +106,14 @@ No se deben enviar datos personales a Gemini ni de residentes a una nube antes d
 - Rotar el token temporal Meta por una credencial apropiada para el piloto; no reutilizarlo como secreto de producción.
 
 Criterio final aún no alcanzado: recibir un mensaje desde un teléfono autorizado, responder por WhatsApp, guardar la solicitud en la PostgreSQL compartida y verla en el panel web operativo mediante HTTPS.
+
+
+## Propuesta de PR
+
+- Título: Actualiza evidencia de integración Meta, Gemini y staging.
+- Rama origen: feat/whatsapp-chatbot.
+- Rama destino: chore/add-project-documentation, el default branch actual; no hay rama main.
+- Tipo: borrador, para revisar el informe de auditoría, la evidencia real de Meta/Gemini y los bloqueos de staging.
+- No fusionar hasta aprobar proveedor/presupuesto, completar la integración con las bandejas compartidas y validar el recorrido real.
+
+La publicación del commit en la rama origen sí se completó. El PR no se pudo crear desde esta sesión: GitHub MCP devolvió 403 Resource not accessible by integration y gh CLI no tiene una sesión autenticada. No se modificó la rama destino.
