@@ -171,3 +171,14 @@ siguen pendientes de integración y revisión del equipo de backend.
 El propietario no autorizó gastos. Railway y sus bases/servicios quedan a cargo
 de Gerson según la guía. No se crearon recursos ni se activaron servicios públicos;
 tampoco se ampliaron permisos externos ni se enviaron mensajes reales en esta entrega.
+
+## Siguiente prueba con el piloto alojado por Gerson
+
+Gerson ha desplegado la API, el worker y una PostgreSQL para el piloto. El endpoint respondió al desafío HTTPS durante una comprobación del equipo. La verificación desde el panel de Meta sigue pendiente.
+
+1. Jeremy o el administrador delegado registra este callback en la app de Meta: `https://whatsapp-pilot-web-production-122594b8.up.railway.app/api/v1/integrations/whatsapp/webhook`. Gerson entrega en privado el token de verificación configurado en Railway. Es distinto del token de acceso a Graph.
+2. Suscribir el campo `messages` y confirmar que la app está suscrita a la WABA del emisor de prueba.
+3. Autorizar un teléfono participante. Puede ser el de Jeremy. Coordinarlo en privado con Gerson para que registre al vecino en el piloto.
+4. Gerson activa las credenciales en la API y el worker y comprueba que el canal indique `meta`. Después, el participante escribe desde WhatsApp «¿Cómo separo el cartón?» y confirma que recibió la respuesta. Registrar hora y resultado sin teléfonos ni secretos.
+
+Jeremy ya documentó la renovación del token. Si expiró al hacer la prueba, el administrador de Meta genera otro. La integración de avisos con FastAPI y la bandeja del frontend corresponde al equipo de integración.
